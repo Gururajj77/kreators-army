@@ -1,69 +1,55 @@
-/* Owner: A3 Scene. The street's paint, part two: shopfronts, the tea stall, the footpath, lamps, the scooter, and the How we work vignettes. Loads
-   with the full scene (art-full) and with the vignettes, never for the footer's skyline. Same selectors as paint.css. */
+/* Owner: A3 Scene. The street's paint, part two: the shopfront row, the footpath, and the How we work vignettes (their shopfronts, tea stall and
+   shelves). Loads with the full scene (art-full) and with the vignettes, never for the footer's skyline. Same selectors as paint.css.
+   A quiet backdrop: walls, signs, awnings and shutters are desaturated tints a few percent off the page; the awnings and signs keep only a whisper of
+   the cast's colours. The vignettes' motifs (people, badge, gift, branch, frame) keep their full colours below: they are what each tile is about. */
 @layer components {
   :root,
   .street[data-time='day'],
   .street-day {
-    --st-vg-sky: #fbecd6;
-    --st-wall1: #fffaf2;
-    --st-wall2: #fbeedd;
-    --st-wall3: #f4edff;
-    --st-wall4: #fff0e3;
-    --st-trim: #e6d9ca;
-    --st-win: #dbe6f3;
-    --st-win-lit: #ffd75e;
-    --st-win-lit-o: 0;
-    --st-sill: #e8dccd;
-    --st-sign-y: color-mix(in oklab, #fbd43f 80%, #fffaf3);
-    --st-sign-p: color-mix(in oklab, #6d61fe 70%, #fffaf3);
-    --st-sign-g: color-mix(in oklab, #47c349 70%, #fffaf3);
-    --st-sign-o: color-mix(in oklab, #ff8d3a 75%, #fffaf3);
-    --st-sign-mark: rgb(255 255 255 / 0.9);
-    --st-aw-y: color-mix(in oklab, #fbd43f 62%, #fffaf3);
-    --st-aw-p: color-mix(in oklab, #8e84ff 52%, #fffaf3);
-    --st-aw-g: color-mix(in oklab, #6fd878 52%, #fffaf3);
-    --st-aw-o: color-mix(in oklab, #ffa765 58%, #fffaf3);
-    --st-aw-w: #fffaf3;
-    --st-aw-edge: #e2d4c3;
-    --st-inside: #fff1cf;
-    --st-inside-glow: rgb(255 214 120 / 0.35);
-    --st-shelf: #d6c2a2;
-    --st-shutter: #ddd6cd;
-    --st-shutter-line: #cbc2b6;
-    --st-handle: #a69d90;
-    --st-shutter-rest: -42%;
-    --st-shade-o: 0.05;
-    --st-tree: #6fc067;
-    --st-tree-hi: #98d88c;
-    --st-trunk: #9a7a5d;
-    --st-leaf: #66b85e;
-    --st-leaf-hi: #a3df97;
-    --st-roof: #ee9f63;
-    --st-roof-line: rgb(0 0 0 / 0.08);
-    --st-wood: #c68a5a;
-    --st-wood-top: #ab7046;
-    --st-kettle: #8f8b9c;
-    --st-glass: rgb(255 255 255 / 0.85);
-    --st-chai: #c77a40;
-    --st-stool: #47c349;
-    --st-wire: #6c6573;
-    --st-bulb: #fff6d8;
-    --st-path: #ece5db;
-    --st-path-line: #ddd3c5;
-    --st-curb-a: #2c2b33;
-    --st-curb-b: #fbd43f;
-    --st-road: #4a4752;
-    --st-pool-o: 0;
-    --st-pool: #ffd98a;
-    --st-post: #3c3b46;
-    --st-lamp-bulb: #fff7da;
-    --st-scoot: #6d61fe;
-    --st-seat: #2a2930;
-    --st-tyre: #24232b;
-    --st-hub: #cbc6d8;
-    --st-planter: #c68a5a;
-    --st-glow: rgb(255 214 92 / 0.26);
+    --st-base: #e5e0d9;
+    --st-vg-sky: #f3f0eb;
+    --st-wall1: #ece8e2;
+    --st-wall2: #eae6df;
+    --st-wall3: #ebe8e6;
+    --st-wall4: #ede8e1;
+    --st-trim: #e1dcd4;
+    --st-win: #e0dad2;
+    --st-win-lit: #e0dad2;
+    --st-sign-y: color-mix(in oklab, #fbd43f 14%, var(--st-base));
+    --st-sign-p: color-mix(in oklab, #6d61fe 9%, var(--st-base));
+    --st-sign-g: color-mix(in oklab, #47c349 10%, var(--st-base));
+    --st-sign-o: color-mix(in oklab, #ff8d3a 11%, var(--st-base));
+    --st-sign-mark: rgb(255 255 255 / 0.55);
+    --st-aw-y: color-mix(in oklab, #fbd43f 18%, var(--st-base));
+    --st-aw-p: color-mix(in oklab, #8e84ff 13%, var(--st-base));
+    --st-aw-g: color-mix(in oklab, #6fd878 14%, var(--st-base));
+    --st-aw-o: color-mix(in oklab, #ffa765 15%, var(--st-base));
+    --st-aw-w: #efebe6;
+    --st-aw-edge: #ddd7cf;
+    --st-inside: #ece6dc;
+    --st-inside-glow: rgb(250 220 160 / 0.22);
+    --st-shelf: #d9d2c8;
+    --st-prod: #d6cfc5;
+    --st-shutter: #e2ddd5;
+    --st-shutter-line: #d9d3ca;
+    --st-handle: #cec7bd;
+    --st-roof: #ddd5cb;
+    --st-roof-line: rgb(0 0 0 / 0.04);
+    --st-wood: #d8cfc3;
+    --st-wood-top: #cfc5b8;
+    --st-kettle: #c9c4bd;
+    --st-glass: rgb(255 255 255 / 0.7);
+    --st-chai: #d4c3ae;
+    --st-stool: #d3ccc2;
+    --st-wire: #cdc6bd;
+    --st-bulb: #f4ecdc;
     --st-tea-o: 0;
+    --st-path: #efebe5;
+    --st-path-line: #e4dfd8;
+    --st-curb-a: #e0dad2;
+    --st-curb-b: #e8e3dc;
+    --st-road: #e7e2db;
+    --st-post: #57555f;
     /* vignettes */
     --st-person-a: #3f3d4a;
     --st-person-b: color-mix(in oklab, #ff8d3a 72%, #fffaf3);
@@ -78,65 +64,51 @@
   .band-dark,
   .street[data-time='night'],
   .street-night {
-    --st-vg-sky: #1c1a36;
-    --st-wall1: #222134;
-    --st-wall2: #262338;
-    --st-wall3: #201f33;
-    --st-wall4: #28233a;
-    --st-trim: #2f2c44;
-    --st-win: #2b2a42;
-    --st-win-lit-o: 1;
-    --st-sill: #2f2c44;
-    --st-sign-y: color-mix(in oklab, #fbd43f 72%, #15151a);
-    --st-sign-p: color-mix(in oklab, #6d61fe 78%, #15151a);
-    --st-sign-g: color-mix(in oklab, #47c349 70%, #15151a);
-    --st-sign-o: color-mix(in oklab, #ff8d3a 72%, #15151a);
-    --st-sign-mark: rgb(255 255 255 / 0.7);
-    --st-aw-y: color-mix(in oklab, #fbd43f 58%, #15151a);
-    --st-aw-p: color-mix(in oklab, #8e84ff 60%, #15151a);
-    --st-aw-g: color-mix(in oklab, #6fd878 52%, #15151a);
-    --st-aw-o: color-mix(in oklab, #ffa765 58%, #15151a);
-    --st-aw-w: #34304a;
-    --st-aw-edge: #3a3650;
-    --st-inside: #ffe2a0;
-    --st-inside-glow: rgb(255 200 90 / 0.45);
-    --st-shelf: #b8955f;
-    --st-shutter: #2e2c3f;
-    --st-shutter-line: #262536;
-    --st-handle: #4c4964;
-    --st-shutter-rest: 0%;
-    --st-shade-o: 0.18;
-    --st-tree: #213d2e;
-    --st-tree-hi: #2c5039;
-    --st-trunk: #2d2622;
-    --st-leaf: #24462f;
-    --st-leaf-hi: #33613f;
-    --st-roof: #4a3438;
+    --st-base: #20202a;
+    --st-vg-sky: #15151c;
+    --st-wall1: #1b1b23;
+    --st-wall2: #1c1c24;
+    --st-wall3: #1b1b25;
+    --st-wall4: #1d1c24;
+    --st-trim: #23232d;
+    --st-win: #23232c;
+    --st-win-lit: color-mix(in oklab, #f2c76b 42%, #23232c);
+    --st-sign-y: color-mix(in oklab, #fbd43f 10%, var(--st-base));
+    --st-sign-p: color-mix(in oklab, #6d61fe 12%, var(--st-base));
+    --st-sign-g: color-mix(in oklab, #47c349 9%, var(--st-base));
+    --st-sign-o: color-mix(in oklab, #ff8d3a 10%, var(--st-base));
+    --st-sign-mark: rgb(255 255 255 / 0.18);
+    --st-aw-y: color-mix(in oklab, #fbd43f 12%, var(--st-base));
+    --st-aw-p: color-mix(in oklab, #8e84ff 14%, var(--st-base));
+    --st-aw-g: color-mix(in oklab, #6fd878 10%, var(--st-base));
+    --st-aw-o: color-mix(in oklab, #ffa765 12%, var(--st-base));
+    --st-aw-w: #24242e;
+    --st-aw-edge: #262630;
+    --st-inside: #2a2721;
+    --st-inside-glow: rgb(242 199 107 / 0.18);
+    --st-shelf: #34312b;
+    --st-prod: #2c2b33;
+    --st-shutter: #1e1e27;
+    --st-shutter-line: #191920;
+    --st-handle: #2c2c37;
+    --st-roof: #24222a;
     --st-roof-line: rgb(0 0 0 / 0.2);
-    --st-wood: #5c412d;
-    --st-wood-top: #4a3323;
-    --st-kettle: #6c687c;
-    --st-glass: rgb(255 255 255 / 0.55);
-    --st-chai: #b0652e;
-    --st-stool: #2e6b34;
-    --st-wire: #4b4662;
-    --st-bulb: #ffd96b;
-    --st-path: #1c1b28;
-    --st-path-line: #252433;
-    --st-curb-a: #111117;
-    --st-curb-b: #8e7a2a;
-    --st-road: #0f0f14;
-    --st-pool-o: 1;
-    --st-post: #3a384c;
-    --st-lamp-bulb: #ffe9a6;
-    --st-scoot: #5b51d8;
-    --st-seat: #121218;
-    --st-tyre: #0c0c11;
-    --st-hub: #4c4964;
-    --st-planter: #5c412d;
-    --st-glow: rgb(255 210 130 / 0.3);
-    /* The tea stall is always open at night: the scene's warmest spot. */
-    --st-tea-o: 0.7;
+    --st-wood: #29251f;
+    --st-wood-top: #24211c;
+    --st-kettle: #35343e;
+    --st-glass: rgb(255 255 255 / 0.25);
+    --st-chai: #4a3a2a;
+    --st-stool: #26262f;
+    --st-wire: #2c2c37;
+    --st-bulb: #8a7442;
+    /* The vignette's tea stall keeps a faint warm glow at night. */
+    --st-tea-o: 0.5;
+    --st-path: #141419;
+    --st-path-line: #19191f;
+    --st-curb-a: #1b1b22;
+    --st-curb-b: #17171d;
+    --st-road: #101014;
+    --st-post: #5d5b6c;
     --st-person-a: #5d5a75;
     --st-person-b: color-mix(in oklab, #ff8d3a 62%, #15151a);
     --st-person-head: #a87c5c;
@@ -146,15 +118,6 @@
     --st-frame: #f5f3ee;
   }
 
-  /* The footer's skyline lifts the far tones so it reads, faintly, behind the wordmark on the dark stage. */
-  .s-shade {
-    fill: #000;
-    opacity: var(--st-shade-o);
-  }
-  .s-stars {
-    fill: #ffffff;
-    opacity: calc(var(--st-stars-o) * 0.55);
-  }
   .s-wall1 {
     fill: var(--st-wall1);
   }
@@ -175,10 +138,6 @@
   }
   .s-win-lit {
     fill: var(--st-win-lit);
-    opacity: calc(var(--st-win-lit-o) * 0.8);
-  }
-  .s-sill {
-    fill: var(--st-sill);
   }
   .s-sign-y {
     fill: var(--st-sign-y);
@@ -218,26 +177,16 @@
   }
   .s-inside-glow {
     fill: var(--st-inside-glow);
-    opacity: 0;
-  }
-  .s-shop[data-shop='tea'] .s-inside-glow,
-  .s-shop[data-shop='vg'] .s-inside-glow {
     opacity: var(--st-tea-o);
   }
   .s-shelf {
     fill: var(--st-shelf);
   }
-  .s-prod-y {
-    fill: #f5c518;
-  }
-  .s-prod-p {
-    fill: #7a6ff7;
-  }
-  .s-prod-g {
-    fill: #3fb144;
-  }
+  .s-prod-y,
+  .s-prod-p,
+  .s-prod-g,
   .s-prod-o {
-    fill: #ff8d3a;
+    fill: var(--st-prod);
   }
   .s-shutter-bg {
     fill: var(--st-shutter);
@@ -247,21 +196,6 @@
   }
   .s-shutter-handle {
     fill: var(--st-handle);
-  }
-  .s-tree {
-    fill: var(--st-tree);
-  }
-  .s-tree-hi {
-    fill: var(--st-tree-hi);
-  }
-  .s-trunk {
-    fill: var(--st-trunk);
-  }
-  .s-leaf {
-    fill: var(--st-leaf);
-  }
-  .s-leaf-hi {
-    fill: var(--st-leaf-hi);
   }
   .s-roof {
     fill: var(--st-roof);
@@ -310,34 +244,6 @@
   }
   .s-road {
     fill: var(--st-road);
-  }
-  .s-pool {
-    fill: var(--st-pool);
-    opacity: calc(var(--st-pool-o) * 0.16);
-  }
-  .s-post,
-  .s-lamp-head,
-  .s-mirror,
-  .s-bollard {
-    fill: var(--st-post);
-  }
-  .s-lamp-bulb {
-    fill: var(--st-lamp-bulb);
-  }
-  .s-scoot {
-    fill: var(--st-scoot);
-  }
-  .s-seat {
-    fill: var(--st-seat);
-  }
-  .s-tyre {
-    fill: var(--st-tyre);
-  }
-  .s-hub {
-    fill: var(--st-hub);
-  }
-  .s-planter {
-    fill: var(--st-planter);
   }
 
   /* ---------- Vignettes (How we work, chapter 3) ---------- */

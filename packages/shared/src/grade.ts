@@ -75,9 +75,9 @@ export function megaWarnings(meta: MegaMeta | null | undefined): MegaWarning[] {
     out.push({ code: 'no-header-info', message: "Couldn't read the video's size and length. It may still play." });
   }
   if (video && HEVC.has(video)) {
-    out.push({ code: 'hevc', message: "This file uses HEVC (H.265), which many browsers can't play. It can stay a draft; export it as H.264 to publish." });
+    out.push({ code: 'hevc', message: "This file uses HEVC (H.265), which some browsers can't play. It will still publish and stream; an H.264 export plays everywhere." });
   } else if (video && !PLAYABLE_VIDEO.has(video)) {
-    out.push({ code: 'video-codec', message: `This file's video is ${video}, which browsers can't play. It can stay a draft; export it as H.264 to publish.` });
+    out.push({ code: 'video-codec', message: `This file's video is ${video}, which many browsers can't play. It will still publish and stream; an H.264 export plays everywhere.` });
   }
   if (meta.codec && video && !audio) out.push({ code: 'no-audio', message: 'This file has no sound.' });
   else if (audio && !PLAYABLE_AUDIO.has(audio)) out.push({ code: 'audio-codec', message: `Its sound is ${audio}, which Chrome may not play. Export with AAC audio.` });

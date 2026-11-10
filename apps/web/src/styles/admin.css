@@ -988,12 +988,13 @@
     cursor: pointer;
   }
 
+  /* The columns come from listColumns.tsx (--adm-cols on the screen): the ones chosen, minus those the window is too narrow for. */
   .adm-list-head,
   .adm-row {
     display: grid;
-    grid-template-columns: 40px 36px minmax(0, 1fr) 170px 196px 60px 60px 92px 44px;
+    grid-template-columns: var(--adm-cols, 40px 36px minmax(0, 1fr) 124px 164px 64px 64px 76px 44px);
     align-items: center;
-    gap: 12px;
+    gap: 10px;
   }
 
   .adm-list-head {
@@ -1234,9 +1235,362 @@
     justify-content: flex-end;
   }
 
-  .adm-rows[data-bin] .adm-row,
-  .adm-list-head:has(+ .adm-rows[data-bin]) {
-    grid-template-columns: 40px 36px minmax(0, 1fr) 120px 196px 60px 60px 92px minmax(0, 280px);
+  /* ---------- Editing in place (inlineEdit.tsx) ---------- */
+  .adm-vcell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    min-height: 20px;
+  }
+
+  .adm-row-cell {
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 19px;
+  }
+
+  .adm-cell-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The whole cell is the button; the padding grows its target and the negative margin gives the room back, so the text stays aligned. */
+  .adm-cell-btn {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    max-width: calc(100% + 12px);
+    min-height: 28px;
+    margin: -4px -6px;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: text;
+    transition: background-color var(--dur-hover) ease;
+  }
+
+  .adm-cell-title .adm-cell-btn,
+  .adm-cell-brand .adm-cell-btn {
+    min-height: 24px;
+    margin-block: -2px;
+    padding-block: 2px;
+  }
+
+  .adm-cell-btn > .adm-row-title,
+  .adm-cell-btn > .adm-row-brand {
+    display: block;
+    min-width: 0;
+  }
+
+  .adm-cell-btn:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .adm-cell-btn:hover {
+      background: var(--sunken);
+    }
+
+    .adm-cell-btn:hover > .adm-row-title {
+      text-decoration: none;
+    }
+  }
+
+  /* A missing field shows nothing; "Add" (or the faint glyph) only on hover and focus. */
+  .adm-cell-add {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity var(--dur-hover) ease;
+  }
+
+  .adm-cell-btn:hover > .adm-cell-add,
+  .adm-cell-btn:focus-visible > .adm-cell-add {
+    opacity: 0.75;
+  }
+
+  .adm-posted:has(> .adm-cell-glyph) {
+    gap: 4px;
+  }
+
+  .adm-cell-glyph .adm-cell-btn {
+    flex: 0 0 auto;
+    justify-content: center;
+    width: 28px;
+    min-height: 28px;
+    margin: 0;
+    padding: 0;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .adm-cell-glyph[data-empty] .adm-cell-btn > svg {
+    opacity: 0;
+    transition: opacity var(--dur-hover) ease;
+  }
+
+  .adm-cell-glyph[data-empty] .adm-cell-btn:hover > svg,
+  .adm-cell-glyph[data-empty] .adm-cell-btn:focus-visible > svg {
+    opacity: 0.4;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .adm-cell-glyph:not([data-empty]) .adm-cell-btn:hover {
+      color: var(--ink);
+    }
+  }
+
+  .adm-cell-spin,
+  .adm-cell-tick {
+    flex: none;
+    color: var(--muted);
+  }
+
+  .adm-cell-tick {
+    width: 14px;
+    height: 14px;
+    color: var(--adm-ok);
+    animation: adm-tick-pop 260ms var(--ease-out) both;
+  }
+
+  .adm-cell-glyph .adm-cell-spin,
+  .adm-cell-glyph .adm-cell-tick {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 11px;
+    height: 11px;
+  }
+
+  @keyframes adm-tick-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  :root[data-still] .adm-cell-tick {
+    animation: none;
+  }
+
+  /* The editor floats over its cell, wider where the cell is narrow; the row it sits in rises above the next ones. */
+  .adm-row:has(.adm-vcell[data-editing]),
+  .adm-row:has(.adm-cell-msg) {
+    z-index: 4;
+  }
+
+  .adm-cell-editor {
+    position: absolute;
+    z-index: 3;
+    top: 50%;
+    left: -10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: calc(100% + 20px);
+    transform: translateY(-50%);
+  }
+
+  .adm-cell-editor[data-field='category'],
+  .adm-cell-editor[data-field='platform'] {
+    width: max(calc(100% + 20px), 190px);
+  }
+
+  .adm-cell-editor[data-field='uploadDate'] {
+    width: 168px;
+  }
+
+  .adm-cell-editor[data-field='views'] {
+    width: 124px;
+  }
+
+  .adm-cell-editor[data-field='instagram'],
+  .adm-cell-editor[data-field='youtube'] {
+    right: -10px;
+    left: auto;
+    width: 380px;
+    padding: 4px;
+    border-radius: 14px;
+    background: var(--surface-5);
+    box-shadow:
+      var(--shadow-4),
+      0 0 0 0.5px var(--line);
+  }
+
+  .adm-cell-input {
+    display: block;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 34px;
+    padding: 5px 9px;
+    border: 1.5px solid var(--focus);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+
+  .adm-cell-editor[data-field='title'] .adm-cell-input {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .adm-cell-input:focus {
+    outline: none;
+  }
+
+  .adm-cell-input[aria-invalid='true'] {
+    border-color: var(--adm-err);
+  }
+
+  .adm-cell-editor[data-field='instagram'] .adm-cell-input,
+  .adm-cell-editor[data-field='youtube'] .adm-cell-input {
+    box-shadow: none;
+  }
+
+  .adm-cell-open {
+    flex: none;
+    padding: 6px 8px;
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .adm-cell-open:hover {
+    background: var(--sunken);
+  }
+
+  /* The error, or the other tab's value, under the cell. */
+  .adm-cell-msg {
+    position: absolute;
+    z-index: 3;
+    top: calc(100% + 6px);
+    left: -6px;
+    width: max-content;
+    max-width: 280px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: var(--surface-5);
+    box-shadow:
+      var(--shadow-3),
+      0 0 0 0.5px var(--line);
+    color: var(--adm-err);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 18px;
+    white-space: normal;
+    pointer-events: none;
+  }
+
+  .adm-cell-editor > .adm-cell-msg {
+    top: calc(100% + 4px);
+    left: 0;
+  }
+
+  .adm-cell-msg[data-kind='stale'] {
+    background: var(--adm-warn-bg);
+    color: var(--adm-warn);
+  }
+
+  .adm-cell-glyph .adm-cell-msg,
+  .adm-row-views .adm-cell-msg,
+  .adm-cell-editor[data-field='instagram'] > .adm-cell-msg,
+  .adm-cell-editor[data-field='youtube'] > .adm-cell-msg {
+    right: -6px;
+    left: auto;
+  }
+
+  .adm-vcell[data-state='stale'] .adm-cell-btn {
+    background: var(--adm-warn-bg);
+  }
+
+  .adm-vcell[data-state='error'] .adm-cell-btn {
+    box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--adm-err) 55%, transparent);
+  }
+
+  /* Columns */
+  .adm-cols {
+    margin-left: auto;
+  }
+
+  .adm-cols-pop {
+    min-width: 230px;
+    padding: 12px 14px;
+  }
+
+  .adm-cols-pop .adm-pop-title {
+    margin-bottom: 6px;
+  }
+
+  .adm-cols-opt {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0 10px;
+    min-height: 34px;
+    cursor: pointer;
+  }
+
+  .adm-cols-opt > input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--ink);
+  }
+
+  .adm-cols-note {
+    grid-column: 2;
+    margin-top: -6px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .adm-edit-hint {
+    color: var(--muted);
+  }
+
+  /* Touch screens at desktop width: every cell is a 44 px target. */
+  @media (pointer: coarse) {
+    .adm-cell-btn {
+      min-height: 44px;
+      margin-block: -12px;
+      padding-block: 12px;
+    }
+
+    .adm-cell-title .adm-cell-btn,
+    .adm-cell-brand .adm-cell-btn {
+      min-height: 32px;
+      margin-block: -6px;
+      padding-block: 6px;
+    }
+
+    .adm-cell-glyph .adm-cell-btn {
+      width: 44px;
+      min-height: 44px;
+    }
   }
 
   .adm-bin-actions {
@@ -2670,23 +3024,6 @@
   }
 
   /* ---------- Narrower windows ---------- */
-  @media (max-width: 1180px) {
-    .adm-list-head,
-    .adm-row {
-      grid-template-columns: 40px 36px minmax(0, 1fr) 150px 176px 52px 52px 44px;
-    }
-
-    .adm-list-head > :nth-child(8),
-    .adm-row-time {
-      display: none;
-    }
-
-    .adm-rows[data-bin] .adm-row,
-    .adm-list-head:has(+ .adm-rows[data-bin]) {
-      grid-template-columns: 40px 36px minmax(0, 1fr) 110px 160px 52px 52px minmax(0, 250px);
-    }
-  }
-
   @media (max-width: 960px) {
     .adm-enq-panes {
       grid-template-columns: minmax(0, 1fr);
@@ -2774,7 +3111,11 @@
     }
 
     .adm-row > .adm-posted,
-    .adm-row-views {
+    .adm-row-views,
+    .adm-row-cell,
+    .adm-row-time,
+    .adm-cols,
+    .adm-edit-hint {
       display: none;
     }
 

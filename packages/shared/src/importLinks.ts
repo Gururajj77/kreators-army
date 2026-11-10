@@ -10,7 +10,7 @@
 import type { ImportStatus, MegaInspect } from './admin.ts';
 import { canonicalMegaLink, decodeHtmlEntities, parseMegaUrl, type MegaLinkResult, type ParsedMegaLink } from './megaLinks.ts';
 import { parseInstagram, parseYouTube } from './socialLinks.ts';
-import { cleanText, parseUploadDate, parseViews } from './text.ts';
+import { cleanText, isFutureDay, parseUploadDate, parseViews } from './text.ts';
 import type { VideoAspect } from './videos.ts';
 
 export type ParsedImportStatus = 'ok' | 'no-key' | 'invalid' | 'folder' | 'needs-mega' | 'duplicate-in-file';
@@ -443,7 +443,8 @@ export function parseImport(input: string): ParsedImport {
     if (f.uploadDate !== undefined) {
       const ud = parseUploadDate(f.uploadDate);
       if (ud === undefined) row.notes.push(`upload date "${f.uploadDate}" is not a date; left blank (write it as 2026-11-10 or 10/11/2026)`);
-      row.uploadDate = ud ?? null;
+      else if (ud && isFutureDay(ud)) row.notes.push(`upload date "${f.uploadDate}" is in the future; left blank`);
+      row.uploadDate = ud && !isFutureDay(ud) ? ud : null;
     }
     row.aspect = aspectFrom(f.aspect);
 
@@ -500,9 +501,9 @@ export function importStatusOf(check: MegaInspect): ImportStatus {
   return 'unknown-quality';
 }
 
-/** Ticked by default (admin brief 3.5): the rows MEGA said are fine, whatever their weight. */
+/** Ticked by default: every row MEGA could read, whatever its weight or codec (those are warnings, not blocks). */
 export function isDefaultSelected(status: ImportStatus): boolean {
-  return status === 'ready' || status === 'heavy' || status === 'too-heavy' || status === 'unknown-quality';
+  return status === 'ready' || status === 'heavy' || status === 'too-heavy' || status === 'unknown-quality' || status === 'unplayable';
 }
 
 /** Statuses whose row can never be ticked (admin brief 3.5: "no, and disabled"). */

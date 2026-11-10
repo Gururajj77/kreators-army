@@ -12,6 +12,7 @@ import { AnimatePresence, PresenceContext, m, useIsPresent } from 'motion/react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { motionOk } from '../lib/motionOk';
+import { uploadMonth } from '../lib/videoFind';
 import { spring } from '../lib/spring';
 import { BrandPill, InstagramGlyph, PostedOn, TileEmpty, VideoFrame, YouTubeGlyph, launched, launchedEl, markBrandSeen, videoToken } from './frames';
 import { ArrowDisc, LabelRoll } from './tabs';
@@ -52,11 +53,13 @@ export interface VideoTileProps {
   /** Muted preview: 'hover' (default, desktop only, after 300 ms), 'active' with `active`, or 'none'. */
   preview?: 'hover' | 'active' | 'none';
   active?: boolean;
+  /** A small "Nov 2026" chip when the video has an upload date (the library). Nothing when it has none. */
+  date?: boolean;
 }
 
 /** A video as a `card` frame: poster, scrim, play disc, views, brand pill and "Also on" marks. Opens the player with the morph. */
-export function VideoTile({ video, onOpen, eager, className, variant, sticker = false, preview = 'hover', active }: VideoTileProps) {
-  return <VideoFrame video={video} variant="card" onOpen={onOpen} eager={eager} className={className} tileVariant={variant} sticker={sticker} preview={preview} active={active} />;
+export function VideoTile({ video, onOpen, eager, className, variant, sticker = false, preview = 'hover', active, date = false }: VideoTileProps) {
+  return <VideoFrame video={video} variant="card" onOpen={onOpen} eager={eager} className={className} tileVariant={variant} sticker={sticker} preview={preview} active={active} date={date} />;
 }
 
 export function TileSkeletons({ count, className }: { count: number; className?: string }) {
@@ -267,7 +270,11 @@ interface UpNextItem {
 }
 
 function PlayerDetails({ video, position, upNext, onPrev, onNext }: { video: Video; position?: PlayerPosition; upNext?: UpNextItem[]; onPrev?: () => void; onNext?: () => void }) {
-  const facts = [video.category && { label: 'Category', value: video.category }, video.platform && { label: 'Platform', value: video.platform }].filter((f): f is { label: string; value: string } => Boolean(f));
+  // Only what the video has: no views, category, platform or date means no row for it, and no list at all when none is there.
+  const uploaded = uploadMonth(video.uploadDate);
+  const facts = [video.category && { label: 'Category', value: video.category }, video.platform && { label: 'Platform', value: video.platform }, uploaded && { label: 'Uploaded', value: uploaded }].filter(
+    (f): f is { label: string; value: string } => Boolean(f),
+  );
   return (
     <>
       <div className="player-head">

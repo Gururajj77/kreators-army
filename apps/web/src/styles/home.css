@@ -2,17 +2,19 @@
 @layer components {
   /* ---------- Hero: the copy on the left; on the right the deck and the four stand on the street (visual §1.3). ---------- */
   .hero {
-    --street-h: clamp(280px, 40vh, 380px);
+    /* A low band: the street is a backdrop under the deck, noticed second. */
+    --street-h: clamp(240px, 30vh, 300px);
     /* The deck's height, as frames.css sizes it, so the cast can stand at the right distances from it. */
     --hero-reel: clamp(440px, calc(100svh - 360px), 540px);
     --fw: calc(var(--hero-reel) * 280 / 580);
     /* One design pixel at the 280 x 580 phone the staging was drawn at. */
     --u: calc(var(--hero-reel) / 580);
     --k: calc(var(--hero-reel) / 540);
-    --c-bolu: calc(150 * var(--k));
-    --c-tiko: calc(160 * var(--k));
-    --c-sochu: calc(96 * var(--k));
-    --c-gola: calc(104 * var(--k));
+    /* The four, a touch smaller than the first cut so they frame the deck without crowding it. */
+    --c-bolu: calc(138 * var(--k));
+    --c-tiko: calc(148 * var(--k));
+    --c-sochu: calc(90 * var(--k));
+    --c-gola: calc(96 * var(--k));
     position: relative;
     /* The footpath's edges (--floor-*) are measured against the hero's width: the street is as wide as the hero. */
     container-type: inline-size;
@@ -272,7 +274,7 @@
 
   @media (max-width: 734px) {
     .hero {
-      --street-h: 300px;
+      --street-h: 240px;
       --hero-reel: 340px;
       --c-bolu: 100px;
       --c-tiko: 92px;
@@ -1329,11 +1331,6 @@
     margin-top: 40px;
   }
 
-  /* While the library loads, the thread's place is held so nothing below moves. */
-  .ix-thread-wait {
-    min-height: 560px;
-  }
-
   .ix-foot {
     display: flex;
     flex-wrap: wrap;
@@ -1368,10 +1365,6 @@
     .ix-chain,
     .ix-thread {
       margin-top: 28px;
-    }
-
-    .ix-thread-wait {
-      min-height: 1200px;
     }
   }
 

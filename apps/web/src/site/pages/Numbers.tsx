@@ -90,7 +90,8 @@ function Thumb({ video, i }: { video: Video; i: number }) {
 
 function Ranking() {
   const { data: videos, isLoading, isError, refetch } = useVideos();
-  const ranked = [...(videos ?? [])].sort((a, b) => b.views - a.views);
+  // A ranking by views: a video whose views are unknown (0) has no place in it.
+  const ranked = [...(videos ?? [])].filter((v) => v.views > 0).sort((a, b) => b.views - a.views);
   const player = useVideoPlayer(ranked);
 
   if (isLoading)

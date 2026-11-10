@@ -61,8 +61,8 @@ function Detail({ row, numberOf }: { row: UIRow; numberOf: (rowId: string) => st
     case 'unplayable':
       body = (
         <span>
-          {row.check?.ok ? row.check.warnings.find((w) => w.code === 'hevc' || w.code === 'video-codec')?.message ?? "Browsers can't play this file." : "Browsers can't play this file."} Tick it to
-          import it as a draft; it can't go live until the link points at an H.264 export.
+          {row.check?.ok ? row.check.warnings.find((w) => w.code === 'hevc' || w.code === 'video-codec')?.message ?? "Browsers can't play this file." : "Browsers can't play this file."} It still
+          imports, publishes and streams; an H.264 export plays in every browser.
         </span>
       );
       break;

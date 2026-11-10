@@ -1,7 +1,7 @@
 import type { Video } from '@kreators/shared';
 import { useRef } from 'react';
 import { Link } from 'react-router';
-import { ChatThread } from '../../components/chat';
+import { ChatThread, ChatThreadSkeleton } from '../../components/chat';
 import { SectionHead } from '../../components/ui';
 import { InteractionChain, type ChainHandle } from '../../components/visuals';
 import { INTERACTION_THREAD } from '../../lib/content';
@@ -10,13 +10,16 @@ import { INTERACTION_THREAD } from '../../lib/content';
 // video. The thread lights the chain as it plays. A question whose video is not live is dropped; with none left, the chain lights by itself and the
 // copy stays. No invented participant words anywhere: the reply is always the video.
 
+const QUESTIONS = INTERACTION_THREAD.map((t) => t.q);
+
 export function Interaction({ videos, onOpen }: { videos: Video[] | undefined; onOpen: (v: Video) => void }) {
   const chain = useRef<ChainHandle>(null);
   const pairs = videos ? INTERACTION_THREAD.flatMap(({ q, videoId }) => {
     const video = videos.find((v) => v.id === videoId);
     return video ? [{ question: q, video }] : [];
   }) : null;
-  // While the library loads, the chain waits for the thread; with no pairs at all it lights itself.
+  // While the library loads, the thread's place shows as a chat already (outlined bubbles) and the chain waits for it; with no pairs at all the chain
+  // lights itself.
   const thread = pairs === null || pairs.length > 0;
 
   return (
@@ -31,7 +34,7 @@ export function Interaction({ videos, onOpen }: { videos: Video[] | undefined; o
         />
         <InteractionChain ref={chain} mode={thread ? 'controlled' : 'auto'} className="ix-chain" label="The interaction, in order" />
         {pairs && pairs.length > 0 && <ChatThread pairs={pairs} chain={chain} onOpen={onOpen} label="Real questions we've filmed" className="ix-thread" />}
-        {pairs === null && <div className="ix-thread-wait" aria-hidden />}
+        {pairs === null && <ChatThreadSkeleton questions={QUESTIONS} className="ix-thread" />}
         <div className="ix-foot">
           <p className="ix-caption">Real questions we've filmed. The answers are in the videos.</p>
           <Link to="/how-we-work" className="ix-link">

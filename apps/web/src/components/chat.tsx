@@ -302,7 +302,7 @@ export interface ChatThreadProps {
   pairs: { question: string; video: Video }[];
   /** Default 'bolu'. */
   asker?: CastId;
-  /** Lights the chain in step with the thread: chip k at 300 + 1350 k ms. */
+  /** Lights the chain in step with the thread: the six chips spread evenly from 150 ms to the last answer (chainAt). */
   chain?: RefObject<ChainHandle | null>;
   /** useVideoPlayer().open */
   onOpen: (v: Video) => void;
@@ -311,17 +311,24 @@ export interface ChatThreadProps {
   className?: string;
 }
 
-const PHONE = '(max-width: 734px)';
+/** The thread's cadence in ms: typing dots, then the question; the answer after it; the pause before the next pair. About 1 s a pair. */
+export const THREAD_BEAT = { typing: 350, answer: 350, next: 350 } as const;
+const PAIR_MS = THREAD_BEAT.typing + THREAD_BEAT.answer + THREAD_BEAT.next;
+/** When the last answer of an n-pair thread arrives, from the start: 3.85 s for four pairs. */
+export const threadSpan = (n: number) => Math.max(0, n - 1) * PAIR_MS + THREAD_BEAT.typing + THREAD_BEAT.answer;
+/** When chip k (0 to 5) of the chain lights for an n-pair thread: evenly from 150 ms to the last answer. */
+export const chainAt = (k: number, n: number) => Math.round(150 + ((threadSpan(n) - 150) * k) / 5);
 
 /**
  * Four real questions, each answered by its real video. Every bubble is in the DOM, visible, from the first paint; an effect marks the ones still to
- * come (data-wait) only when motion is allowed, so no JS, a failed chunk or still mode shows the whole thread. It plays once per page view, starting
- * at 35% in view (phones: each pair at 60% in view), and completes at once if the thread leaves the viewport mid-way. No live region.
+ * come (data-wait) only when motion is allowed, so no JS, a failed chunk or still mode shows the whole thread. A waiting bubble is a faint outline of
+ * itself, holding its place, never a blank. It plays once per page view, starting as the thread's top enters the lower 85% of the viewport (at every
+ * width), about 1 s a pair, and completes at once if the thread leaves the viewport mid-way or a reply takes keyboard focus. No live region.
  */
 export function ChatThread({ pairs, asker = 'bolu', chain, onOpen, label, className }: ChatThreadProps) {
   const list = useRef<HTMLOListElement>(null);
   const n = pairs.length;
-  // How far the sequence has got: questions shown, answers shown, the pair whose typing dots are up. Armed means "hide what has not arrived yet".
+  // How far the sequence has got: questions shown, answers shown, the pair whose typing dots are up. Armed means "ghost what has not arrived yet".
   const [armed, setArmed] = useState(false);
   const [asked, setAsked] = useState(n);
   const [answered, setAnswered] = useState(n);
@@ -353,54 +360,53 @@ export function ChatThread({ pairs, asker = 'bolu', chain, onOpen, label, classN
     const el = list.current;
     if (!armed || !el) return;
     const r = run.current;
-    const phone = window.matchMedia(PHONE).matches;
     const timers: number[] = [];
     const later = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
 
     const play = async () => {
-      if (r.started) return;
+      if (r.started || r.finished) return;
       r.started = true;
       setRunning(true);
-      const items = [...el.children] as HTMLElement[];
-      if (!phone) for (let k = 0; k < 6; k++) later(300 + 1350 * k, () => !r.finished && chain?.current?.light(k));
+      for (let k = 0; k < 6; k++) later(chainAt(k, n), () => !r.finished && chain?.current?.light(k));
       for (let i = 0; i < n; i++) {
         if (r.cancel) return;
-        const item = items[i];
-        if (phone && item) {
-          await seen(item, 0.6);
-          if (r.cancel) return;
-          chain?.current?.light(Math.min(5, Math.round(((i + 1) / n) * 6) - 1));
-        }
         setTyping(i);
-        await wait(600);
+        await wait(THREAD_BEAT.typing);
         if (r.cancel) return;
         setTyping(null);
         setAsked(i + 1);
-        await wait(700);
+        await wait(THREAD_BEAT.answer);
         if (r.cancel) return;
         setAnswered(i + 1);
-        await wait(phone ? 400 : 1200);
+        if (i < n - 1) await wait(THREAD_BEAT.next);
       }
       if (!r.cancel) finish();
     };
 
-    // Starts at 35% in view; once started, leaving the viewport completes it at once (nobody comes back to a half-hidden thread).
-    const io = new IntersectionObserver(
+    // Starts as the thread's top comes 15% above the viewport's bottom edge: the first dots show while the visitor is still scrolling towards it.
+    const start = new IntersectionObserver(
       ([e]) => {
-        if (!e) return;
-        if (e.intersectionRatio >= 0.35 || (phone && e.isIntersecting && e.boundingClientRect.top < window.innerHeight * 0.65)) void play();
-        else if (!e.isIntersecting && r.started && !r.finished) finish();
+        if (e?.isIntersecting) void play();
       },
-      { threshold: [0, 0.35] },
+      { rootMargin: '0px 0px -15% 0px', threshold: 0 },
     );
-    io.observe(el);
+    start.observe(el);
+    // Once started, leaving the viewport completes it at once (nobody comes back to a half-played thread).
+    const leave = new IntersectionObserver(
+      ([e]) => {
+        if (e && !e.isIntersecting && r.started && !r.finished) finish();
+      },
+      { threshold: 0 },
+    );
+    leave.observe(el);
     // Still switched on mid-way: everything arrives.
     const mo = new MutationObserver(() => {
       if (!motionOk()) finish();
     });
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-still'] });
     return () => {
-      io.disconnect();
+      start.disconnect();
+      leave.disconnect();
       mo.disconnect();
       timers.forEach((t) => window.clearTimeout(t));
       r.cancel = true;
@@ -408,13 +414,18 @@ export function ChatThread({ pairs, asker = 'bolu', chain, onOpen, label, classN
   }, [armed, n, chain, finish]);
 
   const newest = answered > 0 ? answered - 1 : -1;
+  // A keyboard visitor tabbing into a reply that has not arrived gets the whole thread at once.
+  const onFocus = () => {
+    if (armed && !run.current.finished) finish();
+  };
 
   return (
-    <ol ref={list} className={className ? `chat-thread ${className}` : 'chat-thread'} aria-label={label} data-run={running ? '' : undefined}>
+    <ol ref={list} className={className ? `chat-thread ${className}` : 'chat-thread'} aria-label={label} data-run={running ? '' : undefined} onFocus={onFocus}>
       {pairs.map((p, i) => (
         <li key={p.video.id} className="chat-pair">
           <div className="chat-q">
-            <div className="chat-row" data-side="left" data-arrive="" data-wait={armed && i >= asked ? '' : undefined}>
+            {/* data-wait="typing": the dots stand in its cell, so its outline steps aside. */}
+            <div className="chat-row" data-side="left" data-arrive="" data-wait={armed && i >= asked ? (typing === i ? 'typing' : '') : undefined}>
               <ChatAvatar who={asker} />
               <ChatBubble
                 who={asker}
@@ -445,19 +456,30 @@ export function ChatThread({ pairs, asker = 'bolu', chain, onOpen, label, classN
   );
 }
 
-function seen(el: Element, threshold: number): Promise<void> {
-  return new Promise((resolve) => {
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.intersectionRatio >= threshold || (e.isIntersecting && e.intersectionRect.height >= window.innerHeight * threshold))) {
-          io.disconnect();
-          resolve();
-        }
-      },
-      { threshold: [0, threshold] },
-    );
-    io.observe(el);
-  });
+/**
+ * The thread's place while the library loads: the same grid of pairs, each Bolu's face beside the outline of the question to come (its real words,
+ * invisible, so the outline is the bubble's own size) and the outline of a video reply, with a slow shimmer (none under still). aria-hidden: the
+ * thread itself is what screen readers get.
+ */
+export function ChatThreadSkeleton({ questions, asker = 'bolu', className }: { questions: readonly string[]; asker?: CastId; className?: string }) {
+  return (
+    <ol className={className ? `chat-skeleton ${className}` : 'chat-skeleton'} aria-hidden>
+      {questions.map((q) => (
+        <li key={q} className="chat-pair">
+          <div className="chat-q">
+            <div className="chat-row" data-side="left" data-ghost="">
+              <ChatAvatar who={asker} />
+              <ChatBubble who={asker}>{q}</ChatBubble>
+            </div>
+          </div>
+          <div className="chat-row chat-a" data-side="right" data-ghost="">
+            <ChatAvatar poster={null} />
+            <span className="chat-ghost-reply" />
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
 }
 
 // ---------- FaqChat (Home #faq) ----------
@@ -470,6 +492,9 @@ export interface FaqChatProps {
   className?: string;
 }
 
+/** The FAQ chat's play-in in ms: the visitor's bubble, then the typing dots, then the answer (650 ms after the press). */
+const FAQ_BEAT = { you: 250, typing: 400 } as const;
+
 const PLUS = (
   <svg className="faqchat-icon" viewBox="0 0 24 24" aria-hidden focusable="false">
     <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -479,12 +504,12 @@ const PLUS = (
 /**
  * The Home FAQ as a chat: six disclosure buttons, each followed by its own answer region. At 1068 and wider every region is placed in one side panel;
  * narrower, the open one sits under its question. One DOM and one set of semantics at every width. The first answer is open and complete on load;
- * opening another plays the visitor's bubble, typing (500 ms), then the answer. The company answers with its mark, never a mascot.
+ * opening another plays the visitor's bubble, typing (400 ms), then the answer. The company answers with its mark, never a mascot.
  */
 export function FaqChat({ slugs, foot, className }: FaqChatProps) {
   const faqs = useMemo(() => slugs.map((s) => faqBySlug(s)).filter((f): f is NonNullable<typeof f> => Boolean(f)), [slugs]);
   const [open, setOpen] = useState(0);
-  // The answer being played in: the visitor's bubble arrives, then typing (500 ms), then the answer.
+  // The answer being played in: the visitor's bubble arrives, then typing (FAQ_BEAT), then the answer.
   const [phase, setPhase] = useState<'done' | 'armed' | 'you' | 'typing' | 'answer'>('done');
   const timers = useRef<number[]>([]);
   const id = useRef(`faqchat-${Math.random().toString(36).slice(2, 8)}`).current;
@@ -504,9 +529,9 @@ export function FaqChat({ slugs, foot, className }: FaqChatProps) {
     const at = (ms: number, fn: () => void) => timers.current.push(window.setTimeout(fn, ms));
     // Two frames so the visitor's bubble starts from its hidden state, then it pops in from its tucked corner.
     requestAnimationFrame(() => requestAnimationFrame(() => setPhase('you')));
-    at(300, () => setPhase('typing'));
-    at(300 + 500, () => setPhase('answer'));
-    at(300 + 500 + 700, () => setPhase('done'));
+    at(FAQ_BEAT.you, () => setPhase('typing'));
+    at(FAQ_BEAT.you + FAQ_BEAT.typing, () => setPhase('answer'));
+    at(FAQ_BEAT.you + FAQ_BEAT.typing + 700, () => setPhase('done'));
   };
 
   const anchor = foot ?? <Link to="/faq">All questions →</Link>;

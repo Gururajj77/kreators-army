@@ -268,7 +268,7 @@ export function Kit() {
         </div>
       </Section>
 
-      <Section name="thread" title="ChatThread" note="Plays once at 35% in view; completes at once if it leaves the viewport. Four columns, two, then one on phones.">
+      <Section name="thread" title="ChatThread" note="Plays once, about 1 s a pair, as its top enters the lower 85% of the viewport; waiting bubbles show as outlines; completes at once if it leaves the viewport. Four columns, two, then one on phones.">
         <InteractionChain mode="controlled" ref={chain} />
         <div style={{ height: 40 }} />
         {pairs.length ? <ChatThread pairs={pairs} chain={chain} onOpen={open} label="Real questions we've filmed" /> : <TileSkeletons count={4} />}

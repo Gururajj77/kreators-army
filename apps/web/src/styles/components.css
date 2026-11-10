@@ -12,10 +12,71 @@
     padding-block: var(--section-y);
   }
 
-  .band-dark,
+  /* One continuous field (styles/backdrop.css) runs behind every public page, so bands no longer paint: spacing, not colour blocks, separates
+     sections. The alternate band keeps its class but none of its swap: page and plate tokens stay the page's, so its tiles still read on the field. */
   .band-alt {
+    --bg: #f7f5f2;
+    --surface: #ffffff;
+    --surface-1: #ffffff;
+    background: transparent;
+    color: var(--ink);
+  }
+
+  [data-theme='dark'] .band-alt {
+    --bg: #0b0b0d;
+    --surface: #15151a;
+    --surface-1: #15151a;
+  }
+
+  .band-dark {
     background: var(--bg);
     color: var(--ink);
+  }
+
+  /* A former dark band is now a rounded panel on the field, inset from the edges, so it still stands out with no full-width edge. Its own light: a
+     soft glow from the top that the blooms inside it sit on. The footer and the 404 card keep their own sheets. */
+  main section.band-dark:not(.hww-panel) {
+    --panel-inset: clamp(8px, 1.8vw, 28px);
+    position: relative;
+    isolation: isolate;
+    margin-inline: var(--panel-inset);
+    border-radius: var(--r-footer);
+    background:
+      radial-gradient(90% 60% at 50% -10%, color-mix(in oklab, var(--c-purple) 16%, transparent), transparent 70%),
+      radial-gradient(60% 50% at 100% 110%, color-mix(in oklab, var(--c-orange) 7%, transparent), transparent 70%),
+      var(--bg);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.07),
+      inset 0 1px 0 rgb(255 255 255 / 0.1),
+      0 30px 70px -30px rgb(24 20 40 / 0.45);
+  }
+
+  /* Light blooms near headings: a soft light behind each page and section heading. Painted under everything opaque (z -1 in the page's stacking
+     context), so it shows on the field and inside the dark panels, never over a plate. Static: nothing here moves. */
+  main :is(h1, h2.h2, h2.h2-sm) {
+    position: relative;
+  }
+
+  main :is(h1, h2.h2, h2.h2-sm)::before {
+    content: '';
+    position: absolute;
+    inset: -45% -14%;
+    z-index: -1;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, var(--bloom), transparent);
+    pointer-events: none;
+    --bloom: color-mix(in oklab, var(--c-yellow) 20%, transparent);
+  }
+
+  [data-theme='dark'] main :is(h1, h2.h2, h2.h2-sm)::before,
+  main .band-dark :is(h1, h2.h2, h2.h2-sm)::before {
+    --bloom: color-mix(in oklab, var(--c-purple) 18%, transparent);
+  }
+
+  @media (prefers-contrast: more) {
+    main :is(h1, h2.h2, h2.h2-sm)::before {
+      display: none;
+    }
   }
 
   /* G0, the page wash. Goes on the first section of a page only. Decorative: pair with aria-hidden. */
@@ -374,9 +435,46 @@
     padding: 16px 28px;
   }
 
+  /* The primary action (PrimaryCta): a soft red glow at rest, a light that sweeps across on hover, a deeper press, a clear focus ring. */
   .btn-accent {
+    --glow: 0 10px 26px -10px rgb(225 29 29 / 0.6), 0 2px 6px -2px rgb(225 29 29 / 0.35);
     background: var(--action);
     color: var(--on-action);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      inset 0 -1px 0 rgb(0 0 0 / 0.12),
+      var(--glow);
+  }
+
+  .btn-sm.btn-accent {
+    --glow: 0 6px 16px -8px rgb(225 29 29 / 0.55);
+  }
+
+  /* The sweep: a band of light parked off the left edge, carried across by background-position. Clipped by its own radius, under the label. */
+  .btn-accent::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(105deg, transparent 38%, rgb(255 255 255 / 0.34) 50%, transparent 62%) no-repeat;
+    background-size: 260% 100%;
+    background-position: 130% 0;
+    pointer-events: none;
+    transition: background-position 0ms linear;
+  }
+
+  .btn-accent > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-accent:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 0 0 6px color-mix(in oklab, var(--focus) 24%, transparent),
+      var(--glow);
   }
 
   .btn-ink {
@@ -401,7 +499,18 @@
     }
 
     .btn-accent:hover {
+      --glow: 0 16px 34px -12px rgb(225 29 29 / 0.7), 0 3px 10px -3px rgb(225 29 29 / 0.4);
       background: var(--action-hover);
+    }
+
+    :root:not([data-still]) .btn-accent:hover::after {
+      background-position: -30% 0;
+      transition: background-position 900ms var(--ease-out);
+    }
+
+    /* The arrow: the disc steps forward as its arrow turns to point the way. */
+    :root:not([data-still]) .btn.btn-accent:hover > .arrow-disc {
+      transform: translateX(3px) scale(1.08);
     }
 
     .btn-ink:hover {
@@ -429,6 +538,13 @@
   /* The press, after the hover block and at its weight, so a mouse held down on a hovered button still sees it. */
   :root:not([data-still]) .btn:active:not([disabled], [aria-disabled='true']) {
     transform: scale(0.97);
+  }
+
+  /* A satisfying press on the primary: it sinks, its glow tightens, the light inside dims. */
+  :root:not([data-still]) .btn-accent:active:not([disabled], [aria-disabled='true']) {
+    --glow: 0 4px 12px -6px rgb(225 29 29 / 0.6);
+    transform: scale(0.955);
+    filter: brightness(0.96);
   }
 
   :root[data-still] .btn:active {
@@ -1489,8 +1605,8 @@
   }
 
   /* One rhythm into the footer on every page. Each page's last block gives up its own bottom padding, and the footer's --end-y is the whole gap.
-     The id keeps this above any page's padding rule; a band with its own background keeps its padding inside it. */
-  main#main > div > :nth-last-child(1 of :not(dialog, script, template, style)):not(.band-dark, .band-alt) {
+     The id keeps this above any page's padding rule; a dark panel keeps its padding inside it. */
+  main#main > div > :nth-last-child(1 of :not(dialog, script, template, style)):not(.band-dark) {
     padding-bottom: 0;
   }
 }

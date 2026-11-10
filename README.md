@@ -46,7 +46,7 @@ Every library entry streams from its MEGA link. The link stays on the server: vi
 | Heavy | Up to 1080p or 15 Mbps. Plays, but may stall on slow connections |
 | Too heavy | Larger than 1080p or over 15 Mbps (a 4K phone file). Plays slowly; re-export it at 720p |
 
-An HEVC (H.265) file is saved as a draft and cannot be published: many browsers can't play it. Export it as H.264.
+Weight, HEVC (H.265), other video codecs and an index at the end of the file are warnings only: the video still publishes and streams. Some browsers can't play HEVC, so an H.264 export is still the safe choice.
 
 The same work from the terminal (they use the admin API, so a change shows on the site within about a minute):
 

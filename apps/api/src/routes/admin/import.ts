@@ -11,6 +11,7 @@ import {
   importStatusOf,
   IMPORT_LIMITS,
   isDefaultSelected,
+  isFutureDay,
   megaStreamHandle,
   parseImport,
   parseInstagram,
@@ -91,13 +92,19 @@ function fromRows(rows: unknown[]): ParsedImport {
       category: typeof o.category === 'string' ? cleanText(o.category).slice(0, 40) || null : null,
       platform: typeof o.platform === 'string' ? cleanText(o.platform).slice(0, 40) || null : null,
       views: typeof o.views === 'number' && Number.isSafeInteger(o.views) && o.views >= 0 ? o.views : 0,
-      uploadDate: parseUploadDate(o.uploadDate) ?? null,
+      uploadDate: pastDay(o.uploadDate),
       aspect: VIDEO_ASPECTS.includes(o.aspect as VideoAspect) ? (o.aspect as VideoAspect) : null,
       notes: [],
       duplicateOf: null,
     };
   });
   return { format: 'json', rows: out, ignored: [], pairable: {} };
+}
+
+/** An upload date as YYYY-MM-DD, or null when blank, not a date, or in the future (the drawer and PATCH refuse those). */
+function pastDay(value: unknown): string | null {
+  const d = parseUploadDate(value);
+  return d && !isFutureDay(d) ? d : null;
 }
 
 function emptyRow(p: ParsedImportRow): ImportRow {
@@ -403,7 +410,7 @@ imports.post('/import/commit', async (c) => {
       platform: cleanText(r.platform ?? '').slice(0, 40) || null,
       aspect,
       views,
-      upload_date: parseUploadDate(r.uploadDate) ?? null,
+      upload_date: pastDay(r.uploadDate),
       featured: 0,
       published: 0,
       sort_order: next,

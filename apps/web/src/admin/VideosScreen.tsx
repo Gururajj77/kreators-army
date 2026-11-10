@@ -1,14 +1,17 @@
-// Owner: A4 Admin. The videos list (admin brief 5.3, V2-SPEC 4.3): search, filter chips with counts, rows with the Published switch, reorder by drag
-// and by keyboard, the row menu, delete to the bin with Undo, the bin view, and the add and edit drawer on top (/admin/videos/new, /admin/videos/:id).
+// Owner: A4 Admin; inline editing and columns by adm (round 3). The videos list (admin brief 5.3, V2-SPEC 4.3): search, filter chips with counts, rows
+// with the Published switch, reorder by drag and by keyboard, the row menu, delete to the bin with Undo, the bin view, and the add and edit drawer on top
+// (/admin/videos/new, /admin/videos/:id). On desktop widths the cells edit in place (inlineEdit.tsx) and the columns can be chosen (listColumns.tsx).
 import { BLOCKING_PROBLEMS, type AdminVideo, type AdminVideoList, type VideoProblem } from '@kreators/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowDownToLine, ArrowUpToLine, Copy, Pencil, Plus, Search, Trash2, Upload, X } from 'lucide-react';
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { Link, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ChipRail } from '../components/tabs';
 import { Seo } from '../components/ui';
 import { AdminApiError, adminApi, keys, retryOnce } from './api';
 import { Announcer, ConfirmDialog, EmptyState, type MenuItem } from './bits';
+import { useInlineEditor } from './inlineEdit';
+import { COLUMNS, ColumnsMenu, useColumns } from './listColumns';
 import { toast } from './Toasts';
 import { useReorder } from './useReorder';
 import { deleteWithUndo, mergeVideo } from './videoCache';
@@ -27,6 +30,20 @@ function matches(v: AdminVideo, q: string) {
     .split(/\s+/)
     .filter(Boolean)
     .every((w) => hay.includes(w));
+}
+
+/** Desktop widths edit in place; under 861 px (the phone layout) a tap opens the drawer. */
+const WIDE = '(min-width: 861px)';
+function useWide() {
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia(WIDE);
+      mq.addEventListener('change', cb);
+      return () => mq.removeEventListener('change', cb);
+    },
+    () => window.matchMedia(WIDE).matches,
+    () => true,
+  );
 }
 
 function SkeletonRows() {
@@ -62,7 +79,12 @@ export function VideosScreen() {
   const [confirmPurge, setConfirmPurge] = useState<AdminVideo | null>(null);
   const [working, setWorking] = useState(false);
   const hintId = useId();
+  const listId = useId();
   const saveTimer = useRef(0);
+  const screenRef = useRef<HTMLElement>(null);
+  const [saveNote, setSaveNote] = useState('');
+  const wide = useWide();
+  const cols = useColumns(screenRef, bin);
 
   const list = useQuery({ queryKey: keys.videos(false), queryFn: () => adminApi.videos(false), staleTime: 15_000, retry: retryOnce });
   const binList = useQuery({ queryKey: keys.videos(true), queryFn: () => adminApi.videos(true), enabled: bin, retry: retryOnce });
@@ -78,6 +100,16 @@ export function VideosScreen() {
     }),
     [all, binList.data, list.data],
   );
+
+  // Suggestions for the brand, category and platform cells (the drawer's datalists, from the whole library).
+  const options = useMemo(() => {
+    const pick = (f: (v: AdminVideo) => string | null) => [...new Set(all.map(f).map((x) => x?.trim()).filter((x): x is string => !!x))].sort((a, b) => a.localeCompare(b));
+    return { brand: pick((v) => v.brand), category: pick((v) => v.category), platform: pick((v) => v.platform) };
+  }, [all]);
+  const lists = useMemo(() => ({ brand: `${listId}-brands`, category: `${listId}-cats`, platform: `${listId}-plats` }), [listId]);
+  const politely = useCallback((text: string) => setSaveNote((prev) => (prev === text ? `${text} ` : text)), []);
+  const inline = useInlineEditor(lists, politely);
+  const editable = wide && !bin;
 
   const reorderOn = !bin && filter === 'all' && !q.trim() && !importId;
   const announce = useCallback((text: string) => setAnnouncement((prev) => (prev === text ? `${text} ` : text)), []);
@@ -136,6 +168,7 @@ export function VideosScreen() {
     setBusy(v.id, true);
     try {
       const saved = await adminApi.updateVideo(v.id, { published: next });
+      inline.noteAdvance(v.id, v.updatedAt, saved.video.updatedAt);
       mergeVideo(qc, saved.video);
       toast(next ? `Published “${saved.video.title}”` : `“${saved.video.title}” is hidden from the site`);
     } catch (e) {
@@ -287,6 +320,8 @@ export function VideosScreen() {
             menuItems={menuFor(v)}
             onRestore={() => void restore(v)}
             onPurge={() => setConfirmPurge(v)}
+            inline={editable ? inline : null}
+            cols={cols.shown}
           />
         ))}
       </ul>
@@ -294,7 +329,7 @@ export function VideosScreen() {
   }
 
   return (
-    <section className="adm-screen" aria-labelledby="adm-videos-title">
+    <section ref={screenRef} className="adm-screen" aria-labelledby="adm-videos-title" style={{ '--adm-cols': cols.template } as CSSProperties}>
       <Seo title={bin ? 'Bin · Library admin' : 'Videos · Library admin'} description="Library admin" noindex />
       <div className="adm-head">
         <h1 id="adm-videos-title" className="adm-title">
@@ -372,21 +407,31 @@ export function VideosScreen() {
             </button>
           </p>
         )}
+        {editable && <p className="adm-hint adm-edit-hint">Click a cell to edit it. Enter saves, Esc cancels.</p>}
+        {wide && <ColumnsMenu cols={cols} />}
       </div>
 
       <div className="adm-list-head" aria-hidden>
         <span />
         <span />
         <span>Video</span>
-        <span>Status</span>
-        <span>Stream</span>
-        <span>Posted</span>
-        <span>Views</span>
-        <span>{bin ? 'Deleted' : 'Updated'}</span>
+        {COLUMNS.filter((c) => cols.shown.has(c.key)).map((c) => (
+          <span key={c.key} data-col={c.key}>
+            {c.key === 'updated' && bin ? 'Deleted' : c.label}
+          </span>
+        ))}
         <span />
       </div>
       {body}
       <Announcer text={announcement} assertive />
+      <Announcer text={saveNote} />
+      {(['brand', 'category', 'platform'] as const).map((k) => (
+        <datalist key={k} id={lists[k]}>
+          {options[k].map((o) => (
+            <option key={o} value={o} />
+          ))}
+        </datalist>
+      ))}
 
       {confirmDelete && (
         <ConfirmDialog

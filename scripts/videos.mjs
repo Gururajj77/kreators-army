@@ -137,7 +137,8 @@ function statusOf(check) {
   if (!check.playable) return 'unplayable';
   return { ready: 'ready', heavy: 'heavy', 'too-heavy': 'too-heavy' }[check.grade] ?? 'unknown-quality';
 }
-const TICKED = new Set(['ready', 'heavy', 'too-heavy', 'unknown-quality']);
+// Every row MEGA could read is imported, whatever its weight or codec: those are warnings, never blocks.
+const TICKED = new Set(['ready', 'heavy', 'too-heavy', 'unknown-quality', 'unplayable']);
 
 const [command, id] = positionals;
 switch (command) {
@@ -163,7 +164,7 @@ switch (command) {
     if (!r.ok) stop(`${r.problem}: ${r.message}`);
     const m = r.meta;
     console.log(`${m.name ?? '(no name)'}\n  ${mb(m.size)}, ${m.width ?? '?'}x${m.height ?? '?'} (${res(m)}), ${m.bitrate ? (m.bitrate / 1e6).toFixed(1) : '?'} Mbps, ${m.durationMs ? (m.durationMs / 1000).toFixed(1) : '?'} s, ${m.codec ?? '?'}, ${m.fastStart ? 'fast start' : 'index at the end'}`);
-    console.log(`  grade: ${r.grade}${r.playable ? '' : ' (cannot be published as it is)'}${r.previewOk ? ', previews on hover' : ''}`);
+    console.log(`  grade: ${r.grade}${r.playable ? '' : ' (some browsers may not play it; it still publishes and streams)'}${r.previewOk ? ', previews on hover' : ''}`);
     printWarnings(r.warnings);
     if (r.duplicate) console.log(`  already in the library: ${r.duplicate.id} "${r.duplicate.title}"${r.duplicate.inBin ? ' (in the bin)' : ''}`);
     break;
@@ -253,6 +254,7 @@ switch (command) {
         category: r.category,
         platform: r.platform,
         views: r.views,
+        uploadDate: r.uploadDate ?? null,
         aspect: r.aspect,
       }));
       const out = await call('POST', '/import/commit', { importId: preview.importId, rows: batch });

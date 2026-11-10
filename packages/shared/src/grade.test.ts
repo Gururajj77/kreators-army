@@ -51,7 +51,7 @@ describe('megaWarnings and playability', () => {
     const hevc = meta({ codec: 'hvc1+mp4a' });
     expect(isPlayable(hevc)).toBe(false);
     expect(megaWarnings(hevc).map((w) => w.code)).toEqual(['hevc']);
-    expect(megaWarnings(hevc)[0]!.message).toBe("This file uses HEVC (H.265), which many browsers can't play. It can stay a draft; export it as H.264 to publish.");
+    expect(megaWarnings(hevc)[0]!.message).toBe("This file uses HEVC (H.265), which some browsers can't play. It will still publish and stream; an H.264 export plays everywhere.");
   });
   it.each([
     [meta({ codec: 'av01+mp4a' }), ['video-codec'], false],

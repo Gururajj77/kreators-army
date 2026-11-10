@@ -1,44 +1,40 @@
 import type { Video } from '@kreators/shared';
 import { Check, ChevronDown, Search, X } from 'lucide-react';
 import { AnimatePresence, LayoutGroup, m } from 'motion/react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useSearchParams } from 'react-router';
 import { Character, type CharacterHandle } from '../cast';
 import { CastBubble, useCastLine } from '../components/chat';
 import { Coverflow, DeckCard, StoryRing, useSeenBrands } from '../components/frames';
-import { ChipRail, type ChipOption } from '../components/tabs';
+import { ChipRail } from '../components/tabs';
 import { Cta, RollNumber, Seo } from '../components/ui';
 import { TileSkeletons, VideoPlayerDialog, VideoTile } from '../components/video';
 import { PRIMARY_ACTION, brandLogo, contactHref } from '../lib/content';
 import { motionOk } from '../lib/motionOk';
 import { useVideos } from '../lib/queries';
 import { spring } from '../lib/spring';
+import { chipLabel, facetDefs, facets as facetsOf, passes, sortVideos, sortsFor, suggest, tokens, withoutWordsOf, type Facet, type SortDef, type Suggestion } from '../lib/videoFind';
 
 // The video library (V2-SPEC 5.7, content §3.6, visual §2.6). The brands are story rings (M6): a ring is a filter, set in the address, and turns grey
-// once a video of that brand has been opened. The glass bar holds the chip rails for Category, Platform, Reach and Posted on (each only when some video
-// has a value), the sort menu and the search. Featured videos get a coverflow while some, not all, are featured. Every filter lives in the address with
-// `replace` and no scroll jump; `?v=<id>` opens the player.
-
-const REACH = [
-  { value: '1m', label: '1M+ views', match: (v: Video) => v.views >= 1_000_000 },
-  { value: '100k', label: '100K+ views', match: (v: Video) => v.views >= 100_000 },
-  { value: 'under', label: 'Under 100K views', match: (v: Video) => v.views < 100_000 },
-];
-
-const POSTED = [
-  { value: 'instagram', label: 'Instagram', match: (v: Video) => Boolean(v.links.instagram) },
-  { value: 'youtube', label: 'YouTube', match: (v: Video) => Boolean(v.links.youtube) },
-];
-
-const SORTS = [
-  { value: 'featured', label: 'Our picks' },
-  { value: 'views', label: 'Most viewed' },
-  { value: 'least', label: 'Least viewed' },
-  { value: 'brand', label: 'Brand A to Z' },
-];
+// once a video of that brand has been opened. The glass bar holds the count, the search (with suggestions) and the sort on top, and below them the chip
+// rails. Featured videos get a coverflow while some, not all, are featured. The finding rules (facets, sorts, search) live in lib/videoFind.ts.
+//
+// Everything lives in the address, set with `replace` and no scroll jump:
+//   brand     brand names, comma separated (the rings)
+//   date      upload date: month (this month), 3m (last 3 months), year (this year), or a year such as 2025
+//   shape     vertical, landscape
+//   reach     1m (1M+ views), 100k (100K+), under (under 100K); unknown views match none
+//   category  category names
+//   platform  platform names
+//   posted    instagram, youtube (a Watch link exists)
+//   q         the search: every word must match the title, brand, category, platform or upload month and year; one slip allowed in words of 5
+//             letters or more; shorthands ig/insta, yt/shorts, 1m/100k, a year, vertical/landscape
+//   sort      new, old, views, least, brand, short, long (none: our picks; new and old only with dates, short and long only with lengths)
+//   v         the open video (the player)
+// Within a key the values are OR'd, across keys AND'd. Every count in the bar is the number a chip would leave, given the other filters.
 
 /** The address keys that change which tiles show. */
-const FILTER_KEYS = ['brand', 'category', 'platform', 'reach', 'posted', 'q'];
+const FILTER_KEYS = ['brand', 'date', 'shape', 'category', 'platform', 'reach', 'posted', 'q'];
 
 /** Tiles animate their swap on a filter change only while this many or fewer are in play (M5h). */
 const ANIMATE_MAX = 24;
@@ -54,30 +50,6 @@ const subscribePhone = (fn: () => void) => {
 const useIsPhone = () => useSyncExternalStore(subscribePhone, () => matchMedia(PHONE).matches, () => false);
 
 const videoWord = (n: number) => (n === 1 ? 'video' : 'videos');
-
-interface Group {
-  key: string;
-  label: string;
-  options: ChipOption[];
-  selected: string[];
-  set: (next: string[]) => void;
-}
-
-function facet(videos: Video[], key: 'category' | 'platform'): ChipOption[] {
-  const counts = new Map<string, number>();
-  for (const v of videos) {
-    const value = v[key];
-    if (value) counts.set(value, (counts.get(value) ?? 0) + 1);
-  }
-  return [...counts].sort(([a], [b]) => a.localeCompare(b)).map(([value, count]) => ({ value, label: value, count }));
-}
-
-/** Brands in the order the library lists them (the founder's order), each once. */
-function brandsOf(videos: Video[]): string[] {
-  const seen = new Set<string>();
-  for (const v of videos) if (v.brand) seen.add(v.brand);
-  return [...seen];
-}
 
 // ---------- The brand rings ----------
 
@@ -102,9 +74,9 @@ function BrandRings({ brands, selected, onToggle }: { brands: string[]; selected
   );
 }
 
-// ---------- The sort menu: a button and an opaque popover of four radios, the current one checked ----------
+// ---------- The sort menu: a button and an opaque popover of radios, the current one checked ----------
 
-function SortMenu({ value, onChange }: { value: string; onChange: (next: string) => void }) {
+function SortMenu({ sorts, value, onChange }: { sorts: SortDef[]; value: string; onChange: (next: string) => void }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -141,7 +113,7 @@ function SortMenu({ value, onChange }: { value: string; onChange: (next: string)
     pop.current?.querySelector<HTMLElement>('[aria-checked="true"], [role="menuitemradio"]')?.focus();
   }, [open]);
 
-  const label = SORTS.find((s) => s.value === value)?.label ?? SORTS[0]?.label;
+  const label = sorts.find((s) => s.value === value)?.label ?? sorts[0]?.label;
   const items = () => [...(pop.current?.querySelectorAll<HTMLElement>('[role="menuitemradio"]') ?? [])];
   const onMenuKey = (e: ReactKeyboardEvent) => {
     const list = items();
@@ -177,7 +149,7 @@ function SortMenu({ value, onChange }: { value: string; onChange: (next: string)
       </button>
       {open && (
         <div ref={pop} className="lib-pop lib-sort-pop" role="menu" aria-label="Sort" onKeyDown={onMenuKey}>
-          {SORTS.map((s) => {
+          {sorts.map((s) => {
             const on = s.value === value;
             return (
               <button
@@ -203,46 +175,184 @@ function SortMenu({ value, onChange }: { value: string; onChange: (next: string)
   );
 }
 
-// ---------- The bar: glass over the tiles; chip rails that scroll as one strip, then the search and the sort ----------
+// ---------- The search: a combobox whose suggestions turn typed words into filters ----------
 
-function FilterBar({ groups, sort, onSort, q, onSearch, count, ready }: { groups: Group[]; sort: string; onSort: (next: string) => void; q: string; onSearch: (next: string) => void; count: number; ready: boolean }) {
+/**
+ * The ARIA 1.2 combobox pattern: focus stays in the box, the arrows move the active suggestion (aria-activedescendant), Enter or a click applies it as a
+ * filter, Escape closes the list (and a second Escape empties the box). Nothing is announced as the list changes: the box says it is expanded, and
+ * the result count is announced once typing pauses.
+ */
+function SearchBox({ q, onSearch, suggestions, onPick }: { q: string; onSearch: (next: string) => void; suggestions: Suggestion[]; onPick: (s: Suggestion) => void }) {
+  const id = useId();
+  const listId = `${id}-list`;
+  const [focused, setFocused] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const [active, setActive] = useState(-1);
+  const n = suggestions.length;
+  const open = focused && !dismissed && n > 0;
+  const signature = suggestions.map((s) => `${s.key}:${s.value}`).join('|');
+
+  // A new list starts with nothing active: Enter then searches, it never applies a filter the visitor has not chosen.
+  useEffect(() => setActive(-1), [signature]);
+
+  const pick = (s: Suggestion | undefined) => {
+    if (!s) return;
+    setActive(-1);
+    setDismissed(true);
+    onPick(s);
+  };
+
+  const onKey = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (n === 0) return;
+      e.preventDefault();
+      const down = e.key === 'ArrowDown';
+      if (!open) {
+        setDismissed(false);
+        setActive(down ? 0 : n - 1);
+        return;
+      }
+      setActive((a) => (down ? (a + 1) % n : a <= 0 ? n - 1 : a - 1));
+    } else if (e.key === 'Enter') {
+      if (open && active >= 0) {
+        e.preventDefault();
+        pick(suggestions[active]);
+      } else setDismissed(true);
+    } else if (e.key === 'Escape') {
+      if (open) {
+        e.preventDefault();
+        setDismissed(true);
+        setActive(-1);
+      } else if (q) {
+        e.preventDefault();
+        onSearch('');
+      }
+    } else if (e.key === 'Tab') setDismissed(true);
+  };
+
+  return (
+    <div className="lib-search-wrap">
+      <label className="lib-search">
+        <Search className="lib-search-icon size-4" aria-hidden />
+        <span className="sr-only">Search videos</span>
+        <input
+          id="lib-q"
+          name="q"
+          type="search"
+          placeholder="Search videos"
+          enterKeyHint="search"
+          autoComplete="off"
+          spellCheck={false}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-activedescendant={open && active >= 0 ? `${listId}-${active}` : undefined}
+          value={q}
+          onChange={(e) => {
+            setDismissed(false);
+            onSearch(e.target.value);
+          }}
+          onKeyDown={onKey}
+          onFocus={() => setFocused(true)}
+          onBlur={() => {
+            setFocused(false);
+            setActive(-1);
+          }}
+        />
+        {q && (
+          <button type="button" className="lib-search-clear" aria-label="Clear search" onClick={() => onSearch('')}>
+            <X className="size-3.5" aria-hidden />
+          </button>
+        )}
+      </label>
+      <ul id={listId} className="lib-pop lib-suggest" role="listbox" aria-label="Suggested filters" hidden={!open}>
+        {open &&
+          suggestions.map((s, i) => (
+            <li
+              key={`${s.key}:${s.value}`}
+              id={`${listId}-${i}`}
+              role="option"
+              aria-selected={i === active}
+              className="lib-sug"
+              data-active={i === active ? '' : undefined}
+              // Keeps the focus in the box, so the list does not close before the click lands.
+              onPointerDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}
+              onPointerMove={() => i !== active && setActive(i)}
+              onClick={() => pick(s)}
+            >
+              <span className="lib-sug-label">{s.label}</span>
+              <span className="lib-sug-kind">
+                <span className="sr-only">, </span>
+                {s.kind}
+              </span>
+              <span className="lib-sug-count">
+                <span className="sr-only">, </span>
+                {s.count}
+                <span className="sr-only"> {videoWord(s.count)}</span>
+              </span>
+            </li>
+          ))}
+      </ul>
+    </div>
+  );
+}
+
+// ---------- The bar: glass over the tiles; the count, the search and the sort, then the chip rails as one sideways strip ----------
+
+interface BarProps {
+  facets: Facet[];
+  onFacet: (key: string, next: string[]) => void;
+  sorts: SortDef[];
+  sort: string;
+  onSort: (next: string) => void;
+  q: string;
+  onSearch: (next: string) => void;
+  suggestions: Suggestion[];
+  onPick: (s: Suggestion) => void;
+  count: number;
+  ready: boolean;
+}
+
+function FilterBar({ facets, onFacet, sorts, sort, onSort, q, onSearch, suggestions, onPick, count, ready }: BarProps) {
   const phone = useIsPhone();
   return (
     <div className="lib-bar glass">
-      <p className="lib-count" aria-hidden>
-        {ready ? (
-          <>
-            <RollNumber value={count} countUp={false} /> <span>{videoWord(count)}</span>
-          </>
-        ) : (
-          ' '
-        )}
-      </p>
-
-      <div className="lib-facets">
-        {groups.map((g) => (
-          <div key={g.key} className="lib-facet">
-            <span className="lib-facet-label" aria-hidden>
-              {g.label}
-            </span>
-            <ChipRail mode="multi" label={g.label} options={g.options} value={g.selected} onChange={g.set} size={phone ? 'md' : 'sm'} wrap />
-          </div>
-        ))}
-      </div>
-
-      <div className="lib-tools">
-        <label className="lib-search">
-          <Search className="lib-search-icon size-4" aria-hidden />
-          <span className="sr-only">Search videos</span>
-          <input id="lib-q" name="q" type="search" placeholder="Search videos" enterKeyHint="search" autoComplete="off" value={q} onChange={(e) => onSearch(e.target.value)} />
-          {q && (
-            <button type="button" className="lib-search-clear" aria-label="Clear search" onClick={() => onSearch('')}>
-              <X className="size-3.5" aria-hidden />
-            </button>
+      <div className="lib-bar-top">
+        <p className="lib-count" aria-hidden>
+          {ready ? (
+            <>
+              <RollNumber value={count} countUp={false} /> <span>{videoWord(count)}</span>
+            </>
+          ) : (
+            ' '
           )}
-        </label>
-        <SortMenu value={sort} onChange={onSort} />
+        </p>
+        <SearchBox q={q} onSearch={onSearch} suggestions={suggestions} onPick={onPick} />
+        <SortMenu sorts={sorts} value={sort} onChange={onSort} />
       </div>
+
+      {facets.length > 0 && (
+        <div className="lib-facets">
+          {facets.map((f) => (
+            <div key={f.def.key} className="lib-facet">
+              <span className="lib-facet-label" aria-hidden>
+                {f.def.label}
+              </span>
+              <ChipRail
+                mode="multi"
+                label={f.def.label}
+                options={f.options.map((o) => ({ value: o.value, label: o.label, count: o.count }))}
+                value={f.selected}
+                onChange={(next) => onFacet(f.def.key, next)}
+                size={phone ? 'md' : 'sm'}
+                wrap
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -313,8 +423,18 @@ function LibraryError({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-/** No tiles. With filters set, the filters are the reason; with none, the library simply has nothing live yet, and there is nothing to clear. */
-function LibraryEmpty({ onClear, hasFilters }: { onClear: () => void; hasFilters: boolean }) {
+/** The one filter whose removal brings back the most videos, as the empty state offers it. */
+interface Fix {
+  label: string;
+  count: number;
+  apply: () => void;
+}
+
+/**
+ * No tiles. With filters set, the filters are the reason: the one to drop for the most videos back is offered first, then clearing them all. With none,
+ * the library simply has nothing live yet, and there is nothing to clear.
+ */
+function LibraryEmpty({ onClear, hasFilters, fix }: { onClear: () => void; hasFilters: boolean; fix: Fix | null }) {
   // Tiko looks left then right first (to 1.6 s), then says its line.
   const { tiko, bubble } = useTikoLine(hasFilters ? 'library.empty' : null, 1700);
   const stage = useRef<HTMLDivElement>(null);
@@ -333,6 +453,8 @@ function LibraryEmpty({ onClear, hasFilters }: { onClear: () => void; hasFilters
     };
   }, [tiko]);
 
+  const hop = () => tiko.current?.play('hop', { small: true, force: true });
+
   return (
     <m.div className="lib-state frame" data-bubble-bounds="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.2 } }}>
       <div ref={stage}>
@@ -346,11 +468,23 @@ function LibraryEmpty({ onClear, hasFilters }: { onClear: () => void; hasFilters
             <h2 className="h3">No videos match those filters</h2>
             <p className="lead">Try fewer filters, or clear them to see everything.</p>
           </div>
-          <div ref={clearBtn} onPointerEnter={() => tiko.current?.lookAt(clearBtn.current, 1200)}>
+          <div ref={clearBtn} className="lib-state-actions" onPointerEnter={() => tiko.current?.lookAt(clearBtn.current, 1200)}>
+            {fix && (
+              <Cta
+                kind="ink"
+                className="lib-fix"
+                onClick={() => {
+                  hop();
+                  fix.apply();
+                }}
+              >
+                Remove ‘{fix.label}’ to see {fix.count} {videoWord(fix.count)}
+              </Cta>
+            )}
             <Cta
-              kind="ink"
+              kind={fix ? 'ghost' : 'ink'}
               onClick={() => {
-                tiko.current?.play('hop', { small: true, force: true });
+                hop();
                 onClear();
               }}
             >
@@ -386,6 +520,7 @@ function LibraryEnd({ fill, videos }: { fill: number[]; videos: Video[] }) {
   );
 }
 
+
 // ---------- The page ----------
 
 export function VideoLibrary() {
@@ -393,14 +528,16 @@ export function VideoLibrary() {
   const [params, setParams] = useSearchParams();
 
   const list = (key: string) => params.get(key)?.split(',').filter(Boolean) ?? [];
-  const brands = list('brand');
-  const categories = list('category');
-  const platforms = list('platform');
-  const reach = list('reach');
-  const posted = list('posted');
-  // The box keeps its own text: the address updates a moment after each key, and a box tied to it would drop fast typing.
-  const [q, setQ] = useState(params.get('q') ?? '');
-  const sort = params.get('sort') ?? 'featured';
+  // The box keeps its own text: the address updates a moment after each key, and a box tied to it would drop fast typing. A change of the address
+  // from elsewhere (a link to the library with another search) still reaches the box.
+  const urlQ = params.get('q') ?? '';
+  const [q, setQ] = useState(urlQ);
+  const wroteQ = useRef(urlQ);
+  useEffect(() => {
+    if (urlQ === wroteQ.current) return;
+    wroteQ.current = urlQ;
+    setQ(urlQ);
+  }, [urlQ]);
   const openId = params.get('v');
 
   // Exiting tiles leave the flow at once (popLayout), so a filter that shortens the grid would pull the footer up over tiles still landing. The grid keeps
@@ -426,6 +563,7 @@ export function VideoLibrary() {
 
   const update = (changes: Record<string, string | null>) => {
     if (Object.keys(changes).some((key) => FILTER_KEYS.includes(key))) holdGrid();
+    if ('q' in changes) wroteQ.current = changes.q ?? '';
     setParams(
       (prev) => {
         const next = new URLSearchParams(prev);
@@ -437,38 +575,31 @@ export function VideoLibrary() {
   };
   const setList = (key: string) => (values: string[]) => update({ [key]: values.join(',') || null });
 
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    const reachRules = REACH.filter((r) => reach.includes(r.value));
-    const postedRules = POSTED.filter((r) => posted.includes(r.value));
-    const out = videos.filter(
-      (v) =>
-        (brands.length === 0 || brands.includes(v.brand)) &&
-        (categories.length === 0 || (v.category !== null && categories.includes(v.category))) &&
-        (platforms.length === 0 || (v.platform !== null && platforms.includes(v.platform))) &&
-        (reachRules.length === 0 || reachRules.some((r) => r.match(v))) &&
-        (postedRules.length === 0 || postedRules.some((r) => r.match(v))) &&
-        (!needle || [v.title, v.brand, v.category, v.platform].some((s) => s?.toLowerCase().includes(needle))),
-    );
-    if (sort === 'views') out.sort((a, b) => b.views - a.views);
-    if (sort === 'least') out.sort((a, b) => a.views - b.views);
-    if (sort === 'brand') out.sort((a, b) => a.brand.localeCompare(b.brand));
-    return out;
-    // The lists are rebuilt from the address on every render; the address itself is the real dependency.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videos, params, q]);
+  // The address, read once per render: the selection per facet key, the search's words, the sort.
+  const defs = useMemo(() => facetDefs(videos), [videos]);
+  const paramsKey = params.toString();
+  const selection = useMemo(() => Object.fromEntries(defs.map((d) => [d.key, list(d.key)])), [defs, paramsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const toks = useMemo(() => tokens(q), [q]);
+  const sorts = useMemo(() => sortsFor(videos), [videos]);
+  const sortParam = params.get('sort') ?? 'featured';
+  const sort = sorts.some((s) => s.value === sortParam) ? sortParam : 'featured';
 
-  const chips = [
-    ...brands.map((value) => ({ key: 'brand', value, label: value, values: brands })),
-    ...categories.map((value) => ({ key: 'category', value, label: value, values: categories })),
-    ...platforms.map((value) => ({ key: 'platform', value, label: value, values: platforms })),
-    ...reach.map((value) => ({ key: 'reach', value, label: REACH.find((r) => r.value === value)?.label ?? value, values: reach })),
-    ...posted.map((value) => ({ key: 'posted', value, label: `Posted on ${POSTED.find((r) => r.value === value)?.label ?? value}`, values: posted })),
-  ];
-  const hasFilters = chips.length > 0 || q !== '';
+  const facets = useMemo(() => facetsOf(videos, defs, selection, toks), [videos, defs, selection, toks]);
+  const filtered = useMemo(() => sortVideos(videos.filter((v) => passes(v, defs, selection, toks)), sort), [videos, defs, selection, toks, sort]);
+  const suggestions = useMemo(() => (q.trim() ? suggest(videos, facets, selection, q) : []), [videos, facets, selection, q]);
+
+  const brandFacet = facets.find((f) => f.def.key === 'brand');
+  const brands = selection.brand ?? [];
+  const barFacets = facets.filter((f) => f.def.key !== 'brand' && f.show);
+
+  // The chips row: every selected value, the brands first, one click takes it off.
+  const chips = [...facets.filter((f) => f.def.key === 'brand'), ...facets.filter((f) => f.def.key !== 'brand')].flatMap((f) =>
+    f.selected.map((value) => ({ key: f.def.key, value, label: f.def.key === 'brand' ? value : chipLabel(f.def, value), values: f.selected })),
+  );
+  const hasFilters = chips.length > 0 || toks.length > 0;
   const clear = () => {
     setQ('');
-    update({ brand: null, category: null, platform: null, reach: null, posted: null, q: null });
+    update(Object.fromEntries(FILTER_KEYS.map((key) => [key, null])));
   };
 
   const onSearch = (next: string) => {
@@ -476,25 +607,26 @@ export function VideoLibrary() {
     update({ q: next || null });
   };
 
-  const count = (match: (v: Video) => boolean) => videos.filter(match).length;
-  const groups: Group[] = [
-    { key: 'category', label: 'Category', options: facet(videos, 'category'), selected: categories, set: setList('category') },
-    { key: 'platform', label: 'Platform', options: facet(videos, 'platform'), selected: platforms, set: setList('platform') },
-    {
-      key: 'reach',
-      label: 'Reach',
-      options: videos.length ? REACH.filter((r) => count(r.match) > 0).map((r) => ({ value: r.value, label: r.label, count: count(r.match) })) : [],
-      selected: reach,
-      set: setList('reach'),
-    },
-    {
-      key: 'posted',
-      label: 'Posted on',
-      options: POSTED.filter((r) => count(r.match) > 0).map((r) => ({ value: r.value, label: r.label, count: count(r.match) })),
-      selected: posted,
-      set: setList('posted'),
-    },
-  ].filter((g) => g.options.length > 0);
+  const onPick = (s: Suggestion) => {
+    const rest = withoutWordsOf(q, s.label);
+    setQ(rest);
+    update({ [s.key]: [...(selection[s.key] ?? []), s.value].join(','), q: rest || null });
+  };
+
+  // No match: the one filter (a whole facet, or the search) whose removal brings back the most videos.
+  const fix = useMemo(() => {
+    if (filtered.length > 0 || videos.length === 0) return null;
+    const options: { label: string; count: number; change: Record<string, string | null> }[] = facets
+      .filter((f) => f.selected.length > 0)
+      .map((f) => ({
+        label: `${f.def.label}: ${f.selected.map((value) => f.def.options.find((o) => o.value === value)?.label ?? value).join(', ')}`,
+        count: videos.filter((v) => passes(v, defs, selection, toks, f.def.key)).length,
+        change: { [f.def.key]: null },
+      }));
+    if (toks.length > 0) options.push({ label: `Search: ${q.trim()}`, count: videos.filter((v) => passes(v, defs, selection, [])).length, change: { q: null } });
+    const best = options.reduce<(typeof options)[number] | null>((top, o) => (o.count > (top?.count ?? 0) ? o : top), null);
+    return best;
+  }, [filtered.length, videos, facets, defs, selection, toks, q]);
 
   const toggleBrand = (brand: string) => setList('brand')(brands.includes(brand) ? brands.filter((b) => b !== brand) : [...brands, brand]);
 
@@ -515,7 +647,16 @@ export function VideoLibrary() {
   const n = filtered.length;
   const fill = [4, 3, 2].map((cols) => (cols - (n % cols)) % cols);
   const ready = !isPending && !isError;
-  const brandList = brandsOf(videos);
+
+  // The count is announced once the visitor pauses, not on every key.
+  const [said, setSaid] = useState<number | null>(null);
+  useEffect(() => {
+    if (!ready) return;
+    const t = window.setTimeout(() => setSaid(n), 900);
+    return () => window.clearTimeout(t);
+  }, [n, ready]);
+
+  const ringBrands = brandFacet?.show ? brandFacet.options.map((o) => o.value) : [];
 
   return (
     <>
@@ -532,18 +673,30 @@ export function VideoLibrary() {
             <p className="lead">Real street interviews for real brands. Play any video here, or open it where it was posted.</p>
           </div>
           <div className="lib-rings-wrap" data-ready={ready ? '' : undefined}>
-            {ready && brandList.length > 0 && <BrandRings brands={brandList} selected={brands} onToggle={toggleBrand} />}
+            {ready && ringBrands.length > 0 && <BrandRings brands={ringBrands} selected={brands} onToggle={toggleBrand} />}
           </div>
         </div>
       </header>
 
       <section className="wrap lib-body" aria-label="Videos">
-        <FilterBar groups={groups} sort={sort} onSort={(value) => update({ sort: value === 'featured' ? null : value })} q={q} onSearch={onSearch} count={n} ready={ready} />
+        <FilterBar
+          facets={ready ? barFacets : []}
+          onFacet={(key, values) => setList(key)(values)}
+          sorts={sorts}
+          sort={sort}
+          onSort={(value) => update({ sort: value === 'featured' ? null : value })}
+          q={q}
+          onSearch={onSearch}
+          suggestions={ready ? suggestions : []}
+          onPick={onPick}
+          count={n}
+          ready={ready}
+        />
 
         {ready && (
           <div className="lib-status">
             <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-              {n} {videoWord(n)}
+              {said === null ? '' : `${said} ${videoWord(said)}`}
             </p>
             <p className="lib-count-line" aria-hidden>
               <RollNumber value={n} countUp={false} /> {videoWord(n)}
@@ -584,21 +737,39 @@ export function VideoLibrary() {
                   <AnimatePresence initial={false} mode="popLayout" onExitComplete={exitsDone}>
                     {filtered.map((v, i) => (
                       <m.div key={v.id} className="lib-cell" layout="position" layoutDependency={signature} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={spring.snappy}>
-                        <VideoTile video={v} eager={i < 4} onOpen={(video) => show(video.id)} sticker />
+                        <VideoTile video={v} eager={i < 4} onOpen={(video) => show(video.id)} sticker date />
                       </m.div>
                     ))}
                   </AnimatePresence>
                 ) : (
                   filtered.map((v, i) => (
                     <div key={v.id} className="lib-cell">
-                      <VideoTile video={v} eager={i < 4} onOpen={(video) => show(video.id)} sticker />
+                      <VideoTile video={v} eager={i < 4} onOpen={(video) => show(video.id)} sticker date />
                     </div>
                   ))
                 )}
                 {n > 0 && <LibraryEnd fill={fill} videos={filtered.slice(0, 3)} />}
               </div>
             </LayoutGroup>
-            <AnimatePresence mode="popLayout">{n === 0 && <LibraryEmpty key="empty" onClear={clear} hasFilters={hasFilters} />}</AnimatePresence>
+            <AnimatePresence mode="popLayout">
+              {n === 0 && (
+                <LibraryEmpty
+                  key="empty"
+                  onClear={clear}
+                  hasFilters={hasFilters}
+                  fix={
+                    fix && {
+                      label: fix.label,
+                      count: fix.count,
+                      apply: () => {
+                        if ('q' in fix.change) setQ('');
+                        update(fix.change);
+                      },
+                    }
+                  }
+                />
+              )}
+            </AnimatePresence>
           </>
         )}
       </section>

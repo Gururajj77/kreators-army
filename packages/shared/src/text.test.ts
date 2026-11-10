@@ -65,4 +65,13 @@ d2('parseUploadDate', () => {
     e2(r.rows.map((x) => x.uploadDate)).toEqual(['2026-11-05', null]);
     e2(r.rows[1]!.notes.join(' ')).toMatch(/not a date/);
   });
+  i2('an upload date in the future is left blank with a note', async () => {
+    const { parseImport } = await import('./importLinks.ts');
+    const { isFutureDay } = await import('./text.ts');
+    e2(isFutureDay('2026-11-12', Date.parse('2026-11-11T12:00:00Z'))).toBe(false);
+    e2(isFutureDay('2026-11-14', Date.parse('2026-11-11T12:00:00Z'))).toBe(true);
+    const r = parseImport('Title,MEGA link,Upload date\nLater,https://mega.nz/file/NmU3lZjR#gPK2sRN8W0g0c69iQkFL4jsnt5dSZziHM9YjZMhEXxw,01/01/2099');
+    e2(r.rows[0]!.uploadDate).toBeNull();
+    e2(r.rows[0]!.notes.join(' ')).toMatch(/in the future/);
+  });
 });

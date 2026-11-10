@@ -1,5 +1,6 @@
 import { lazy, useEffect, type ComponentType, type LazyExoticComponent } from 'react';
 import { createBrowserRouter, RouterProvider, type RouteObject } from 'react-router';
+import { Backdrop } from './components/backdrop/Backdrop';
 import { NotFound } from './screens/NotFound';
 import { Home } from './site/Home';
 import { Layout, RouteError } from './site/Layout';
@@ -56,7 +57,13 @@ const router = createBrowserRouter([
     errorElement: <RouteError />,
   },
   {
-    element: <Layout />,
+    // The one continuous background (components/backdrop) sits under every public page, mounted once here beside the layout; never on /admin.
+    element: (
+      <>
+        <Backdrop />
+        <Layout />
+      </>
+    ),
     errorElement: <RouteError />,
     children: [
       {

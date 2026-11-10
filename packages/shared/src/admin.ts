@@ -81,8 +81,8 @@ export type VideoProblem =
   | 'mega-heavy' | 'mega-too-heavy' | 'mega-unreachable' | 'mega-key-in-secret'
   | 'hevc' | 'video-codec' | 'audio-codec' | 'not-fast-start' | 'no-header-info' | 'no-mega';
 
-/** These block publishing; the rest are warnings. */
-export const BLOCKING_PROBLEMS: readonly VideoProblem[] = ['no-title', 'no-brand', 'no-stream', 'mega-unreachable', 'hevc', 'video-codec'];
+/** These block publishing; the rest (HEVC, other codecs, heavy files, index at the end) are warnings only and never stop a publish or a stream. */
+export const BLOCKING_PROBLEMS: readonly VideoProblem[] = ['no-title', 'no-brand', 'no-stream', 'mega-unreachable'];
 
 export interface AdminMega {
   handle: string;

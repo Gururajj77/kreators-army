@@ -1,0 +1,213 @@
+/* The field: one continuous background behind every public page (components/backdrop). A fixed, full-viewport layer under everything, so sections sit
+   on one surface and spacing, not colour blocks, separates them. Four soft brand-colour lights drift slowly (transform only, one composited layer each);
+   --sp, the scroll progress set by components/backdrop/field.ts, shifts their balance from the warm top of a page to the cooler middle and the orange
+   end. The pointer light, the focus halo and the veil move by transform and opacity alone. Under still or reduced motion it is a still gradient. */
+@layer components {
+  /* The body's own colour would cover a z-index -1 layer; while the field is mounted it shows through. The html keeps --bg as the canvas. */
+  :root[data-field] body {
+    background: transparent;
+  }
+
+  .bd {
+    --sp: 0;
+    /* Each light: colour, strength. The palette leans warm at the top of a page and turns as the reader goes down it. */
+    --bd-1: rgb(251 212 63 / 0.34);
+    --bd-2: rgb(109 97 254 / 0.16);
+    --bd-3: rgb(71 195 73 / 0.13);
+    --bd-4: rgb(255 141 58 / 0.18);
+    --bd-light: rgb(255 255 255 / 0.85);
+    --bd-light-2: rgb(255 226 170 / 0.22);
+    --bd-halo: rgb(255 214 92 / 0.42);
+    --bd-halo-action: rgb(225 29 29 / 0.26);
+    --bd-veil: 0.4;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    contain: strict;
+    background: var(--bg);
+  }
+
+  [data-theme='dark'] .bd {
+    --bd-1: rgb(251 212 63 / 0.09);
+    --bd-2: rgb(109 97 254 / 0.24);
+    --bd-3: rgb(71 195 73 / 0.08);
+    --bd-4: rgb(255 141 58 / 0.11);
+    --bd-light: rgb(165 155 255 / 0.15);
+    --bd-light-2: rgb(165 155 255 / 0.05);
+    --bd-halo: rgb(150 140 255 / 0.4);
+    --bd-halo-action: rgb(255 70 60 / 0.22);
+    --bd-veil: 0.5;
+  }
+
+  .bd-blob {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--s);
+    height: var(--s);
+    margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, var(--c), color-mix(in oklab, var(--c) 50%, transparent) 45%, transparent);
+    /* The slow shift down the page: each light rises a little (parallax) and fades in or out with --sp. */
+    translate: 0 calc(var(--sp) * var(--rise));
+    opacity: var(--o);
+    will-change: transform;
+    animation: bd-drift var(--dur) ease-in-out infinite alternate;
+  }
+
+  /* Yellow, top left: the hero's warmth, fading as the page goes on. */
+  .bd-blob[data-b='1'] {
+    --c: var(--bd-1);
+    --x: 14%;
+    --y: 10%;
+    --s: 78vmax;
+    --rise: -18vh;
+    --dx: 9vw;
+    --dy: 7vh;
+    --dur: 34s;
+    --o: calc(1 - var(--sp) * 0.75);
+  }
+
+  /* Purple, top right: the constant. */
+  .bd-blob[data-b='2'] {
+    --c: var(--bd-2);
+    --x: 86%;
+    --y: 22%;
+    --s: 70vmax;
+    --rise: 22vh;
+    --dx: -11vw;
+    --dy: 9vh;
+    --dur: 41s;
+    --o: 1;
+    animation-delay: -12s;
+  }
+
+  /* Green, low left: grows through the middle of a page. */
+  .bd-blob[data-b='3'] {
+    --c: var(--bd-3);
+    --x: 18%;
+    --y: 88%;
+    --s: 64vmax;
+    --rise: -26vh;
+    --dx: 12vw;
+    --dy: -8vh;
+    --dur: 47s;
+    --o: calc(0.35 + var(--sp) * 0.65);
+    animation-delay: -20s;
+  }
+
+  /* Orange, low right: the end of a page, warming toward the footer. */
+  .bd-blob[data-b='4'] {
+    --c: var(--bd-4);
+    --x: 84%;
+    --y: 92%;
+    --s: 66vmax;
+    --rise: -30vh;
+    --dx: -8vw;
+    --dy: -10vh;
+    --dur: 53s;
+    --o: calc(0.2 + var(--sp) * 0.8);
+    animation-delay: -31s;
+  }
+
+  @keyframes bd-drift {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(var(--dx), var(--dy), 0) scale(1.14);
+    }
+  }
+
+  /* The pointer light (touch: the scroll moves it). Its own layer; only its transform changes. */
+  .bd-light {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 820px;
+    height: 820px;
+    margin: -410px 0 0 -410px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, var(--bd-light), var(--bd-light-2) 42%, transparent);
+    opacity: 0;
+    transition: opacity 700ms var(--ease-out);
+    will-change: transform;
+  }
+
+  .bd[data-light] .bd-light {
+    opacity: 1;
+  }
+
+  @media (max-width: 734px) {
+    .bd-light {
+      width: 560px;
+      height: 560px;
+      margin: -280px 0 0 -280px;
+    }
+  }
+
+  /* Focus: the field calms everywhere (the veil) while a halo lights the hovered or focused element from behind. */
+  .bd-veil {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    opacity: 0;
+    transition: opacity 420ms var(--ease-out);
+  }
+
+  .bd[data-focus] .bd-veil {
+    opacity: var(--bd-veil);
+  }
+
+  .bd-halo {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100px;
+    height: 100px;
+    margin: -50px 0 0 -50px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, var(--bd-halo) 55%, color-mix(in oklab, var(--bd-halo) 45%, transparent) 78%, transparent);
+    opacity: 0;
+    transition: opacity 320ms var(--ease-out);
+    will-change: transform, opacity;
+  }
+
+  .bd[data-tone='action'] .bd-halo {
+    --bd-halo: var(--bd-halo-action);
+  }
+
+  .bd[data-focus] .bd-halo {
+    opacity: 1;
+  }
+
+  /* A hidden tab stops the drift outright. */
+  .bd[data-paused] .bd-blob {
+    animation-play-state: paused;
+  }
+
+  /* Still or reduced motion: the same gradient, standing still. The light, the veil and the halo never start (no listeners either). */
+  :root[data-still] .bd-blob {
+    animation: none;
+    will-change: auto;
+  }
+
+  :root[data-still] :is(.bd-light, .bd-veil, .bd-halo) {
+    display: none;
+  }
+
+  /* More contrast asked for: a calmer field. */
+  @media (prefers-contrast: more) {
+    .bd-blob {
+      opacity: calc(var(--o) * 0.5);
+    }
+  }
+
+  @media print {
+    .bd {
+      display: none;
+    }
+  }
+}

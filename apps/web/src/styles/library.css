@@ -87,7 +87,7 @@
     }
   }
 
-  /* ---------- The bar: glass, sticky under the nav. The count, the chip rails as one sideways strip, the search and the sort. ---------- */
+  /* ---------- The bar: glass, sticky under the nav. The count, the search and the sort on top; the chip rails below as one sideways strip. ---------- */
   .lib-body {
     position: relative;
     padding-bottom: 96px;
@@ -98,10 +98,17 @@
     z-index: var(--z-ornament);
     top: var(--nav-offset);
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 4px;
     padding: 8px;
     border-radius: var(--r-nav);
+  }
+
+  .lib-bar-top {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .lib-count {
@@ -120,7 +127,6 @@
 
   .lib-facets {
     display: flex;
-    flex: 1;
     align-items: center;
     gap: 20px;
     min-width: 0;
@@ -163,13 +169,6 @@
 
   .lib-facet .chip-rail {
     flex-wrap: nowrap;
-  }
-
-  .lib-tools {
-    display: flex;
-    flex: none;
-    align-items: center;
-    gap: 8px;
   }
 
   .lib-btn {
@@ -229,11 +228,17 @@
     transition: none;
   }
 
+  .lib-search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
   .lib-search {
     position: relative;
     display: flex;
     align-items: center;
-    width: 220px;
+    width: 100%;
   }
 
   .lib-search-icon {
@@ -267,6 +272,11 @@
 
   .lib-search input:focus {
     background: color-mix(in oklab, var(--on-glass) 12%, transparent);
+  }
+
+  .lib-search input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
   }
 
   .lib-search-clear {
@@ -373,6 +383,92 @@
   }
 
   :root[data-still] .lib-opt-check {
+    transition: none;
+  }
+
+  /* The search's suggestions: the same opaque popover, as wide as the box, each row a filter with its kind and the videos it would leave. */
+  .lib-suggest {
+    right: 0;
+    left: 0;
+    width: auto;
+    margin: 0;
+    list-style: none;
+    transform-origin: 28px -8px;
+  }
+
+  .lib-sug {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    color: var(--ink);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 20px;
+    letter-spacing: -0.009em;
+  }
+
+  .lib-sug[data-active] {
+    background: color-mix(in oklab, var(--ink) 9%, transparent);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .lib-sug:hover {
+      background: var(--sunken);
+    }
+  }
+
+  .lib-sug-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lib-sug-kind {
+    flex: none;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 16px;
+  }
+
+  .lib-sug-count {
+    flex: none;
+    min-width: 24px;
+    padding: 1px 7px;
+    border-radius: var(--r-pill);
+    background: var(--sunken);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lib-sug[data-active] .lib-sug-count {
+    background: var(--surface-5);
+  }
+
+  /* ---------- The upload month on a library tile: a small chip at the top right, opposite the views sticker ---------- */
+  .tile-date {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    transition: opacity 140ms ease 120ms;
+    pointer-events: none;
+  }
+
+  .tile[data-lifted] > .tile-date {
+    opacity: 0;
+    transition: none;
+  }
+
+  :root[data-still] .tile-date {
     transition: none;
   }
 
@@ -549,25 +645,6 @@
       display: none;
     }
 
-    .lib-bar {
-      flex-wrap: wrap;
-    }
-
-    .lib-tools {
-      order: 1;
-      flex: 1 1 100%;
-    }
-
-    .lib-search {
-      flex: 1;
-      width: auto;
-    }
-
-    .lib-facets {
-      order: 2;
-      flex: 1 1 100%;
-    }
-
     .lib-count-line {
       display: block;
       margin-right: 8px;
@@ -609,6 +686,16 @@
       gap: 14px;
     }
 
+    /* The suggestions take the whole top row (the box and the sort), so a long brand reads in full. */
+    .lib-search-wrap {
+      position: static;
+    }
+
+    /* Beside the views sticker on a two-column phone grid there is no room: the player still shows the month. */
+    .tile-date {
+      display: none;
+    }
+
     .lib-facet + .lib-facet {
       padding-left: 14px;
     }
@@ -636,6 +723,21 @@
   .lib-state .h4,
   .lib-state .lead {
     margin: 0;
+  }
+
+  .lib-state-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    max-width: 100%;
+  }
+
+  /* "Remove 'Category: Food' to see 6 videos" may be long: it wraps rather than leaving the frame. */
+  .lib-fix {
+    max-width: 100%;
+    white-space: normal;
   }
 
   .lib-state-copy {

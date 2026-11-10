@@ -623,6 +623,9 @@
     position: relative;
     overflow: hidden;
     height: clamp(520px, 78vh, 720px);
+    /* A rounded panel on the one field, inset from the edges like the other emphasised blocks: no full-width edge. */
+    margin-inline: clamp(8px, 1.8vw, 28px);
+    border-radius: var(--r-footer);
     background: var(--c-ground);
     color: #ffffff;
     container-type: size;

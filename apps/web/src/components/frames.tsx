@@ -20,6 +20,7 @@ import {
 } from 'react';
 import { Link } from 'react-router';
 import { brandLogo } from '../lib/content';
+import { uploadMonth } from '../lib/videoFind';
 import { canAutoplay, finePointer, motionOk, useMotionOk, useRunning } from '../lib/motionOk';
 import { spring } from '../lib/spring';
 import { useStill } from '../lib/store';
@@ -374,6 +375,8 @@ export interface VideoFrameProps {
   postedOn?: boolean;
   /** Non-interactive even with onOpen: the admin's "How the tile looks". */
   still?: boolean;
+  /** The upload month as a small chip ("Nov 2026"), card only, when the video has a date. */
+  date?: boolean;
   /** Overrides the accessible name ("Play {title} by {brand}, {views} views"). */
   label?: string;
   /** v1 tile variants for the card: 'bento' fills its cell, 'rail' is a card in a horizontal rail (data-variant). */
@@ -431,6 +434,7 @@ export function VideoFrame({
   lean = false,
   eager,
   postedOn = true,
+  date = false,
   still = false,
   label,
   tileVariant,
@@ -454,6 +458,7 @@ export function VideoFrame({
 
   const img = poster ? <img src={poster} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" draggable={false} /> : <TileEmpty video={video} />;
   const views = video.views > 0 ? formatViews(video.views) : null;
+  const month = date && variant === 'card' ? uploadMonth(video.uploadDate) : null;
   const open = () => {
     pv.stop();
     if (onOpen) launchFrom(video.id, rootRef.current);
@@ -480,7 +485,7 @@ export function VideoFrame({
           }}
           {...common}
           onClick={open}
-          aria-label={label ?? playLabel(video)}
+          aria-label={label ?? (month ? `${playLabel(video)}, uploaded ${month}` : playLabel(video))}
           onPointerEnter={(e) => {
             e.currentTarget.style.setProperty('--tile-w', String(e.currentTarget.offsetWidth));
             pv.bind.onPointerEnter(e);
@@ -515,6 +520,11 @@ export function VideoFrame({
           <Play className="size-5 fill-current" />
         </span>
         {sticker ? <ViewsSticker views={video.views} className="tile-sticker" /> : views && <span className="chip tile-views">{views} views</span>}
+        {month && (
+          <span className="chip tile-date" aria-hidden>
+            {month}
+          </span>
+        )}
         <span className="tile-brand">
           <BrandPill brand={video.brand} />
           {postedOn && <PostedOn links={video.links} />}

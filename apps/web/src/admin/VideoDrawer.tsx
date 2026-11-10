@@ -384,9 +384,7 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
   if (checking) blockers.push('Wait for the MEGA check');
   if (megaChanged && hasMega) {
     if (check.kind === 'problem' || check.kind === 'error' || (inspect && !inspect.ok && !['busy', 'over-quota', 'upstream'].includes(inspect.problem))) blockers.push('Fix the MEGA link to publish');
-    if (inspect?.ok && !inspect.playable) blockers.push('Export it as H.264 to publish');
   } else if (base?.mega && !megaChanged) {
-    if (base.problems.includes('hevc') || base.problems.includes('video-codec')) blockers.push('Export it as H.264 to publish');
     if (base.problems.includes('mega-unreachable')) blockers.push('The MEGA link no longer works');
   }
   if (serverBlocked) for (const p of serverBlocked) if (PROBLEM_WORDS[p]) blockers.push(`${PROBLEM_WORDS[p]} to publish`);

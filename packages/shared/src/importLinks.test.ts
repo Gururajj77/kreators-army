@@ -218,7 +218,7 @@ describe('importStatusOf and the default selection (admin brief 3.5, V2-SPEC 2.8
     [ok({ grade: 'heavy' }), 'heavy', true],
     [ok({ grade: 'too-heavy' }), 'too-heavy', true],
     [ok({ grade: 'unknown' }), 'unknown-quality', true],
-    [ok({ grade: 'too-heavy', playable: false }), 'unplayable', false],
+    [ok({ grade: 'too-heavy', playable: false }), 'unplayable', true],
     [{ ok: false, problem: 'busy', message: '' } as MegaInspect, 'busy', false],
     [{ ok: false, problem: 'over-quota', message: '' } as MegaInspect, 'busy', false],
     [{ ok: false, problem: 'not-found', message: '' } as MegaInspect, 'unreachable', false],

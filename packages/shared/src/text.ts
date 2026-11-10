@@ -67,3 +67,8 @@ export function parseUploadDate(value: unknown): string | null | undefined {
   const iso = `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
   return new Date(Date.UTC(y, m - 1, d)).toISOString().slice(0, 10) === iso ? iso : undefined;
 }
+
+/** True when a 'YYYY-MM-DD' day is after tomorrow (the API refuses those; 36 h of slack covers every time zone). */
+export function isFutureDay(iso: string, now = Date.now()): boolean {
+  return Date.parse(`${iso}T00:00:00Z`) > now + 36 * 3600 * 1000;
+}

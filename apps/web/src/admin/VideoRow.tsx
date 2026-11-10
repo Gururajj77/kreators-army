@@ -1,6 +1,8 @@
-// Owner: A4 Admin. One row of the videos list (admin brief 5.3, V2-SPEC 4.2): handle, poster, title and brand, the Published switch, the stream chip,
-// posted-on glyphs, views, the updated time and the row menu. A click anywhere but the handle, the switch, the links and the menu opens the drawer.
-import { formatViews, gradeLabel, resolutionLabel, type AdminVideo, type VideoProblem } from '@kreators/shared';
+// Owner: A4 Admin; inline editing by adm (round 3). One row of the videos list (admin brief 5.3, V2-SPEC 4.2): handle, poster, title and brand, the
+// Published switch, the stream chip, category, platform, upload date, views, posted-on glyphs, the updated time and the row menu. On desktop widths
+// the title, brand, category, platform, upload date, views and the two links edit in place (inlineEdit.tsx); a click anywhere else but the handle,
+// the switch and the menu opens the drawer, as a tap anywhere on the row does on phones. A missing field shows nothing (views 0 included).
+import { gradeLabel, resolutionLabel, type AdminVideo, type VideoProblem } from '@kreators/shared';
 import { Ellipsis, GripVertical, RotateCcw, Star, Trash2 } from 'lucide-react';
 import { m } from 'motion/react';
 import { useEffect, type MouseEvent } from 'react';
@@ -8,15 +10,19 @@ import { Link } from 'react-router';
 import { InstagramGlyph, YouTubeGlyph, toneOf } from '../components/frames';
 import { spring } from '../lib/spring';
 import { MenuButton, StatusChip, Switch, When, usePopover, type ChipTone, type MenuItem } from './bits';
+import { EditCell, PROBLEM_WORDS, cellDisplay, type InlineEditor } from './inlineEdit';
+import type { ColKey } from './listColumns';
 import type { ReorderApi } from './useReorder';
+
+export { PROBLEM_WORDS };
 
 /** The stream chip: what the site plays for this entry, and whether it needs a look. Red stays for actions, so problems are amber. */
 export function streamChip(v: AdminVideo): { tone: ChipTone; text: string; title?: string } {
   if (v.source === 'mega' && v.mega) {
     const mg = v.mega;
     if (mg.keyIn === 'secret') return { tone: 'amber', text: 'MEGA key in old secret', title: 'Move it into the library from the banner above.' };
-    if (v.problems.includes('hevc')) return { tone: 'amber', text: "HEVC · can't publish", title: 'Export it as H.264 to publish.' };
-    if (v.problems.includes('video-codec')) return { tone: 'amber', text: "Codec · can't publish", title: 'Export it as H.264 to publish.' };
+    if (v.problems.includes('hevc')) return { tone: 'amber', text: 'MEGA · HEVC ⚠', title: "Some browsers can't play HEVC. It still streams; an H.264 export plays everywhere." };
+    if (v.problems.includes('video-codec')) return { tone: 'amber', text: 'MEGA · codec ⚠', title: "Many browsers can't play this codec. It still streams; an H.264 export plays everywhere." };
     if (v.problems.includes('mega-unreachable')) return { tone: 'amber', text: 'MEGA · link broken', title: 'The MEGA link no longer works.' };
     if (mg.error && !mg.meta) return { tone: 'amber', text: "MEGA · couldn't check", title: "Couldn't reach MEGA. Open the video and check again." };
     const res = resolutionLabel(mg.meta?.width ?? null, mg.meta?.height ?? null);
@@ -29,16 +35,6 @@ export function streamChip(v: AdminVideo): { tone: ChipTone; text: string; title
   if (v.source === 'wave') return { tone: 'amber', text: 'wave.video · no MEGA', title: 'Add a MEGA link to stream it from the site.' };
   return { tone: 'amber', text: 'No stream', title: 'Add a MEGA link.' };
 }
-
-/** Blocking problems in plain words (the inline switch's popover and the drawer's disabled publish button). */
-export const PROBLEM_WORDS: Partial<Record<VideoProblem, string>> = {
-  'no-title': 'Add a title',
-  'no-brand': 'Add a brand',
-  'no-stream': 'Add a MEGA link or a bundled file',
-  'mega-unreachable': 'The MEGA link no longer works',
-  hevc: 'Export it as H.264 (this file is HEVC)',
-  'video-codec': 'Export it as H.264',
-};
 
 export function Thumb({ video, className }: { video: Pick<AdminVideo, 'poster' | 'aspect' | 'brand'>; className?: string }) {
   return (
@@ -81,6 +77,8 @@ export function VideoRow({
   menuItems,
   onRestore,
   onPurge,
+  inline,
+  cols,
 }: {
   video: AdminVideo;
   index: number;
@@ -97,11 +95,15 @@ export function VideoRow({
   menuItems?: MenuItem[];
   onRestore?: () => void;
   onPurge?: () => void;
+  /** Editing in place (desktop widths, not the bin); null shows plain cells. */
+  inline: InlineEditor | null;
+  cols: ReadonlySet<ColKey>;
 }) {
   const { pop, anchor, show, hide } = usePopover('start');
   const isActive = reorder.active === video.id;
   const isLifted = reorder.lifted === video.id;
   const chip = streamChip(video);
+  const title = video.title || 'Untitled video';
 
   useEffect(() => {
     if (blocked?.length) show();
@@ -120,8 +122,12 @@ export function VideoRow({
 
   const openUnlessControl = (e: MouseEvent<HTMLElement>) => {
     if ((e.target as HTMLElement).closest('button, a, input, [role="menu"], [popover]')) return;
+    // The click that ended an edit in place is not a click on the row.
+    if (inline?.justClosed()) return;
     onOpen();
   };
+
+  const text = (f: 'category' | 'platform' | 'uploadDate') => cellDisplay(video, f);
 
   return (
     <m.li
@@ -161,10 +167,29 @@ export function VideoRow({
       <Thumb video={video} />
 
       <div className="adm-row-main">
-        <Link to={to} className="adm-row-title" draggable={false}>
-          {video.title || 'Untitled video'}
-        </Link>
-        <span className="adm-row-brand">{video.brand.trim() ? video.brand : <StatusChip tone="amber">Brand needed</StatusChip>}</span>
+        {inline ? (
+          <>
+            <EditCell video={video} field="title" inline={inline} className="adm-cell-title">
+              <span className="adm-row-title">{title}</span>
+            </EditCell>
+            <EditCell video={video} field="brand" inline={inline} className="adm-cell-brand">
+              <span className="adm-row-brand">{video.brand.trim() ? video.brand : <StatusChip tone="amber">Brand needed</StatusChip>}</span>
+            </EditCell>
+          </>
+        ) : (
+          <>
+            {bin ? (
+              <span className="adm-row-title" title={title}>
+                {title}
+              </span>
+            ) : (
+              <Link to={to} className="adm-row-title" draggable={false} title={title}>
+                {title}
+              </Link>
+            )}
+            <span className="adm-row-brand">{video.brand.trim() ? video.brand : <StatusChip tone="amber">Brand needed</StatusChip>}</span>
+          </>
+        )}
       </div>
 
       <div className="adm-row-status">
@@ -204,17 +229,50 @@ export function VideoRow({
         </div>
       </div>
 
-      <span className="adm-row-stream">
-        <StatusChip tone={chip.tone} title={chip.title}>
-          {chip.text}
-        </StatusChip>
-      </span>
+      {cols.has('stream') && (
+        <span className="adm-row-stream">
+          <StatusChip tone={chip.tone} title={chip.title ? `${chip.text}. ${chip.title}` : chip.text}>
+            {chip.text}
+          </StatusChip>
+        </span>
+      )}
 
-      <PostedGlyphs instagram={video.instagramUrl} youtube={video.youtubeUrl} />
+      {cols.has('category') && (
+        <EditCell video={video} field="category" inline={inline} className="adm-row-cell adm-col-category">
+          <span className="adm-cell-text">{text('category')}</span>
+        </EditCell>
+      )}
+      {cols.has('platform') && (
+        <EditCell video={video} field="platform" inline={inline} className="adm-row-cell adm-col-platform">
+          <span className="adm-cell-text">{text('platform')}</span>
+        </EditCell>
+      )}
+      {cols.has('uploaded') && (
+        <EditCell video={video} field="uploadDate" inline={inline} className="adm-row-cell adm-col-uploaded" tooltip={video.uploadDate ? `Uploaded ${text('uploadDate')}` : undefined}>
+          <span className="adm-cell-text">{text('uploadDate')}</span>
+        </EditCell>
+      )}
+      {cols.has('views') && (
+        <EditCell video={video} field="views" inline={inline} className="adm-row-views" tooltip={video.views > 0 ? `${video.views.toLocaleString('en-IN')} views` : undefined}>
+          <span className="adm-cell-text">{cellDisplay(video, 'views')}</span>
+        </EditCell>
+      )}
 
-      <span className="adm-row-views">{formatViews(video.views)}</span>
+      {cols.has('posted') &&
+        (inline ? (
+          <span className="adm-posted">
+            <EditCell video={video} field="instagram" inline={inline} className="adm-cell-glyph" tooltip={video.instagramUrl ? `Instagram: ${video.instagramUrl}` : 'Add an Instagram link'}>
+              <InstagramGlyph className="size-4" />
+            </EditCell>
+            <EditCell video={video} field="youtube" inline={inline} className="adm-cell-glyph" tooltip={video.youtubeUrl ? `YouTube: ${video.youtubeUrl}` : 'Add a YouTube link'}>
+              <YouTubeGlyph className="size-4" />
+            </EditCell>
+          </span>
+        ) : (
+          <PostedGlyphs instagram={video.instagramUrl} youtube={video.youtubeUrl} />
+        ))}
 
-      <span className="adm-row-time">{bin ? <When value={video.deletedAt} /> : <When value={video.updatedAt} />}</span>
+      {cols.has('updated') && <span className="adm-row-time">{bin ? <When value={video.deletedAt} /> : <When value={video.updatedAt} />}</span>}
 
       <span className="adm-row-menu">
         {bin ? (

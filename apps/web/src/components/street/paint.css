@@ -1,43 +1,44 @@
 /* Owner: A3 Scene. The street's paint, part one: the sky and the far layer (the footer's skyline needs nothing else). Day in the light theme, night
    in the dark theme, a .band-dark ancestor or data-time="night". The shopfronts, footpath and vignettes are painted by paint-full.css, which loads with
-   the full scene. Every fill is a class reading a --st-* token, so light and dark are one drawing. Red never appears. */
+   the full scene. Every fill is a class reading a --st-* token, so light and dark are one drawing. Red never appears.
+   The street is a quiet backdrop, noticed second: every tone is a desaturated tint a few percent off the page (about 4 to 12 percent contrast), and
+   the only warm notes are a few tiny lit windows at night. */
 @layer components {
   :root,
   .street[data-time='day'],
   .street-day {
-    --st-sky: linear-gradient(to bottom, rgb(247 245 242 / 0) 0%, rgb(253 238 214 / 0.5) 34%, #fde7c8 66%, #fbd9b2 100%);
-    --st-sun: #fbd43f;
-    --st-sun-halo: rgb(251 212 63 / 0.26);
-    --st-moon-o: 0;
-    --st-sun-o: 1;
-    --st-stars-o: 0;
-    --st-far: #e7dcea;
-    --st-far2: #dccfe2;
-    --st-far-line: #d3c4da;
+    --st-sky: linear-gradient(to bottom, rgb(239 234 227 / 0) 0%, rgb(239 234 227 / 0) 40%, rgb(239 234 227 / 0.55) 100%);
+    --st-far: #ebe7e1;
+    --st-far2: #e9e5df;
+    --st-far-line: #dcd6ce;
     --st-far-lit-o: 0;
-    --st-train: #d3c4da;
-    --st-train-win: #efe7f3;
+    --st-train: #e3ded7;
+    --st-train-win: #ece8e2;
   }
 
   :root[data-theme='dark'],
   .band-dark,
   .street[data-time='night'],
   .street-night {
+    --st-sky: linear-gradient(to bottom, rgb(24 24 34 / 0) 0%, rgb(24 24 34 / 0) 40%, rgb(24 24 34 / 0.55) 100%);
+    --st-far: #18181f;
+    --st-far2: #17171e;
+    --st-far-line: #25252f;
+    --st-far-lit-o: 1;
+    --st-train: #1f1f29;
+    --st-train-win: #3a3528;
+  }
+
+  /* The footer's skyline (art-skyline) keeps its own night city in both themes: the indigo glow rising behind the wordmark, blocks a step lighter
+     than the sheet, warm lit windows and a lit metro. Scoped to the skyline, so the heroes' quiet street above is untouched. */
+  .street[data-variant='skyline'] {
     --st-sky: linear-gradient(to bottom, rgb(11 11 13 / 0) 0%, rgb(22 20 46 / 0.6) 32%, #1a1836 64%, #221f45 100%);
-    --st-sun-o: 0;
-    --st-moon-o: 1;
-    --st-stars-o: 1;
-    --st-far: #191a2c;
-    --st-far2: #1d1d33;
+    --st-far: #1d1d31;
+    --st-far2: #222239;
     --st-far-line: #25253d;
     --st-far-lit-o: 1;
     --st-train: #232341;
     --st-train-win: #ffd75e;
-  }
-
-  .street[data-variant='skyline'] {
-    --st-far: #1d1d31;
-    --st-far2: #222239;
   }
 
   .s-far {
@@ -50,17 +51,20 @@
     stroke: var(--st-far-line);
   }
   .s-far-lit {
-    fill: #fbd43f;
-    opacity: calc(var(--st-far-lit-o) * 0.34);
-  }
-  .street[data-variant='skyline'] .s-far-lit {
-    opacity: calc(var(--st-far-lit-o) * 0.5);
+    fill: #f2c76b;
+    opacity: calc(var(--st-far-lit-o) * 0.32);
   }
   .s-train {
     fill: var(--st-train);
   }
   .s-train-win {
     fill: var(--st-train-win);
+  }
+  .street[data-variant='skyline'] .s-far-lit {
+    fill: #fbd43f;
+    opacity: calc(var(--st-far-lit-o) * 0.5);
+  }
+  .street[data-variant='skyline'] .s-train-win {
     opacity: 0.8;
   }
 }

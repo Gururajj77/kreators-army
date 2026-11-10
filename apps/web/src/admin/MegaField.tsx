@@ -1,6 +1,6 @@
 // Owner: A4 Admin. The MEGA link field (admin brief 5.4 with V2-SPEC 4.2): a one-line textarea that grows for a pasted embed code. A paste checks at
 // once, typing 600 ms after the last key (M1). The line under it says what MEGA and the file's header said: ready with resolution, bitrate, size and
-// length and "Use as title"; heavy or too heavy with the 720p guidance; one line per warning (HEVC disables publishing); link problems; MEGA problems
+// length and "Use as title"; heavy or too heavy with the 720p guidance; one line per warning (HEVC and other codecs warn but never block publishing); link problems; MEGA problems
 // with Retry; a duplicate with a way to open it; and a key still in the old MEGA_LINKS secret.
 import { formatBytes, gradeLabel, megaWarnings, parseMegaLink, resolutionLabel, type AdminMega, type MegaInspect, type MegaMeta } from '@kreators/shared';
 import { RefreshCw } from 'lucide-react';

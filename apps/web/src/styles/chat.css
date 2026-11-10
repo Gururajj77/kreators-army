@@ -309,8 +309,8 @@
     transition: none;
   }
 
-  /* ---------- The #interaction thread: four columns, the even pairs dropped, so it reads as a conversation ---------- */
-  .chat-thread {
+  /* ---------- The #interaction thread: four columns, the even pairs dropped, so it reads as a conversation. Its loading skeleton shares the grid. ---------- */
+  :is(.chat-thread, .chat-skeleton) {
     --reply-w: 176px;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -353,14 +353,14 @@
   }
 
   @media (max-width: 1067px) {
-    .chat-thread {
+    :is(.chat-thread, .chat-skeleton) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       row-gap: 40px;
     }
   }
 
   @media (max-width: 734px) {
-    .chat-thread {
+    :is(.chat-thread, .chat-skeleton) {
       --reply-w: 148px;
       grid-template-columns: 1fr;
       row-gap: 28px;
@@ -368,6 +368,109 @@
 
     .chat-pair:nth-child(even) {
       padding-top: 0;
+    }
+  }
+
+  /* ---------- Ghosts: a bubble still to come is an outline of itself, never a blank. The armed thread's waiting rows ([data-wait]) and the loading
+     skeleton's rows ([data-ghost]) look alike, so the swap from one to the other does not show. Bolu's face stays; an opaque wash of the page colour
+     (the bubble's own colour at 22% for the question, the sunken tone for the reply) covers the words and the poster, which stay in the DOM and in the
+     accessibility tree. The row sits at 96% and springs to full size as the wash fades. ---------- */
+  .chat-skeleton {
+    --ghost-shine: rgb(255 255 255 / 0.55);
+  }
+
+  :where([data-theme='dark'], .band-dark) .chat-skeleton {
+    --ghost-shine: rgb(255 255 255 / 0.06);
+  }
+
+  .chat-ghost-reply {
+    display: block;
+    flex: none;
+    position: relative;
+    width: var(--reply-w);
+    aspect-ratio: 9 / 16;
+    border-radius: 22px 22px 6px 22px;
+    overflow: clip;
+  }
+
+  :is(.chat-thread .chat-q .bubble, .chat-thread .chat-a :is(.vframe-bubble, .chat-avatar), .chat-skeleton :is(.bubble, .chat-a .chat-avatar, .chat-ghost-reply))::after {
+    content: '';
+    position: absolute;
+    z-index: 6;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--sunken);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 240ms var(--ease-out);
+  }
+
+  :is(.chat-thread .chat-q, .chat-skeleton) .bubble::after {
+    background: color-mix(in oklab, var(--b-bg) 22%, var(--bg));
+  }
+
+  .chat-thread [data-wait]:not([data-wait='typing']) :is(.bubble, .vframe-bubble, .chat-avatar)::after,
+  .chat-skeleton [data-ghost] :is(.bubble, .chat-ghost-reply, .chat-a .chat-avatar)::after {
+    opacity: 1;
+    transition: none;
+  }
+
+  /* A reply still to come also hides its poster and takes the wash's colour itself, so no sliver of the picture shows at the scaled, anti-aliased
+     edges. Its children are decorative (the button's name is its aria-label), so hiding them changes nothing for screen readers. On arrival they
+     show at once, under the wash, which then fades. */
+  .chat-thread .chat-a[data-wait] .vframe-bubble {
+    background: var(--sunken);
+  }
+
+  .chat-thread .chat-a[data-wait] :is(.vframe-bubble, .chat-avatar) > * {
+    visibility: hidden;
+  }
+
+  .chat-skeleton .chat-ghost-reply,
+  .chat-thread .chat-a[data-wait] .vframe-bubble {
+    box-shadow: 0 0 0 1px var(--line);
+  }
+
+  :root[data-js]:not([data-still]) .chat-thread [data-arrive][data-wait],
+  :root[data-js]:not([data-still]) .chat-skeleton [data-ghost] {
+    opacity: 1;
+    transform: scale(0.96);
+    transition: none;
+  }
+
+  /* While its typing dots stand in the cell, the question's outline steps aside. */
+  :root[data-js]:not([data-still]) .chat-thread [data-arrive][data-wait='typing'] {
+    opacity: 0;
+  }
+
+  .chat-thread [data-wait] {
+    pointer-events: none;
+  }
+
+  :root[data-still] :is(.chat-thread, .chat-skeleton) *::after {
+    transition: none;
+  }
+
+  /* The skeleton's slow shimmer: a soft light band across each outline, only while motion is allowed. */
+  :root[data-js]:not([data-still]) .chat-skeleton [data-ghost] :is(.bubble, .chat-ghost-reply, .chat-a .chat-avatar)::after {
+    background-image: linear-gradient(100deg, transparent 35%, var(--ghost-shine) 50%, transparent 65%);
+    background-size: 300% 100%;
+    background-repeat: no-repeat;
+    animation: chat-shimmer 1.6s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chat-skeleton [data-ghost] :is(.bubble, .chat-ghost-reply, .chat-a .chat-avatar)::after {
+      animation: none !important;
+    }
+  }
+
+  @keyframes chat-shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: 0 0;
     }
   }
 

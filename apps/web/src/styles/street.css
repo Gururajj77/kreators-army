@@ -1,7 +1,7 @@
 /* Owner: A3 Scene. The street's art box: the frame, the sky, the layers and the footer's train, all the skyline needs. Imported by the lazy street
-   chunk (components/street/StreetScene.tsx), never by app.css, so it splits with the street. The full scene's own rules (sun and moon, the glow, the
-   shop that wakes, the short-window mask, phone offsets) are in components/street/full.css, which loads with it. Colours: components/street/paint*.css.
-   The host and the stage the cast stands on are in styles/cast.css (first download). Transform and opacity only. */
+   chunk (components/street/StreetScene.tsx), never by app.css, so it splits with the street. The full scene's own rules (the shopfront row's soft top,
+   the short-window mask) are in components/street/full.css, which loads with it. Colours: components/street/paint*.css. The host and the stage the
+   cast stands on are in styles/cast.css (first download). The scene is still; the footer train's one slow pass is its only motion. */
 @layer components {
   .street {
     position: absolute;
@@ -18,6 +18,12 @@
     opacity: 1;
   }
 
+  /* The heroes' street melts into the one field below it: the footpath fades out at the bottom of its box, so the hero never ends on an edge. */
+  .street:is([data-variant='hero'], [data-variant='band']) {
+    -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  }
+
   :root[data-still] .street {
     transition: none;
   }
@@ -28,39 +34,41 @@
     background: var(--st-sky);
   }
 
-  /* Layers are inline SVGs, xMidYMax slice, overscanned 24 px a side so the drift never shows an edge. */
+  /* Layers are inline SVGs, xMidYMax slice, overscanned 24 px a side. */
   .street-layer {
     position: absolute;
     left: -24px;
     bottom: 0;
     width: calc(100% + 48px);
+    /* The base sheet caps media at 100%; the overscan needs the full box, so the masks below cover the whole drawing. */
+    max-width: none;
     height: 100%;
     overflow: visible;
-    translate: var(--street-shift, 0) 0;
   }
 
-  .street-celestial {
-    translate: none;
+  /* The skyline melts into the page at its top: a soft fade, never an edge. */
+  .street-far {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 30%, #000 78%);
+    mask-image: linear-gradient(to bottom, transparent 30%, #000 78%);
   }
 
-  .street[data-live] .street-layer,
-  .street[data-live] .street-glow {
-    will-change: transform;
+  /* The footer's skyline is drawn whole: its night city reads behind the wordmark, as it did before the heroes were quietened. */
+  .street[data-variant='skyline'] .street-far {
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
-  /* ---------- The footer's skyline: the far layer only, and the metro's one pass when it first comes into view ---------- */
+  /* ---------- The footer's skyline: the far layer only, and the metro's one slow pass when it first comes into view ---------- */
   .street-train {
     transform: translateX(-320px);
   }
 
   .street[data-variant='skyline'][data-train] .street-train {
     transform: translateX(2720px);
-    transition: transform 11s linear;
+    transition: transform 14s linear;
   }
 
   :root[data-still] .street-train {
     transition: none;
   }
-
-
 }
