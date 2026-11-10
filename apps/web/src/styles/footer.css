@@ -1,0 +1,598 @@
+/* The footer: the ending of every page. A dark stage in both themes, whatever the page around it is doing. */
+@layer components {
+  .ft {
+    --ft-link: #e4e1da;
+    --ft-soft: #c0bdb6;
+    --ft-cast: clamp(56px, 8.5vw, 128px);
+    --ft-cast-h: calc(var(--ft-cast) * 12 / 13);
+    --ft-rise: clamp(-14px, -0.93vw, -8px);
+    --ft-word-w: min(100% - 2 * clamp(16px, 2.4vw, 44px), 1800px);
+    /* G2, re-ordered to follow the cast so each character stands in its own colour of light. Tuned by eye: yellow and green at the brief's strength meet as olive on a near-black stage. */
+    --g-stage:
+      radial-gradient(60% 90% at 12% 112%, color-mix(in oklab, #6d61fe 22%, transparent), transparent 70%),
+      radial-gradient(60% 90% at 38% 112%, color-mix(in oklab, #fbd43f 10%, transparent), transparent 70%),
+      radial-gradient(60% 90% at 62% 112%, color-mix(in oklab, #47c349 12%, transparent), transparent 70%),
+      radial-gradient(60% 90% at 88% 112%, color-mix(in oklab, #ff8d3a 16%, transparent), transparent 70%);
+
+    position: relative;
+    margin-top: var(--end-y);
+    overflow: clip;
+    border-radius: var(--r-footer) var(--r-footer) 0 0;
+    background-color: var(--c-ground);
+    background-image: var(--g-stage);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.12),
+      inset 0 1px 0 rgb(255 255 255 / 0.14);
+    color: var(--ft-link);
+  }
+
+  /* ---------- Closing line, the action, the links ---------- */
+  .ft-top {
+    display: grid;
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+    column-gap: clamp(40px, 6.6vw, 96px);
+    align-items: start;
+    padding-block: 80px 64px;
+  }
+
+  .ft-lead {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .ft-title {
+    color: #ffffff;
+  }
+
+  /* The two buttons run a little past the 420 column, into the gutter. Below 1180 the columns stack, so this never crowds them. */
+  .ft-actions {
+    display: flex;
+    gap: 12px;
+    width: max-content;
+    margin-top: 28px;
+  }
+
+  /* The sheet is #111111 whichever theme is on, so its hairlines are set here. */
+  .ft .btn-ghost {
+    box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.28);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ft .btn-ghost:hover {
+      background: rgb(255 255 255 / 0.1);
+      box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.5);
+    }
+  }
+
+  .ft-reach {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 14px;
+  }
+
+  .ft-mail {
+    color: var(--ft-soft);
+  }
+
+  .ft-socials {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ft-social {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: var(--r-pill);
+    color: var(--ft-link);
+    transition:
+      color var(--dur-hover) ease,
+      background-color var(--dur-hover) ease,
+      transform 220ms var(--ease-out);
+  }
+
+  .ft-social[data-who='tiko'] {
+    --tint: #a69dff;
+  }
+  .ft-social[data-who='sochu'] {
+    --tint: var(--c-yellow);
+  }
+  .ft-social[data-who='bolu'] {
+    --tint: #6fdd70;
+  }
+  .ft-social[data-who='gola'] {
+    --tint: #ff9d54;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ft-social:hover {
+      background: rgb(255 255 255 / 0.08);
+      color: var(--tint);
+    }
+
+    :root:not([data-still]) .ft-social:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  .ft-social:active {
+    transform: scale(0.97);
+    transition-duration: var(--dur-hover), var(--dur-hover), var(--dur-press);
+  }
+
+  :root:not([data-still]) .ft-social:active {
+    transform: scale(0.97);
+  }
+
+  :root[data-still] .ft-social:active {
+    transform: none;
+  }
+
+  .ft-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: var(--gap);
+  }
+
+  .ft-group-title {
+    margin: 0 0 8px;
+    color: var(--ft-soft);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    letter-spacing: -0.006em;
+    transition: color var(--dur-hover) ease;
+  }
+
+  .ft-group ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ft-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: inherit;
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--dur-hover) ease;
+  }
+
+  /* R40: the underline is drawn with a transform. Footer links never wrap. */
+  .ft-link::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 9px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 220ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ft-link:hover {
+      color: #ffffff;
+    }
+
+    .ft-link:hover::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+  }
+
+  :root[data-still] .ft-link::after {
+    transition: none;
+  }
+
+  .ft-link:focus-visible,
+  .ft-social:focus-visible,
+  .ft-pause:focus-visible,
+  .ft-owner:focus-visible {
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* ---------- Hairline and bottom bar ---------- */
+  .ft-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 24px;
+    padding-block: 12px;
+    border-top: 1px solid rgb(255 255 255 / 0.14);
+    color: var(--ft-soft);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.006em;
+  }
+
+  .ft-legal {
+    margin: 0;
+  }
+
+  /* Padding on an inline link grows its target without moving the line. */
+  .ft-owner {
+    padding-block: 12px;
+    color: var(--ft-link);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: color var(--dur-hover) ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ft-owner:hover {
+      color: #ffffff;
+    }
+  }
+
+  .ft-bar-end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 24px;
+  }
+
+  .ft-bar-end .ft-link {
+    font-size: inherit;
+  }
+
+  .ft-pause {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: color var(--dur-hover) ease;
+  }
+
+  .ft-pause[disabled] {
+    cursor: not-allowed;
+  }
+
+  .ft-pause-track {
+    position: relative;
+    display: block;
+    flex: none;
+    width: 34px;
+    height: 20px;
+    border-radius: var(--r-pill);
+    background: rgb(255 255 255 / 0.2);
+    transition: background-color var(--dur-hover) ease;
+  }
+
+  .ft-pause-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    display: block;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--r-pill);
+    background: #ffffff;
+  }
+
+  .ft-pause[aria-checked='true'] .ft-pause-track {
+    background: var(--c-green);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ft-pause:not([disabled]):hover {
+      color: #ffffff;
+    }
+  }
+
+  /* ---------- The stage: wordmark, cast, ground band ---------- */
+  .ft-stage {
+    position: relative;
+    padding-top: calc(var(--ft-cast-h) + 28px);
+  }
+
+  .ft-word-box {
+    position: relative;
+    width: var(--ft-word-w);
+    margin-inline: auto;
+  }
+
+  .ft-mark {
+    position: absolute;
+    inset: 0;
+    display: block;
+    color: inherit;
+  }
+
+  /* Keeps the target 44 px tall on a phone, without moving the letters. */
+  .ft-mark::before {
+    content: '';
+    position: absolute;
+    inset: -12px 0 0;
+  }
+
+  .ft-mark:focus-visible {
+    outline: none;
+  }
+
+  /* The focus ring sits on the word and rises with it, so it never cuts through the cast. */
+  .ft-mark-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    pointer-events: none;
+    transition: transform 450ms var(--ease-open);
+  }
+
+  .ft-mark:focus-visible .ft-mark-ring {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .ft-word {
+    position: absolute;
+    inset: 0 0 auto;
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    transition: transform 450ms var(--ease-open);
+  }
+
+  .ft-word-rest {
+    fill: #ffffff;
+    opacity: 0.16;
+  }
+
+  .ft-word-lit {
+    opacity: 0;
+    transition: opacity 450ms var(--ease-open);
+  }
+
+  .ft-mark:focus-visible .ft-word-lit {
+    opacity: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ft-mark:hover .ft-word-lit {
+      opacity: 1;
+    }
+  }
+
+  /* R41: the whole word rises and the cast rises with it. The link's box stays put, so the pointer never falls off it. */
+  .ft-cast {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: transform 450ms var(--ease-open);
+  }
+
+  :root:not([data-still]) .ft-mark:focus-visible .ft-word,
+  :root:not([data-still]) .ft-mark:focus-visible .ft-mark-ring,
+  :root:not([data-still]) .ft-mark:focus-visible ~ .ft-cast {
+    transform: translateY(var(--ft-rise));
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .ft-mark:hover .ft-word,
+    :root:not([data-still]) .ft-mark:hover .ft-mark-ring,
+    :root:not([data-still]) .ft-mark:hover ~ .ft-cast {
+      transform: translateY(var(--ft-rise));
+    }
+  }
+
+  :root[data-still] .ft-word,
+  :root[data-still] .ft-mark-ring,
+  :root[data-still] .ft-cast {
+    transition: none;
+  }
+
+  .ft-char {
+    position: absolute;
+    left: clamp(0px, calc(var(--x) - var(--ft-cast) / 2), calc(100% - var(--ft-cast)));
+    bottom: calc(100% - var(--y));
+  }
+
+  .ft-band {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    height: 8px;
+  }
+
+  .ft-seg {
+    position: relative;
+    display: block;
+  }
+
+  [data-who='tiko']:is(.ft-seg, .ft-pool) {
+    --seg: var(--c-purple);
+    --lit: var(--ft-lit-tiko, 0);
+  }
+  [data-who='sochu']:is(.ft-seg, .ft-pool) {
+    --pool: 22%;
+    --seg: var(--c-yellow);
+    --lit: var(--ft-lit-sochu, 0);
+  }
+  [data-who='bolu']:is(.ft-seg, .ft-pool) {
+    --seg: var(--c-green);
+    --lit: var(--ft-lit-bolu, 0);
+  }
+  [data-who='gola']:is(.ft-seg, .ft-pool) {
+    --seg: var(--c-orange);
+    --lit: var(--ft-lit-gola, 0);
+  }
+
+  /* Lit by a group below: the segment brightens and a pool of its light rises behind the word. Only filter and opacity change. */
+  .ft-seg {
+    background: var(--seg);
+    filter: brightness(calc(1 + var(--lit) * 0.14));
+    transition: filter 240ms var(--ease-out);
+  }
+
+  .ft-pools {
+    position: absolute;
+    inset: auto 0 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    height: 220px;
+    pointer-events: none;
+  }
+
+  .ft-pool {
+    background: radial-gradient(70% 100% at 50% 100%, color-mix(in oklab, var(--seg) var(--pool, 32%), transparent), transparent 72%);
+    opacity: var(--lit);
+    transition: opacity 240ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ft:has(.ft-group[data-who='tiko']:hover) {
+      --ft-lit-tiko: 1;
+    }
+    .ft:has(.ft-group[data-who='sochu']:hover) {
+      --ft-lit-sochu: 1;
+    }
+    .ft:has(.ft-group[data-who='bolu']:hover) {
+      --ft-lit-bolu: 1;
+    }
+    .ft:has(.ft-group[data-who='gola']:hover) {
+      --ft-lit-gola: 1;
+    }
+
+    .ft:has(.ft-mark:hover) {
+      --ft-lit-tiko: 1;
+      --ft-lit-sochu: 1;
+      --ft-lit-bolu: 1;
+      --ft-lit-gola: 1;
+    }
+
+    .ft-group:hover .ft-group-title {
+      color: var(--tint);
+    }
+  }
+
+  .ft:has(.ft-group[data-who='tiko'] a:focus-visible) {
+    --ft-lit-tiko: 1;
+  }
+  .ft:has(.ft-group[data-who='sochu'] a:focus-visible) {
+    --ft-lit-sochu: 1;
+  }
+  .ft:has(.ft-group[data-who='bolu'] a:focus-visible) {
+    --ft-lit-bolu: 1;
+  }
+  .ft:has(.ft-group[data-who='gola'] a:focus-visible) {
+    --ft-lit-gola: 1;
+  }
+  .ft:has(.ft-mark:focus-visible) {
+    --ft-lit-tiko: 1;
+    --ft-lit-sochu: 1;
+    --ft-lit-bolu: 1;
+    --ft-lit-gola: 1;
+  }
+
+  .ft-group[data-who='tiko'] {
+    --tint: #a69dff;
+  }
+  .ft-group[data-who='sochu'] {
+    --tint: var(--c-yellow);
+  }
+  .ft-group[data-who='bolu'] {
+    --tint: #6fdd70;
+  }
+  .ft-group[data-who='gola'] {
+    --tint: #ff9d54;
+  }
+
+  /* ---------- Narrower ---------- */
+  @media (max-width: 1179px) {
+    .ft-top {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 48px;
+      padding-block: 64px 48px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .ft-top {
+      row-gap: 24px;
+      padding-block: 36px 20px;
+    }
+
+    .ft-lead {
+      gap: 12px;
+    }
+
+    .ft-actions {
+      width: auto;
+      margin-top: 16px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .ft-reach {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .ft-socials {
+      margin-left: -12px;
+    }
+
+    .ft-nav {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 16px;
+    }
+
+    .ft-link {
+      font-size: 15px;
+    }
+
+    .ft-bar {
+      flex-direction: column-reverse;
+      align-items: flex-start;
+      gap: 0;
+      padding-block: 0;
+      font-size: 12px;
+      line-height: 16px;
+      letter-spacing: 0;
+    }
+
+    .ft-bar-end {
+      gap: 0 20px;
+      font-size: 14px;
+    }
+
+    .ft-stage {
+      padding-top: calc(var(--ft-cast-h) + 12px);
+    }
+
+    .ft-pools {
+      height: 120px;
+    }
+
+    /* A phone never sees the lit hover, and at this size 16% reads as a grey strip, not the word. Still static, still in the background. */
+    .ft-word-rest {
+      opacity: 0.26;
+    }
+  }
+}

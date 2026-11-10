@@ -1,0 +1,359 @@
+/* The design tokens. Everything visual on the site comes from these, in both themes and inside .band-dark.
+   Tailwind utilities read the same tokens through @theme inline, so bg-surface, text-muted and the rest follow a re-scoped band automatically. */
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* One Inter file: optical size 14 to 32, weight 400 to 700, Latin plus the rupee sign. The fallbacks borrow Arial or Roboto scaled to Inter's width,
+   so the swap does not move a line. Tuned by comparing real headings and leads in Chrome with Inter loaded and blocked; Roboto takes the same correction from its font metrics. */
+@font-face {
+  font-family: 'Inter Var';
+  src: url('/fonts/inter-var.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  font-weight: 400;
+  size-adjust: 104.5%;
+  ascent-override: 92.7%;
+  descent-override: 23.08%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial Bold'), local('Arial-BoldMT');
+  font-weight: 600 700;
+  size-adjust: 104.5%;
+  ascent-override: 92.7%;
+  descent-override: 23.08%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Inter Fallback Android';
+  src: local('Roboto');
+  font-weight: 400;
+  size-adjust: 104.72%;
+  ascent-override: 92.51%;
+  descent-override: 23.03%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Inter Fallback Android';
+  src: local('Roboto Bold'), local('Roboto-Bold');
+  font-weight: 600 700;
+  size-adjust: 104.72%;
+  ascent-override: 92.51%;
+  descent-override: 23.03%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Inter Display Fallback';
+  src: local('Arial Bold'), local('Arial-BoldMT');
+  font-weight: 400 700;
+  size-adjust: 95.3%;
+  ascent-override: 101.65%;
+  descent-override: 25.31%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Inter Display Fallback Android';
+  src: local('Roboto Bold'), local('Roboto-Bold');
+  font-weight: 400 700;
+  size-adjust: 101.5%;
+  ascent-override: 95.44%;
+  descent-override: 23.76%;
+  line-gap-override: 0%;
+}
+
+@theme inline {
+  /* Surfaces and ink. Use these as bg-*, text-*, border-* utilities. */
+  --color-bg: var(--bg);
+  --color-page: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+  --color-surface-5: var(--surface-5);
+  --color-surface-6: var(--surface-6);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-action: var(--action);
+  --color-fill: var(--action);
+  --color-focus: var(--focus);
+  --color-yellow: var(--c-yellow);
+  --color-purple: var(--c-purple);
+  --color-green: var(--c-green);
+  --color-orange: var(--c-orange);
+  --color-ground: var(--c-ground);
+
+  /* One family. font-display is the same Inter, opsz-locked and with a metric-matched fallback for big type. */
+  --font-sans: 'Inter Var', 'Inter Fallback', 'Inter Fallback Android', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Inter Var', 'Inter Display Fallback', 'Inter Display Fallback Android', ui-sans-serif, system-ui, sans-serif;
+
+  --text-sm--letter-spacing: -0.006em;
+  --text-xs--letter-spacing: 0em;
+
+  /* Radii as rounded-tile, rounded-inner, rounded-field, rounded-nav, rounded-pill, rounded-sheet. */
+  --radius-tile: 28px;
+  --radius-inner: 20px;
+  --radius-field: 12px;
+  --radius-nav: 18px;
+  --radius-pill: 999px;
+  --radius-sheet: 32px;
+}
+
+@layer theme {
+  :root {
+    /* ---------- Brand ---------- */
+    --c-yellow: #fbd43f;
+    --c-purple: #6d61fe;
+    --c-green: #47c349;
+    --c-orange: #ff8d3a;
+    --c-ground: #111111;
+    /* White text on purple uses this, pure white only (4.54:1). */
+    --c-purple-text: #6b5ff9;
+
+    /* ---------- Ground and surfaces: the seven depth tiers (0 page, 1 plate, 2 raised, 3 ornament, 4 chrome, 5 popover, 6 sheet) ---------- */
+    --bg: #f7f5f2;
+    --surface-0: #f7f5f2;
+    --surface-1: #ffffff;
+    --surface-2: #ffffff;
+    --surface-3: #ffffff;
+    --surface-4: #ffffff;
+    --surface-5: #ffffff;
+    --surface-6: #ffffff;
+    /* The plate a tile sits on. Flips against its section: see .band-alt and .band-dark. */
+    --surface: #ffffff;
+    /* Recessed, never raised: skeletons, segment platters, hover rows inside an opaque popover. */
+    --sunken: #eeebe5;
+
+    /* ---------- Ink ---------- */
+    --ink: #0e0e10;
+    --muted: #5f5d58;
+    --line: rgb(14 14 16 / 0.14);
+    /* Field outlines: 3:1 against the page (WCAG 1.4.11). */
+    --field-line: rgb(14 14 16 / 0.46);
+    --focus: #5a4cf0;
+    /* Text colour for links and small "act" affordances. */
+    --accent: #d91a1a;
+
+    /* ---------- The one action colour ---------- */
+    --action: #e11d1d;
+    --action-hover: #c81616;
+    --on-action: #ffffff;
+    --accent-fill: var(--action);
+
+    /* ---------- Shadows start at tier 2. Plates are flat at rest. ---------- */
+    --shadow-2: 0 2px 4px rgb(24 20 40 / 0.06), 0 12px 28px -8px rgb(24 20 40 / 0.16);
+    --shadow-3: 0 4px 8px rgb(24 20 40 / 0.08), 0 20px 44px -12px rgb(24 20 40 / 0.22);
+    --shadow-4: 0 6px 12px rgb(24 20 40 / 0.1), 0 28px 60px -16px rgb(24 20 40 / 0.28);
+    --shadow-5: 0 10px 20px rgb(24 20 40 / 0.12), 0 40px 80px -20px rgb(24 20 40 / 0.34);
+    --shadow-6: 0 24px 48px rgb(24 20 40 / 0.18), 0 64px 120px -24px rgb(24 20 40 / 0.42);
+    --plate-edge: inset 0 0 0 1px rgb(14 14 16 / 0.04);
+
+    /* z-index per tier */
+    --z-plate: 1;
+    --z-raised: 2;
+    --z-ornament: 30;
+    --z-chrome: 40;
+    --z-popover: 50;
+
+    /* ---------- Glass: nav and filter bar (R15), over-video controls (R16). Chips on tiles are flat, popovers opaque. ---------- */
+    --glass-bg: rgb(250 250 252 / 0.8);
+    --glass-fx: saturate(180%) blur(20px);
+    --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 0 0 0.5px rgb(14 14 16 / 0.08);
+    --on-glass: #0e0e10;
+    --on-glass-2: #4a4843;
+    --glass-media-bg: rgb(42 42 45 / 0.72);
+    --glass-media-fx: blur(7px);
+    --chip-bg: rgb(14 14 16 / 0.72);
+
+    /* ---------- Gradients (critique 5.1). Five jobs, nothing on buttons or chrome. ---------- */
+    /* G0 Ground: page wash, top of the page only. */
+    --g-ground:
+      radial-gradient(60% 50% at 15% 0%, color-mix(in oklab, var(--c-yellow) 16%, transparent), transparent 70%),
+      radial-gradient(50% 45% at 90% 5%, color-mix(in oklab, var(--c-purple) 10%, transparent), transparent 70%);
+    /* G1 Character tiles, once per bento (except Meet the Army). Ink text, purple is white only. */
+    --g-sochu: linear-gradient(155deg, #ffe376, #fbd43f 55%, #f5bf2a);
+    --g-bolu: linear-gradient(155deg, #74dd6e, #47c349 55%, #37ae3f);
+    --g-gola: linear-gradient(155deg, #ffae66, #ff8d3a 55%, #f47424);
+    --g-tiko: linear-gradient(155deg, #6b5ff9, #5a4cf0 55%, #3a2bc4);
+    --on-sochu: #0e0e10;
+    --on-sochu-2: #3a3320;
+    --on-bolu: #0e0e10;
+    --on-bolu-2: #10301a;
+    --on-gola: #0e0e10;
+    --on-gola-2: #3a1e08;
+    --on-tiko: #ffffff;
+    --on-tiko-2: #ffffff;
+    /* G2 Stage light: footer only. Same on both themes, behind the dark sheet. */
+    --g-stage:
+      radial-gradient(60% 90% at 12% 112%, color-mix(in oklab, #fbd43f 16%, transparent), transparent 70%),
+      radial-gradient(60% 90% at 38% 112%, color-mix(in oklab, #6d61fe 22%, transparent), transparent 70%),
+      radial-gradient(60% 90% at 62% 112%, color-mix(in oklab, #47c349 16%, transparent), transparent 70%),
+      radial-gradient(60% 90% at 88% 112%, color-mix(in oklab, #ff8d3a 16%, transparent), transparent 70%);
+    /* G3 One gradient word per page. The fallback for browsers without oklch gradients lives on .g-word. */
+    --g-word: linear-gradient(90deg in oklch, #5a4cf0, #c44e14);
+    /* G4 Scrim lives on .scrim and .tile-scrim in components.css: var() resolves where a property is declared, so declared here on :root, --scrim-a could never be overridden. */
+
+    /* ---------- Geometry (critique 5.6, R31) ---------- */
+    --gap: 20px;
+    --r-tile: 28px;
+    --r-inner: 20px;
+    --r-field: 12px;
+    --r-nav: 18px;
+    --r-pill: 999px;
+    --r-footer: 32px;
+    --content-w: 87.5%;
+    --content-max: 1260px;
+    --section-y: 120px;
+    /* The one space between a page's last content and the footer sheet: a section's padding, on every page. */
+    --end-y: var(--section-y);
+    /* 65 characters of Inter. Not 65ch: a zero is wider than the average letter, so 65ch really sets about 80 characters. */
+    --reading-max: 31em;
+
+    /* The nav's condensed box. Sticky things and scroll anchors key off --nav-offset alone. */
+    --nav-h: 52px;
+    --nav-top: 10px;
+    --nav-offset: calc(var(--nav-top) + var(--nav-h) + 12px);
+    /* The phone's fixed action bar (a large button), so focus and hash scrolls stop above it. */
+    --mobile-cta-h: 54px;
+
+    /* ---------- Motion ---------- */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-card: cubic-bezier(0, 0, 0.5, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-open: cubic-bezier(0.16, 1, 0.3, 1);
+    --dur-press: 100ms;
+    --dur-hover: 160ms;
+    --dur-pop: 160ms;
+    --dur-sheet: 320ms;
+    /* Generated by Motion's own spring solver. Each holds its duration and easing: transition: background-color var(--spring-smooth). */
+    --spring-release: 500ms linear(0, 0.147, 0.409, 0.642, 0.808, 0.91, 0.966, 0.993, 1.003, 1.006, 1.005, 1.003, 1.002, 1.001, 1, 1, 1);
+    --spring-snappy: 550ms linear(0, 0.121, 0.349, 0.57, 0.742, 0.859, 0.933, 0.974, 0.994, 1.003, 1.006, 1.005, 1.004, 1.003, 1.001, 1.001, 1, 1);
+    --spring-smooth: 700ms linear(0, 0.073, 0.223, 0.384, 0.53, 0.65, 0.745, 0.816, 0.869, 0.908, 0.936, 0.955, 0.969, 0.979, 0.985, 0.99, 0.993, 0.995, 0.997, 0.998, 0.998, 0.999, 1);
+    --spring-bouncy: 550ms linear(0, 0.101, 0.313, 0.541, 0.736, 0.88, 0.972, 1.022, 1.043, 1.045, 1.038, 1.027, 1.017, 1.009, 1.003, 1, 0.998, 1);
+
+    color-scheme: light;
+  }
+
+  @media (max-width: 1068px) {
+    :root {
+      --section-y: 120px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    :root {
+      --section-y: 112px;
+    }
+  }
+
+  /* Dark, and every band that is dark in both themes. The tokens re-scope, so nothing inside needs a dark: variant. */
+  [data-theme='dark'],
+  .band-dark {
+    --bg: #0b0b0d;
+    --surface-0: #0b0b0d;
+    --surface-1: #15151a;
+    --surface-2: #1b1b21;
+    --surface-3: #212128;
+    --surface-4: #27272f;
+    --surface-5: #2d2d36;
+    --surface-6: #33333d;
+    --surface: #15151a;
+    --sunken: #1b1b21;
+
+    --ink: #f5f3ee;
+    --muted: #a8a59f;
+    --line: rgb(255 255 255 / 0.14);
+    --field-line: rgb(255 255 255 / 0.36);
+    --focus: #b9b4ff;
+    --accent: #ff6253;
+
+    --shadow-2: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 2px 4px rgb(0 0 0 / 0.4), 0 12px 28px -8px rgb(0 0 0 / 0.6);
+    --shadow-3: inset 0 1px 0 rgb(255 255 255 / 0.09), 0 4px 8px rgb(0 0 0 / 0.45), 0 20px 44px -12px rgb(0 0 0 / 0.7);
+    --shadow-4: inset 0 1px 0 rgb(255 255 255 / 0.11), 0 6px 12px rgb(0 0 0 / 0.5), 0 28px 60px -16px rgb(0 0 0 / 0.75);
+    --shadow-5: inset 0 1px 0 rgb(255 255 255 / 0.13), 0 10px 20px rgb(0 0 0 / 0.55), 0 40px 80px -20px rgb(0 0 0 / 0.8);
+    --shadow-6: inset 0 1px 0 rgb(255 255 255 / 0.15), 0 24px 48px rgb(0 0 0 / 0.6), 0 64px 120px -24px rgb(0 0 0 / 0.85);
+    --plate-edge: inset 0 0 0 1px rgb(255 255 255 / 0.05);
+
+    --glass-bg: rgb(18 18 18 / 0.8);
+    --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 0 0 0.5px rgb(255 255 255 / 0.14);
+    --on-glass: #f5f3ee;
+    --on-glass-2: #c8c5bf;
+
+    --g-ground:
+      radial-gradient(60% 50% at 15% 0%, color-mix(in oklab, var(--c-yellow) 10%, transparent), transparent 70%),
+      radial-gradient(50% 45% at 90% 5%, color-mix(in oklab, var(--c-purple) 16%, transparent), transparent 70%);
+    --g-sochu: linear-gradient(155deg, color-mix(in oklab, var(--c-yellow) 34%, #15151a), color-mix(in oklab, var(--c-yellow) 12%, #15151a));
+    --g-bolu: linear-gradient(155deg, color-mix(in oklab, var(--c-green) 36%, #15151a), color-mix(in oklab, var(--c-green) 12%, #15151a));
+    --g-gola: linear-gradient(155deg, color-mix(in oklab, var(--c-orange) 36%, #15151a), color-mix(in oklab, var(--c-orange) 12%, #15151a));
+    --g-tiko: linear-gradient(155deg, color-mix(in oklab, var(--c-purple) 44%, #15151a), color-mix(in oklab, var(--c-purple) 16%, #15151a));
+    --on-sochu: #f5f3ee;
+    --on-sochu-2: #c8c5bf;
+    --on-bolu: #f5f3ee;
+    --on-bolu-2: #c8c5bf;
+    --on-gola: #f5f3ee;
+    --on-gola-2: #c8c5bf;
+    --on-tiko: #f5f3ee;
+    --on-tiko-2: #c8c5bf;
+    --g-word: linear-gradient(90deg in oklch, #8e84ff, #ff8d3a, #fbd43f);
+
+    color-scheme: dark;
+  }
+
+  /* A dark band on the dark theme steps up a level so it still reads as a band; its plates go the opposite way, as on Apple. */
+  [data-theme='dark'] .band-dark {
+    --bg: #15151a;
+    --surface-1: #0b0b0d;
+    --surface: #0b0b0d;
+  }
+
+  /* The alternate section: the page colour and the plate colour swap, so tiles stay "opposite their section". */
+  .band-alt {
+    --bg: #ffffff;
+    --surface: #f7f5f2;
+    --surface-1: #f7f5f2;
+  }
+
+  [data-theme='dark'] .band-alt {
+    --bg: #15151a;
+    --surface: #0b0b0d;
+    --surface-1: #0b0b0d;
+  }
+
+  /* Glass degrades to a solid colour, never to worse text. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    :root {
+      --glass-bg: rgb(250 250 252 / 0.97);
+      --glass-media-bg: rgb(42 42 45 / 0.94);
+    }
+
+    [data-theme='dark'],
+    .band-dark {
+      --glass-bg: rgb(18 18 18 / 0.97);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    :root {
+      --glass-bg: rgb(250 250 252 / 0.97);
+      --glass-fx: none;
+      --glass-media-bg: rgb(42 42 45 / 0.94);
+      --glass-media-fx: none;
+    }
+
+    [data-theme='dark'],
+    .band-dark {
+      --glass-bg: rgb(18 18 18 / 0.97);
+      --glass-fx: none;
+    }
+  }
+}

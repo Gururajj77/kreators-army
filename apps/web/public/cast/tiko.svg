@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" width="480" height="480">
+<defs>
+<radialGradient id="g" gradientUnits="userSpaceOnUse" cx="178" cy="150" r="340" fx="170" fy="140"><stop offset="0" stop-color="#c2bdff"/><stop offset=".24" stop-color="#938aff"/><stop offset=".56" stop-color="#6d61fe"/><stop offset=".84" stop-color="#5a4cf0"/><stop offset="1" stop-color="#3323b8"/></radialGradient>
+<radialGradient id="s"><stop offset="0" stop-color="#fff" stop-opacity=".92"/><stop offset=".55" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<radialGradient id="b" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#8a7dff" stop-opacity=".55"/><stop offset="1" stop-color="#8a7dff" stop-opacity="0"/></radialGradient>
+<clipPath id="c"><path d="M271.14 136.42L391.3 346.29A35.88 35.88 0 0 1 360.16 400L119.84 400A35.88 35.88 0 0 1 88.7 346.29L208.86 136.42A35.88 35.88 0 0 1 271.14 136.42Z"/></clipPath>
+<filter id="b6" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
+<filter id="puff" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+<feGaussianBlur in="SourceAlpha" stdDeviation="24" result="b1"/><feOffset in="b1" dx="-14" dy="-20" result="o1"/><feComposite in="SourceAlpha" in2="o1" operator="out" result="edge1"/>
+<feFlood flood-color="#3323b8" flood-opacity=".78"/><feComposite in2="edge1" operator="in" result="shade"/>
+<feGaussianBlur in="SourceAlpha" stdDeviation="7" result="b2"/><feOffset in="b2" dx="7" dy="9" result="o2"/><feComposite in="SourceAlpha" in2="o2" operator="out" result="edge2"/>
+<feFlood flood-color="#dcd9ff" flood-opacity=".75"/><feComposite in2="edge2" operator="in" result="rim"/>
+<feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shade"/><feMergeNode in="rim"/></feMerge>
+</filter>
+</defs>
+<path d="M271.14 136.42L391.3 346.29A35.88 35.88 0 0 1 360.16 400L119.84 400A35.88 35.88 0 0 1 88.7 346.29L208.86 136.42A35.88 35.88 0 0 1 271.14 136.42Z" fill="url(#g)" filter="url(#puff)"/>
+
+<g clip-path="url(#c)"><ellipse cx="212" cy="190" rx="30" ry="50" transform="rotate(30 212 190)" fill="url(#s)" opacity="0.92"/></g>
+</svg>

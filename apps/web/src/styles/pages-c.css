@@ -1,0 +1,1391 @@
+/* Contact, FAQ, blog, reading pages, legal and the 404. Every rule is inside @layer components, so a Tailwind utility on the same element wins. */
+@layer components {
+  /* ---------- Contact: the page is the form, and the cast stands on it ---------- */
+  .contact {
+    position: relative;
+    padding-top: calc(var(--nav-offset) + 40px);
+    padding-bottom: 96px;
+  }
+
+  .contact-in {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'head' 'form' 'next';
+    gap: 48px;
+  }
+
+  .contact-head {
+    grid-area: head;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .contact-form {
+    grid-area: form;
+    min-width: 0;
+  }
+
+  .contact-next {
+    grid-area: next;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  @media (min-width: 1069px) {
+    .contact-in {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      grid-template-areas: 'head form' 'next form';
+      grid-template-rows: auto 1fr;
+      column-gap: 72px;
+      row-gap: 40px;
+    }
+  }
+
+  .contact-email {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 6px;
+    margin: 0;
+  }
+
+  .contact-email-link {
+    font-weight: 600;
+    text-underline-offset: 3px;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  .contact-copy-btn {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin: -8px -8px -8px -4px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: color var(--dur-hover) ease, background-color var(--dur-hover) ease;
+  }
+
+  .contact-copy-btn > svg {
+    grid-area: 1 / 1;
+    transition:
+      opacity var(--dur-pop) ease,
+      transform var(--dur-pop) var(--ease-out),
+      filter var(--dur-pop) ease;
+  }
+
+  .contact-copy-b {
+    opacity: 0;
+    transform: scale(0.8);
+    filter: blur(2px);
+  }
+
+  .contact-copy-btn[data-state='copied'] {
+    color: var(--ink);
+  }
+
+  .contact-copy-btn[data-state='copied'] .contact-copy-a {
+    opacity: 0;
+    transform: scale(0.8);
+    filter: blur(2px);
+  }
+
+  .contact-copy-btn[data-state='copied'] .contact-copy-b {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .contact-copy-btn:hover {
+      background: var(--sunken);
+      color: var(--ink);
+    }
+  }
+
+  :root[data-still] .contact-copy-btn > svg {
+    transition: none;
+  }
+
+  /* What happens next: STEPS, verbatim, on one quiet rail. */
+  .contact-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .contact-steps > li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .contact-steps > li + li::before {
+    content: '';
+    position: absolute;
+    left: 13.5px;
+    top: -14px;
+    height: 12px;
+    width: 1px;
+    background: var(--line);
+  }
+
+  .contact-step-n {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--r-pill);
+    background: var(--sunken);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .contact-steps > li:first-child .contact-step-n {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .contact-steps .label {
+    display: block;
+    padding-top: 3px;
+  }
+
+  .contact-steps p {
+    margin-top: 2px;
+  }
+
+  .contact-socials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin: 8px 0 0;
+    padding: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 20px;
+    list-style: none;
+  }
+
+  /* 44 px targets without moving the words: the padding is taken back by the margin. */
+  .contact-socials a {
+    display: inline-block;
+    min-width: 44px;
+    padding: 12px;
+    margin: -12px;
+    text-align: center;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .contact-socials a:hover {
+      color: var(--ink);
+    }
+  }
+
+  /* The form */
+  .cf {
+    --cf-k: clamp(104px, min(9.4vw, 15.2vh), 136px);
+    position: relative;
+    min-width: 0;
+  }
+
+  .cf-cast {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: clamp(20px, 5vw, 56px);
+    margin-bottom: -2px;
+  }
+
+  .cf-card {
+    position: relative;
+    display: grid;
+    padding: 36px;
+    border-radius: var(--r-tile);
+    background: var(--surface);
+    box-shadow: var(--plate-edge);
+  }
+
+  @media (max-width: 734px) {
+    .cf {
+      --cf-k: 104px;
+      --spread: 0.52;
+    }
+
+    .cf-cast {
+      justify-content: flex-end;
+      padding-right: 16px;
+    }
+
+    .cf-card {
+      padding: 24px;
+    }
+  }
+
+  /* The form and the thanks share one grid cell, so the card holds its size and nothing below it jumps. */
+  .cf-card > * {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  .cf-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: opacity 180ms ease;
+  }
+
+  .cf-grid {
+    display: grid;
+    gap: 18px 16px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 560px) {
+    .cf-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cf-span {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .cf-field {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .cf-label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.009em;
+  }
+
+  .cf-pills > legend {
+    display: block;
+    width: 100%;
+    padding: 0;
+  }
+
+  .cf-opt {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 18px;
+  }
+
+  .cf-input {
+    min-height: 50px;
+    padding: 12px 14px;
+    transition:
+      border-color var(--dur-hover) ease,
+      box-shadow var(--dur-hover) ease;
+  }
+
+  .cf-area {
+    min-height: 98px;
+    line-height: 24px;
+    resize: vertical;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .cf-input:hover {
+      border-color: color-mix(in oklab, var(--ink) 66%, transparent);
+    }
+  }
+
+  .cf-input[aria-invalid='true'] {
+    border-color: var(--accent);
+  }
+
+  /* R23: the solid outline is the indicator; the soft ring is extra. Last, so a field with an error still shows plain focus. */
+  .cf-input:focus,
+  .cf-input:focus-visible {
+    border-color: var(--focus);
+    outline: 2px solid var(--focus);
+    outline-offset: 0;
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--focus) 16%, transparent);
+  }
+
+  .cf-input:-webkit-autofill,
+  .cf-input:-webkit-autofill:hover {
+    -webkit-text-fill-color: var(--ink);
+    -webkit-box-shadow: 0 0 0 100px var(--surface) inset;
+    caret-color: var(--ink);
+  }
+
+  .cf-err {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0;
+    color: var(--accent);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.006em;
+  }
+
+  .cf-err:not(:empty) {
+    margin-top: 6px;
+    animation: cf-in 180ms var(--ease-out) both;
+  }
+
+  .cf-err svg {
+    margin-top: 2px;
+  }
+
+  @keyframes cf-in {
+    from {
+      opacity: 0;
+      transform: translateY(-3px);
+    }
+  }
+
+  :root[data-still] .cf-err:not(:empty) {
+    animation: none;
+  }
+
+  /* Service pills: real radios, optional, tap the chosen one again to clear it. Ink, never red: red means act. */
+  .cf-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .cf-pill {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+  }
+
+  .cf-pill > input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .cf-pill > span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1.5px var(--line);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 19px;
+    letter-spacing: -0.009em;
+    white-space: nowrap;
+    transition:
+      background-color var(--dur-hover) ease,
+      color var(--dur-hover) ease,
+      box-shadow var(--dur-hover) ease,
+      transform var(--dur-press) var(--ease-out);
+  }
+
+  .cf-pill > input:checked + span {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+    font-weight: 600;
+  }
+
+  .cf-pill > input:focus-visible + span {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .cf-pill:active > span {
+    transform: scale(0.97);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .cf-pill:hover > input:not(:checked) + span {
+      background: color-mix(in oklab, var(--ink) 6%, transparent);
+      box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--ink) 40%, transparent);
+    }
+  }
+
+  :root[data-still] .cf-pill:active > span {
+    transform: none;
+  }
+
+  .cf-alert {
+    display: flex;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: var(--r-field);
+    background: var(--sunken);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 21px;
+    letter-spacing: -0.009em;
+    animation: cf-in 180ms var(--ease-out) both;
+  }
+
+  .cf-alert b {
+    font-weight: 600;
+  }
+
+  .cf-alert-icon {
+    margin-top: 1px;
+    color: var(--accent);
+  }
+
+  :root[data-still] .cf-alert {
+    animation: none;
+  }
+
+  /* Goes to a new line whole rather than splitting mid-address. */
+  .cf-link {
+    display: inline-block;
+    max-width: 100%;
+    color: inherit;
+    font-weight: 600;
+    text-underline-offset: 2px;
+    overflow-wrap: anywhere;
+  }
+
+  .cf-submit {
+    width: 100%;
+  }
+
+  .cf-fine {
+    margin: -4px 0 0;
+    color: var(--muted);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .cf-fine a {
+    color: inherit;
+    text-underline-offset: 2px;
+  }
+
+  /* Sent: the form fades, the thanks settles in its place. */
+  .cf-done-wrap {
+    display: grid;
+    align-content: center;
+    pointer-events: none;
+  }
+
+  .cf[data-state='done'] .cf-done-wrap {
+    pointer-events: auto;
+  }
+
+  /* A phone's form is twice the height of the thanks: let the card close up instead of leaving a hole. */
+  @media (max-width: 734px) {
+    .cf[data-state='done'] .cf-form {
+      display: none;
+    }
+  }
+
+  .cf-done {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    animation: cf-done-in 420ms var(--ease-out) 90ms both;
+  }
+
+  .cf-done h2:focus {
+    outline: none;
+  }
+
+  @keyframes cf-done-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  .cf[data-state='done'] .cf-form {
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 140ms ease,
+      visibility 0s linear 140ms;
+  }
+
+  :root[data-still] .cf-form,
+  :root[data-still] .cf[data-state='done'] .cf-form {
+    transition: none;
+  }
+
+  :root[data-still] .cf-done {
+    animation: none;
+  }
+
+  /* The site's only confetti: 24 pieces of the logo, once, 900 ms. Transform and opacity only. */
+  .cf-confetti {
+    /* Behind the cast (z 1), in front of the card: the burst comes from behind them. */
+    position: absolute;
+    z-index: 0;
+    top: calc(var(--cf-k) * 0.6);
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .cf-bit {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--s);
+    height: var(--s);
+    margin: calc(var(--s) / -2);
+    background: var(--c);
+    opacity: 0;
+    animation: cf-fly 900ms cubic-bezier(0.12, 0.8, 0.3, 1) var(--d) both;
+    will-change: transform, opacity;
+  }
+
+  .cf-bit[data-shape='square'] {
+    border-radius: 2px;
+  }
+
+  .cf-bit[data-shape='circle'] {
+    border-radius: 50%;
+  }
+
+  .cf-bit[data-shape='triangle'] {
+    clip-path: polygon(50% 4%, 98% 92%, 2% 92%);
+  }
+
+  .cf-bit[data-shape='flower'] {
+    border-radius: 50% 12%;
+  }
+
+  @keyframes cf-fly {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) rotate(0deg) scale(0.5);
+    }
+
+    10% {
+      opacity: 1;
+    }
+
+    45% {
+      opacity: 1;
+      transform: translate(calc(var(--x) * var(--spread, 1) * 0.78), var(--y)) rotate(calc(var(--r) * 0.55)) scale(1);
+      animation-timing-function: cubic-bezier(0.55, 0, 1, 0.65);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(calc(var(--x) * var(--spread, 1)), calc(var(--y) + var(--fall))) rotate(var(--r)) scale(0.85);
+    }
+  }
+
+  :root[data-still] .cf-confetti {
+    display: none;
+  }
+
+  /* ---------- FAQ: two calm columns. The left one stays with you, and Sochu stands in it. ---------- */
+  .faq {
+    position: relative;
+    padding-top: calc(var(--nav-offset) + 40px);
+    padding-bottom: 96px;
+  }
+
+  .faq-in {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  @media (min-width: 1069px) {
+    .faq-in {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: 72px;
+    }
+
+    .faq-sticky {
+      position: sticky;
+      top: calc(var(--nav-offset) + 24px);
+    }
+  }
+
+  .faq-sticky {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .faq-rail {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    width: 100%;
+    padding-top: 16px;
+  }
+
+  .faq-index {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .faq-index-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 20px;
+    letter-spacing: -0.009em;
+    text-decoration: none;
+    transition: color var(--dur-hover) ease;
+  }
+
+  .faq-index-n {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .faq-index-link[aria-current='true'] {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .faq-index-link:hover {
+      color: var(--ink);
+    }
+  }
+
+  @media (min-width: 1069px) and (max-height: 760px) {
+    .faq-sticky .lead {
+      display: none;
+    }
+  }
+
+  .faq-main {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    min-width: 0;
+  }
+
+  .qa-group-title {
+    margin: 0 0 14px;
+  }
+
+  .qa-plate {
+    overflow: hidden;
+    border-radius: var(--r-tile);
+    background: var(--surface);
+    box-shadow: var(--plate-edge);
+  }
+
+  .qa + .qa {
+    border-top: 1px solid var(--line);
+  }
+
+  .qa > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: 44px;
+    padding: 20px 24px 20px 28px;
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 25px;
+    letter-spacing: -0.014em;
+    list-style: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background-color var(--dur-hover) ease;
+  }
+
+  .qa > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .qa > summary:focus-visible {
+    outline-offset: -2px;
+    border-radius: var(--r-inner);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .qa > summary:hover {
+      background: color-mix(in oklab, var(--ink) 4%, transparent);
+    }
+  }
+
+  /* Plus to minus: the upright bar lies down. */
+  .qa-icon {
+    position: relative;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-pill);
+    background: var(--sunken);
+    color: var(--ink);
+    transition:
+      background-color var(--dur-hover) ease,
+      color var(--dur-hover) ease;
+  }
+
+  .qa-icon::before,
+  .qa-icon::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 9px;
+    width: 14px;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+    transition: transform var(--dur-sheet) var(--ease-out);
+  }
+
+  .qa-icon::after {
+    transform: rotate(90deg);
+  }
+
+  .qa[open] > summary .qa-icon {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .qa[open] > summary .qa-icon::before {
+    transform: rotate(180deg);
+  }
+
+  .qa[open] > summary .qa-icon::after {
+    transform: rotate(180deg);
+  }
+
+  /* The one accepted layout animation (microinteractions 28). Without ::details-content it simply opens. */
+  .qa::details-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition:
+      grid-template-rows 280ms var(--ease-out),
+      content-visibility 280ms allow-discrete;
+  }
+
+  .qa[open]::details-content {
+    grid-template-rows: 1fr;
+  }
+
+  .qa-a {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .qa-a-in {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0 76px 24px 28px;
+  }
+
+  .qa-a-in p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .qa-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 44px;
+    margin-bottom: -10px;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.009em;
+    text-decoration: none;
+  }
+
+  .qa-more > svg {
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .qa-more:hover > svg {
+      transform: translateX(3px);
+    }
+  }
+
+  :root[data-still] .qa::details-content,
+  :root[data-still] .qa-icon::before,
+  :root[data-still] .qa-icon::after {
+    transition: none;
+  }
+
+  .faq-more {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .faq-more a {
+    display: inline-block;
+    max-width: 100%;
+    color: var(--ink);
+    font-weight: 600;
+    text-underline-offset: 2px;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 734px) {
+    .qa > summary {
+      padding: 18px 16px 18px 20px;
+      font-size: 17px;
+      line-height: 23px;
+    }
+
+    .qa-a-in {
+      padding: 0 20px 22px;
+    }
+  }
+
+  /* ---------- Blog: an editorial index ---------- */
+  .blog {
+    position: relative;
+    padding-top: calc(var(--nav-offset) + 56px);
+    padding-bottom: 96px;
+  }
+
+  .blog-in {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  .blog-mast {
+    display: grid;
+    gap: 16px;
+    align-items: end;
+  }
+
+  @media (min-width: 1069px) {
+    .blog-mast {
+      grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+      column-gap: 48px;
+    }
+
+    .blog-mast .lead {
+      padding-bottom: 10px;
+    }
+  }
+
+  .blog-grid {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 735px) {
+    .blog-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .blog-span {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .story-cover {
+    aspect-ratio: 16 / 9;
+  }
+
+  .story-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 28px 32px 28px;
+  }
+
+  .story-summary {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .story-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    align-self: stretch;
+    margin-bottom: 0;
+    padding-top: 14px;
+    color: var(--muted);
+  }
+
+  .story-go {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .story-go > svg {
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .plate-link:hover .story-go > svg {
+      transform: translateX(3px);
+    }
+
+    :root:not([data-still]) .plate-link:hover .post-cover > svg {
+      transform: scale(1.04);
+    }
+  }
+
+  @media (min-width: 1069px) {
+    .story-lead {
+      flex-direction: row;
+      min-height: 480px;
+    }
+
+    .story-lead .story-cover {
+      flex: 0 0 58%;
+      aspect-ratio: auto;
+    }
+
+    .story-lead .story-body {
+      justify-content: flex-end;
+      padding: 40px 44px 36px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .blog {
+      padding-top: calc(var(--nav-offset) + 32px);
+    }
+
+    .blog-in {
+      gap: 40px;
+    }
+
+    .story-body {
+      padding: 24px;
+    }
+  }
+
+  /* G1, once each. The art inside is flat white layers, so the gradient stays the only gradient. */
+  .post-cover {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .post-cover > svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    transition: transform 400ms var(--ease-out);
+  }
+
+  .post-cover[data-tone='tiko'] {
+    background: var(--g-tiko);
+  }
+
+  .post-cover[data-tone='gola'] {
+    background: var(--g-gola);
+  }
+
+  .post-cover[data-tone='bolu'] {
+    background: var(--g-bolu);
+  }
+
+  .post-cover[data-tone='sochu'] {
+    background: var(--g-sochu);
+  }
+
+  /* The dark gradients are deep, so full white would glare. */
+  :where([data-theme='dark']) .post-cover > svg {
+    opacity: 0.78;
+  }
+
+  /* ---------- Reading: one measure for posts, answers and legal. 31em of this Inter averages 65 characters a line (measured; 65ch would be 80, because a zero is wider than the average letter). ---------- */
+  .read,
+  .legal {
+    --read-max: 31em;
+  }
+
+  .read {
+    font-size: 19px;
+    line-height: 31px;
+    letter-spacing: -0.014em;
+    width: var(--content-w);
+    max-width: var(--read-max);
+    margin-inline: auto;
+    padding-top: calc(var(--nav-offset) + 56px);
+    padding-bottom: 72px;
+  }
+
+  .read h1 {
+    letter-spacing: -0.018em;
+  }
+
+  .read-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    margin-bottom: 14px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 20px;
+    letter-spacing: -0.009em;
+    text-decoration: none;
+    transition: color var(--dur-hover) ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .read-back:hover {
+      color: var(--ink);
+    }
+  }
+
+  .read-lead {
+    margin: 16px 0 0;
+    color: var(--muted);
+    font-size: 21px;
+    line-height: 29px;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  .read-meta {
+    margin: 16px 0 0;
+    color: var(--muted);
+  }
+
+  .read-eyebrow {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .read-answer {
+    margin: 24px 0 0;
+    font-size: 21px;
+    line-height: 32px;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  .read-prose h2 {
+    margin: 2em 0 0.5em;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 30px;
+    letter-spacing: -0.014em;
+  }
+
+  .read-prose p {
+    margin: 0 0 1em;
+    text-wrap: pretty;
+  }
+
+  .read-prose a {
+    color: inherit;
+    text-underline-offset: 2px;
+  }
+
+  .read-prose-post {
+    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+  }
+
+  .read-prose-post > section:first-child h2 {
+    margin-top: 0;
+  }
+
+  /* The hairline: how far through the article. Ink, because red means act. */
+  .read-progress {
+    position: fixed;
+    z-index: var(--z-popover);
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 3px;
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    pointer-events: none;
+  }
+
+  .read-related {
+    margin-top: 56px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  .read-related h2 {
+    margin: 0 0 8px;
+  }
+
+  .read-related ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .read-related li + li {
+    border-top: 1px solid var(--line);
+  }
+
+  .read-related a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: 56px;
+    padding-block: 12px;
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 24px;
+    letter-spacing: -0.012em;
+    text-decoration: none;
+  }
+
+  .read-related a > svg {
+    color: var(--muted);
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .read-related a:hover > svg {
+      transform: translateX(3px);
+    }
+  }
+
+  .read-next {
+    width: var(--content-w);
+    max-width: calc(31 * 19px);
+    margin-inline: auto;
+    padding-bottom: 96px;
+  }
+
+  .next-tile {
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    padding: 12px;
+    padding-right: 24px;
+  }
+
+  .next-cover {
+    flex: 0 0 120px;
+    aspect-ratio: 1;
+    border-radius: var(--r-inner);
+  }
+
+  .next-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .next-arrow {
+    flex: none;
+    color: var(--muted);
+  }
+
+  @media (max-width: 734px) {
+    .read {
+      font-size: 17px;
+      line-height: 28px;
+      padding-top: calc(var(--nav-offset) + 28px);
+    }
+
+    .read-answer {
+      font-size: 19px;
+      line-height: 29px;
+    }
+
+    .next-cover {
+      flex-basis: 84px;
+    }
+
+    .next-arrow {
+      display: none;
+    }
+
+    .next-tile {
+      padding-right: 16px;
+    }
+  }
+
+  /* ---------- Legal: the words are the page ---------- */
+  .legal {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'head' 'index' 'body';
+    gap: 28px;
+    padding-top: calc(var(--nav-offset) + 56px);
+    padding-bottom: 96px;
+    font-size: 17px;
+    line-height: 28px;
+  }
+
+  .legal-head {
+    grid-area: head;
+  }
+
+  .legal-index {
+    grid-area: index;
+  }
+
+  .legal-body {
+    grid-area: body;
+    min-width: 0;
+    max-width: var(--read-max);
+  }
+
+  .legal-updated {
+    margin: 12px 0 0;
+    color: var(--muted);
+  }
+
+  .legal .read-prose h2 {
+    margin: 1.8em 0 0.35em;
+    font-size: 21px;
+    line-height: 26px;
+  }
+
+  .legal section {
+    scroll-margin-top: calc(var(--nav-offset) + 16px);
+  }
+
+  .legal-index-title {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .legal-index-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.006em;
+    text-decoration: none;
+    transition: color var(--dur-hover) ease;
+  }
+
+  .legal-index-link[aria-current='true'] {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .legal-index-link:hover {
+      color: var(--ink);
+    }
+  }
+
+  @media (min-width: 1069px) {
+    .legal {
+      grid-template-columns: 220px minmax(0, var(--read-max));
+      grid-template-rows: auto 1fr;
+      grid-template-areas: 'index head' 'index body';
+      column-gap: 72px;
+      justify-content: center;
+    }
+
+    .legal-index nav {
+      position: sticky;
+      top: calc(var(--nav-offset) + 24px);
+    }
+  }
+
+  /* Phones and tablets: the section links wrap as a short run of text, so the words start sooner. */
+  @media (max-width: 1068px) {
+    .legal-index-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 20px;
+    }
+  }
+
+  /* ---------- 404 ---------- */
+  .lost {
+    position: relative;
+    padding-top: calc(var(--nav-offset) + 48px);
+    padding-bottom: 96px;
+  }
+
+  .lost-in {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    text-align: center;
+  }
+
+  .lost-crew {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: clamp(12px, 3.4vw, 48px);
+    padding-top: 8px;
+  }
+
+  /* Bolu's mic reaches past its box, so its neighbour stands a little further off. */
+  @media (min-width: 735px) {
+    .lost-crew > [data-who='bolu'] {
+      margin-right: clamp(0px, 2vw, 30px);
+    }
+  }
+}

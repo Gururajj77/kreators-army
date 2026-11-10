@@ -1,0 +1,25 @@
+{
+  "name": "kreators-army",
+  "private": true,
+  "packageManager": "pnpm@11.28.3",
+  "scripts": {
+    "dev": "pnpm -r --parallel --stream dev",
+    "typecheck": "pnpm -r typecheck",
+    "build": "pnpm --filter @kreators/web build",
+    "perf:budget": "node scripts/perf-budget.mjs",
+    "db:migrate:local": "pnpm --filter @kreators/api db:migrate:local",
+    "cf:login": "pnpm --filter @kreators/api exec wrangler login",
+    "cf:logout": "pnpm --filter @kreators/api exec wrangler logout",
+    "cf:whoami": "pnpm --filter @kreators/api exec wrangler whoami",
+    "db:create": "pnpm --filter @kreators/api exec wrangler d1 create kreators-army",
+    "db:migrate": "pnpm --filter @kreators/api db:migrate",
+    "cf:secret": "pnpm --filter @kreators/api exec wrangler secret put",
+    "deploy": "pnpm build && pnpm --filter @kreators/api deploy",
+    "cf:logs": "pnpm --filter @kreators/api exec wrangler tail",
+    "video": "node scripts/videos.mjs",
+    "leads": "node scripts/videos.mjs leads"
+  },
+  "devDependencies": {
+    "puppeteer-core": "25.16.0"
+  }
+}

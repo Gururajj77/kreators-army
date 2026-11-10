@@ -1,0 +1,199 @@
+/* The cast. The rest pose is complete with this file alone: the rig only adds motion. */
+@layer components {
+  .k-char {
+    --k-size: 150px;
+    --k-ink: #16131b;
+    position: relative;
+    display: block;
+    flex: none;
+    width: var(--k-size);
+    aspect-ratio: 13 / 12;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+
+  .k-char[data-interactive] {
+    pointer-events: auto;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  /* The stage is the 480-unit square the rig draws in, drawn around the 312 x 288 box that the characters fill. Feet sit on the box's bottom edge. */
+  .k-stage,
+  .k-breath {
+    position: absolute;
+    transform-origin: 50% 83.333%;
+  }
+
+  .k-stage {
+    top: -38.889%;
+    left: -26.923%;
+    width: 153.846%;
+    height: 166.667%;
+    will-change: transform;
+  }
+
+  .k-breath {
+    inset: 0;
+    animation: k-breath var(--k-breath, 3.9s) ease-in-out var(--k-phase, 0s) infinite;
+    animation-play-state: paused;
+  }
+
+  .k-char[data-who='sochu'] {
+    --k-breath: 4.4s;
+  }
+  .k-char[data-who='tiko'] {
+    --k-breath: 3.6s;
+  }
+  .k-char[data-who='gola'] {
+    --k-breath: 4.1s;
+  }
+
+  :root:not([data-still], [data-cast-quiet]) .k-char[data-run] .k-breath {
+    animation-play-state: running;
+  }
+
+  :root[data-still] .k-breath {
+    animation: none;
+  }
+
+  .k-char[data-peek] .k-stage {
+    transform: translateY(18%);
+  }
+
+  .k-body,
+  .k-face,
+  .k-prop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+  }
+
+  .k-face,
+  .k-prop {
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .k-if {
+    fill: var(--k-ink);
+  }
+  .k-is {
+    stroke: var(--k-ink);
+  }
+
+  .k-char[data-lod='flat'] {
+    --k-ink: #000;
+  }
+
+  /* The contact shadow: one soft ellipse under the feet. On dark, a dark shadow vanishes, so the body's own colour glows on the floor instead. */
+  .k-floor {
+    position: absolute;
+    left: var(--k-floor-left, 7%);
+    width: var(--k-floor-w, 86%);
+    top: 95.5%;
+    height: 11%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(38 26 60 / 0.42), rgb(38 26 60 / 0.16) 55%, rgb(38 26 60 / 0));
+    transform-origin: 50% 50%;
+    pointer-events: none;
+  }
+
+  .k-char[data-who='tiko'] .k-floor {
+    --k-floor-left: 1%;
+    --k-floor-w: 98%;
+  }
+  .k-char[data-who='bolu'] .k-floor {
+    --k-floor-left: 4%;
+    --k-floor-w: 92%;
+  }
+  .k-char[data-who='gola'] .k-floor {
+    --k-floor-left: 13%;
+    --k-floor-w: 74%;
+  }
+
+  :where([data-theme='dark'], .band-dark, footer, [data-tone='ink']) .k-floor,
+  .k-char[data-dark] .k-floor {
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--k-color) 46%, transparent), color-mix(in srgb, var(--k-color) 16%, transparent) 60%, transparent);
+  }
+
+  .k-char[data-lod='flat'] .k-floor,
+  .k-char[data-lod='flat'] [data-part='gloss'] {
+    display: none;
+  }
+
+  /* Hover chip: name and role, never a line of speech. */
+  .k-chip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + clamp(6px, 7%, 16px));
+    translate: -50% 0;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    background: var(--surface-5);
+    box-shadow: var(--shadow-3);
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.3;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+    transition:
+      opacity 0.18s ease,
+      transform 0.28s cubic-bezier(0.2, 1.3, 0.4, 1);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .k-chip b {
+    font-weight: 600;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .k-char[data-interactive]:hover .k-chip {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* First-visit entrance: CSS only, so it does not wait for any JavaScript. Backwards fill only: the rig's transform takes over when it ends. */
+  :root:not([data-still]) .k-char[data-intro] .k-stage {
+    animation: k-intro 560ms linear(0, 0.3 13%, 0.73 26%, 1.04 42%, 1.09 53%, 1.02 72%, 1) var(--k-intro-delay, 0ms) backwards;
+  }
+
+  :root:not([data-still]) .k-char[data-intro] .k-floor {
+    animation: k-intro-floor 380ms ease-out var(--k-intro-delay, 0ms) backwards;
+  }
+
+  :root:has(dialog[open]) .k-breath {
+    animation-play-state: paused;
+  }
+
+  @keyframes k-breath {
+    50% {
+      transform: scale(0.994, 1.012);
+    }
+  }
+
+  @keyframes k-intro {
+    from {
+      opacity: 0;
+      transform: translateY(13%) scale(0.6);
+    }
+  }
+
+  @keyframes k-intro-floor {
+    from {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+  }
+}

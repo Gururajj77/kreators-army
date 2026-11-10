@@ -1,0 +1,39 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kreators-army",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  // Smart placement runs the Worker near the database.
+  "placement": { "mode": "smart" },
+  // The built web app is served as static assets by the same Worker.
+  // Any /api/* request runs the Worker; everything else is a file or the SPA shell.
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // The patterns after /api/* send paths that should hold nothing (hidden files, backups, dumps, config) to the Worker, which answers 404
+    // instead of the app shell (see blockedPath in src/headers.ts, the real rule; keep the two in step). /.well-known/ is left alone.
+    "run_worker_first": [
+      "/api/*",
+      // Static assets ignore Range requests and Safari needs them to play video, so the Worker answers these (src/media.ts).
+      "/media/*",
+      "!/.well-known/*",
+      "/.*", "/*/.*", "/*.map", "/*.sql", "/*.bak", "/*.zip", "/*.tar", "/*.tar.gz", "/*.tgz", "/*.php", "/*.log", "/*.pem", "/*.key", "/*.env",
+      "/backup*", "/db.*", "/dump.*", "/database.*", "/config.*", "/configuration.*", "/settings.json", "/secret*", "/credentials.*",
+      "/package.json", "/package-lock.json", "/pnpm-lock.yaml", "/yarn.lock", "/composer.*", "/tsconfig.json", "/vite.config.*", "/wrangler.*",
+      "/docker-compose.*", "/Dockerfile", "/Makefile", "/wp-*", "/phpmyadmin*", "/cgi-bin/*", "/node_modules/*", "/id_rsa*", "/server-status*",
+      "/src/*", "/logs/*", "/tmp/*", "/temp/*"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kreators-army",
+      // Replace with the id printed by: pnpm db:create
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

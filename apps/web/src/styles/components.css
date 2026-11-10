@@ -1,0 +1,1488 @@
+/* Shared component classes. Everything is in @layer components so a Tailwind utility on the same element always wins. Tokens are in tokens.css. */
+
+@layer components {
+  /* ---------- Bands and frame ---------- */
+  .wrap {
+    width: var(--content-w);
+    max-width: var(--content-max);
+    margin-inline: auto;
+  }
+
+  .section {
+    padding-block: var(--section-y);
+  }
+
+  .band-dark,
+  .band-alt {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  /* G0, the page wash. Goes on the first section of a page only. Decorative: pair with aria-hidden. */
+  .ground {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 900px;
+    background: var(--g-ground);
+    pointer-events: none;
+  }
+
+  /* ---------- Type: Inter, sentence case, weights 400 and 600. Headline line-height is size + 4px. ---------- */
+  .display-xl,
+  .display,
+  .display-md,
+  .h2,
+  .h2-sm,
+  .h3,
+  .h4 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    text-wrap: balance;
+  }
+
+  .display-xl {
+    font-size: 96px;
+    line-height: 100px;
+    letter-spacing: -0.026em;
+  }
+
+  .display {
+    font-size: 80px;
+    line-height: 84px;
+    letter-spacing: -0.024em;
+  }
+
+  .display-md {
+    font-size: 64px;
+    line-height: 68px;
+    letter-spacing: -0.016em;
+  }
+
+  .h2 {
+    font-size: 56px;
+    line-height: 60px;
+    letter-spacing: -0.012em;
+  }
+
+  .h2-sm {
+    font-size: 48px;
+    line-height: 52px;
+    letter-spacing: -0.008em;
+  }
+
+  .h3 {
+    font-size: 28px;
+    line-height: 32px;
+    letter-spacing: 0;
+  }
+
+  .h4 {
+    font-size: 21px;
+    line-height: 25px;
+    letter-spacing: -0.012em;
+  }
+
+  @media (max-width: 1068px) {
+    .display-xl {
+      font-size: 80px;
+      line-height: 84px;
+      letter-spacing: -0.024em;
+    }
+
+    .display {
+      font-size: 64px;
+      line-height: 68px;
+      letter-spacing: -0.016em;
+    }
+
+    .display-md {
+      font-size: 48px;
+      line-height: 52px;
+      letter-spacing: -0.008em;
+    }
+
+    .h2 {
+      font-size: 48px;
+      line-height: 52px;
+      letter-spacing: -0.008em;
+    }
+
+    .h2-sm {
+      font-size: 40px;
+      line-height: 44px;
+      letter-spacing: -0.006em;
+    }
+
+    .h3 {
+      font-size: 24px;
+      line-height: 28px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .display-xl,
+    .display {
+      font-size: 44px;
+      line-height: 48px;
+      letter-spacing: -0.012em;
+    }
+
+    .display-md {
+      font-size: 40px;
+      line-height: 44px;
+      letter-spacing: -0.006em;
+    }
+
+    .h2 {
+      font-size: 36px;
+      line-height: 40px;
+      letter-spacing: -0.006em;
+    }
+
+    .h2-sm {
+      font-size: 32px;
+      line-height: 36px;
+      letter-spacing: -0.004em;
+    }
+
+    .h3 {
+      font-size: 21px;
+      line-height: 25px;
+      letter-spacing: -0.012em;
+    }
+  }
+
+  .lead {
+    margin: 0;
+    max-width: 44rem;
+    color: var(--muted);
+    font-size: 21px;
+    line-height: 29px;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 734px) {
+    .lead {
+      font-size: 19px;
+      line-height: 27px;
+    }
+  }
+
+  .label {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 21px;
+    letter-spacing: -0.012em;
+  }
+
+  .small {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.006em;
+  }
+
+  .caption {
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    letter-spacing: -0.006em;
+  }
+
+  /* An Apple two-tone sentence: the sentence is muted, the phrase in <b> carries the ink. */
+  .two-tone {
+    color: var(--muted);
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 25px;
+    letter-spacing: -0.012em;
+  }
+
+  .two-tone b,
+  .two-tone strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* G3: one gradient word per page. */
+  .g-word {
+    display: inline-block;
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+    background-image: linear-gradient(90deg, #5a4cf0, #c44e14);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    font-style: normal;
+  }
+
+  :where([data-theme='dark'], .band-dark) .g-word {
+    background-image: linear-gradient(90deg, #8e84ff, #ff8d3a, #fbd43f);
+  }
+
+  @supports (background: linear-gradient(90deg in oklch, red, blue)) {
+    .g-word {
+      background-image: var(--g-word);
+    }
+
+    :where([data-theme='dark'], .band-dark) .g-word {
+      background-image: var(--g-word);
+    }
+  }
+
+  .g-word::selection {
+    background: color-mix(in oklab, var(--c-yellow) 70%, transparent);
+    color: #0e0e10;
+    -webkit-text-fill-color: #0e0e10;
+  }
+
+  /* G4 on any element that sits between a poster and its text. Apple's eased stops. Strength with --scrim-a, direction with --scrim-to. */
+  .scrim,
+  .tile-scrim {
+    --g-scrim: linear-gradient(
+      var(--scrim-to, to top),
+      rgb(0 0 0 / calc(var(--scrim-a, 0.76) * 1)) 0%,
+      rgb(0 0 0 / calc(var(--scrim-a, 0.76) * 0.738)) 19%,
+      rgb(0 0 0 / calc(var(--scrim-a, 0.76) * 0.541)) 34%,
+      rgb(0 0 0 / calc(var(--scrim-a, 0.76) * 0.382)) 47%,
+      rgb(0 0 0 / calc(var(--scrim-a, 0.76) * 0.278)) 56.5%,
+      rgb(0 0 0 / calc(var(--scrim-a, 0.76) * 0.194)) 65%,
+      rgb(0 0 0 / calc(var(--scrim-a, 0.76) * 0.126)) 73%,
+      rgb(0 0 0 / 0) 100%
+    );
+  }
+
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background: var(--g-scrim);
+    pointer-events: none;
+  }
+
+  .link-draw {
+    position: relative;
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .link-draw::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -2px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 220ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .link-draw:hover::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+  }
+
+  :root[data-still] .link-draw::after {
+    transition: none;
+  }
+
+  /* ---------- Reveal (R3): hidden only after theme.js has confirmed JS ran, and never under data-still. Headings rise without fading. ---------- */
+  [data-reveal] {
+    transition:
+      opacity 420ms var(--ease-out),
+      transform 520ms var(--ease-out);
+    transition-delay: calc(min(var(--i, 0), 8) * 50ms + var(--reveal-delay, 0ms));
+  }
+
+  :root[data-js]:not([data-still]) [data-reveal]:not([data-in]) {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  :root[data-js]:not([data-still]) [data-reveal='rise']:not([data-in]) {
+    opacity: 1;
+  }
+
+  /* ---------- Buttons. Press and hover are CSS, so they work from first paint. ---------- */
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 12px 24px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 21px;
+    letter-spacing: -0.012em;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition:
+      transform var(--spring-release),
+      background-color var(--dur-hover) ease,
+      color var(--dur-hover) ease,
+      box-shadow var(--dur-hover) ease;
+  }
+
+  .btn > svg {
+    flex: none;
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+    transition-duration: var(--dur-press), var(--dur-hover), var(--dur-hover), var(--dur-hover);
+    transition-timing-function: var(--ease-out), ease, ease, ease;
+  }
+
+  .btn-sm {
+    min-height: 44px;
+    padding: 10px 18px;
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: -0.006em;
+  }
+
+  .btn-lg {
+    min-height: 54px;
+    padding: 16px 28px;
+  }
+
+  .btn-accent {
+    background: var(--action);
+    color: var(--on-action);
+  }
+
+  .btn-ink {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .btn-ghost {
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1.5px var(--line);
+  }
+
+  /* White fill for use on a poster or a colour tile. */
+  .btn-light {
+    background: #ffffff;
+    color: #0e0e10;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-accent:hover {
+      background: var(--action-hover);
+    }
+
+    .btn-ink:hover {
+      background: color-mix(in oklab, var(--ink) 86%, var(--bg));
+    }
+
+    .btn-ghost:hover {
+      background: color-mix(in oklab, var(--ink) 8%, transparent);
+      box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--ink) 40%, transparent);
+    }
+
+    .btn-light:hover {
+      background: #f1eeea;
+    }
+
+    :root:not([data-still]) .btn:hover > .btn-arrow {
+      transform: translateX(2px);
+    }
+
+    :root:not([data-still]) .btn:hover > .btn-arrow-out {
+      transform: translate(2px, -2px);
+    }
+  }
+
+  /* The press, after the hover block and at its weight, so a mouse held down on a hovered button still sees it. */
+  :root:not([data-still]) .btn:active:not([disabled], [aria-disabled='true']) {
+    transform: scale(0.97);
+  }
+
+  :root[data-still] .btn:active {
+    transform: none;
+    filter: brightness(0.92);
+  }
+
+  .btn[disabled],
+  .btn[aria-disabled='true'] {
+    cursor: wait;
+    opacity: 0.6;
+    transform: none;
+  }
+
+  /* The catch radius for a magnetic button: the outer span takes the pointer, the inner moves, and the .btn keeps its own press. */
+  .magnet {
+    display: inline-flex;
+    margin: -12px;
+    padding: 12px;
+  }
+
+  .magnet-inner {
+    display: inline-flex;
+    max-width: 100%;
+  }
+
+  /* ---------- Plate: the opaque bento surface. Flat at rest, media bleeds to the edges, opposite its section. ---------- */
+  .plate {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: var(--r-tile);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--plate-edge);
+    text-align: left;
+    --tint: var(--ink);
+  }
+
+  /* Tones (G1). Ink on the warm tiles, white on purple, and the tokens re-scope for anything inside. */
+  .plate[data-tone='sochu'] {
+    background: var(--g-sochu);
+    --ink: var(--on-sochu);
+    --muted: var(--on-sochu-2);
+    --line: color-mix(in oklab, var(--on-sochu) 18%, transparent);
+    --tint: var(--c-yellow);
+  }
+
+  .plate[data-tone='bolu'] {
+    background: var(--g-bolu);
+    --ink: var(--on-bolu);
+    --muted: var(--on-bolu-2);
+    --line: color-mix(in oklab, var(--on-bolu) 18%, transparent);
+    --tint: var(--c-green);
+  }
+
+  .plate[data-tone='gola'] {
+    background: var(--g-gola);
+    --ink: var(--on-gola);
+    --muted: var(--on-gola-2);
+    --line: color-mix(in oklab, var(--on-gola) 18%, transparent);
+    --tint: var(--c-orange);
+  }
+
+  .plate[data-tone='tiko'] {
+    background: var(--g-tiko);
+    --ink: var(--on-tiko);
+    --muted: var(--on-tiko-2);
+    --line: color-mix(in oklab, var(--on-tiko) 22%, transparent);
+    --tint: var(--c-purple);
+  }
+
+  /* The near-black plate, dark in both themes. */
+  .plate[data-tone='ink'] {
+    background: var(--c-ground);
+    --ink: #f5f3ee;
+    --muted: #c8c5bf;
+    --line: rgb(255 255 255 / 0.16);
+    --tint: #ffffff;
+  }
+
+  /* Plates that hold no words, only media. */
+  .plate[data-tone='media'] {
+    background: var(--c-ground);
+    --ink: #ffffff;
+    --muted: #ffffff;
+    --tint: #ffffff;
+  }
+
+  /* R20: only linked tiles react. +6px of width whatever the tile's size (Tile sets --tile-w), a tinted outline, and a poster that zooms inside its frame. */
+  .plate-link {
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+    outline: 1px solid transparent;
+    outline-offset: -1px;
+    touch-action: manipulation;
+    transition:
+      transform 300ms var(--ease-card),
+      outline-color 300ms var(--ease-card);
+  }
+
+  .plate-media {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .plate-media > img,
+  .plate-media > video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 400ms var(--ease-out);
+  }
+
+  /* Media inside a plate with padding: outer radius = inner radius + padding (28 = 20 + 8). */
+  .plate-inset {
+    margin: 8px;
+    border-radius: var(--r-inner);
+  }
+
+  .plate-body {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
+    padding: 32px;
+  }
+
+  .plate-foot {
+    margin-top: auto;
+  }
+
+  @media (max-width: 734px) {
+    .plate-body {
+      padding: 24px;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .plate-link:hover {
+      z-index: var(--z-raised);
+      outline-color: color-mix(in oklab, var(--tint) 35%, transparent);
+    }
+
+    :root:not([data-still]) .plate-link:hover {
+      transform: scale(calc(1 + 6 / var(--tile-w, 620)));
+    }
+
+    :root:not([data-still]) .plate-link:hover .plate-media > img,
+    :root:not([data-still]) .plate-link:hover .plate-media > video {
+      transform: scale(min(1.05, calc(1 + 16 / var(--tile-w, 620))));
+    }
+  }
+
+  .plate-link:active {
+    transform: scale(0.985);
+    transition-duration: var(--dur-press), 300ms;
+  }
+
+  :root:not([data-still]) .plate-link:active {
+    transform: scale(0.985);
+  }
+
+  :root[data-still] .plate-link:active {
+    transform: none;
+  }
+
+  .plate-link:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* ---------- Bento: 4 columns, gap 20, rows of 260. Spans with Tailwind (lg:col-span-2 lg:row-span-2). ---------- */
+  .bento {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: var(--bento-row, 260px);
+    grid-auto-flow: dense;
+  }
+
+  @media (max-width: 1068px) {
+    .bento {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: minmax(220px, auto);
+    }
+  }
+
+  /* ---------- Depth tiers as ready-made classes (spatial-ux 4.2). Plates are .plate; tier 0 is the page. ---------- */
+  .tier-2 {
+    z-index: var(--z-raised);
+    background: var(--surface-2);
+    box-shadow: var(--shadow-2);
+  }
+
+  .tier-3 {
+    z-index: var(--z-ornament);
+    background: var(--surface-3);
+    box-shadow: var(--shadow-3);
+  }
+
+  .tier-5 {
+    z-index: var(--z-popover);
+    background: var(--surface-5);
+    box-shadow: var(--shadow-5);
+  }
+
+  .tier-6 {
+    background: var(--surface-6);
+    box-shadow: var(--shadow-6);
+  }
+
+  /* Glass. Only the nav, the library filter bar and controls over video. No glass on tiles or sections, no glass on glass. */
+  .glass {
+    background: var(--glass-bg);
+    color: var(--on-glass);
+    -webkit-backdrop-filter: var(--glass-fx);
+    backdrop-filter: var(--glass-fx);
+    box-shadow: var(--glass-edge), var(--shadow-3);
+  }
+
+  /* Over video: primary text only. */
+  .glass-media {
+    background: var(--glass-media-bg);
+    color: #f5f3ee;
+    -webkit-backdrop-filter: var(--glass-media-fx);
+    backdrop-filter: var(--glass-media-fx);
+  }
+
+  /* ---------- Small shared pieces ---------- */
+  .frame {
+    border-radius: var(--r-tile);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--plate-edge);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 4px 10px 4px 4px;
+    border-radius: var(--r-pill);
+    background: #ffffff;
+    color: #0e0e10;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 17px;
+    white-space: nowrap;
+  }
+
+  .pill img,
+  .pill .pill-letter {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: var(--r-pill);
+    object-fit: cover;
+  }
+
+  .pill .pill-letter {
+    display: grid;
+    place-items: center;
+    background: #0e0e10;
+    color: #ffffff;
+    font-size: 11px;
+  }
+
+  /* Flat tint over media. Blur here would be sixteen layers on one screen. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    background: var(--chip-bg);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 17px;
+  }
+
+  .skeleton {
+    background: var(--sunken);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  :root[data-still] .skeleton {
+    animation: none;
+  }
+
+  @keyframes pulse {
+    50% {
+      opacity: 0.55;
+    }
+  }
+
+  .field {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 11px 14px;
+    border: 1.5px solid var(--field-line);
+    border-radius: var(--r-field);
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+    transition: border-color var(--dur-hover) ease;
+  }
+
+  .field::placeholder {
+    color: var(--muted);
+  }
+
+  /* Off-screen, never display:none, or bots stop filling it. */
+  .sr-trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .skip-link {
+    position: fixed;
+    z-index: 60;
+    top: 12px;
+    left: 12px;
+    padding: 12px 18px;
+    border-radius: var(--r-field);
+    background: var(--ink);
+    color: var(--bg);
+    font-weight: 600;
+    text-decoration: none;
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus-visible {
+    transform: none;
+  }
+
+  /* ---------- PageHero ---------- */
+  .page-hero {
+    position: relative;
+    padding-top: calc(var(--nav-offset) + 64px);
+    padding-bottom: 72px;
+  }
+
+  .page-hero-in {
+    position: relative;
+    display: grid;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .page-hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .page-hero[data-align='center'] .page-hero-copy {
+    align-items: center;
+    text-align: center;
+  }
+
+  .page-hero[data-align='center'] .lead {
+    text-wrap: balance;
+  }
+
+  .page-hero[data-align='left'] .page-hero-copy {
+    align-items: flex-start;
+  }
+
+  .page-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 4px;
+  }
+
+  .page-hero[data-align='center'] .page-hero-actions {
+    justify-content: center;
+  }
+
+  @media (min-width: 1069px) {
+    .page-hero[data-split] .page-hero-in {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 64px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .page-hero {
+      padding-top: calc(var(--nav-offset) + 40px);
+      padding-bottom: 48px;
+    }
+
+    /* On a phone every hero's actions stack at full width, as Home's do, so the first screen of each page asks the same way. */
+    .page-hero-actions {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+    }
+
+    .page-hero-actions > .btn,
+    .page-hero-actions > .magnet,
+    .page-hero-actions .magnet-inner,
+    .page-hero-actions .magnet-inner > .btn {
+      width: 100%;
+    }
+
+    .page-hero-actions > .magnet {
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+  /* ---------- Rolling digits ---------- */
+  .roll {
+    display: inline-flex;
+    align-items: flex-start;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+
+  .roll-char {
+    display: block;
+    height: 1.1em;
+    line-height: 1.1;
+  }
+
+  .roll-window {
+    display: block;
+    height: 1.1em;
+    overflow: hidden;
+  }
+
+  .roll-col {
+    display: block;
+  }
+
+  .roll-col > span {
+    display: block;
+    height: 1.1em;
+    text-align: center;
+  }
+
+  /* ---------- Stats ---------- */
+  .stat-row {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 6px;
+    padding: 32px;
+    border-radius: var(--r-tile);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--plate-edge);
+  }
+
+  .stat dt {
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 21px;
+  }
+
+  .stat dd {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    letter-spacing: -0.02em;
+  }
+
+  .stat[data-big] dd {
+    font-size: 80px;
+    letter-spacing: -0.024em;
+  }
+
+  @media (max-width: 734px) {
+    .stat-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .stat dd {
+      font-size: 48px;
+    }
+
+    .stat[data-big] dd {
+      font-size: 56px;
+    }
+  }
+
+  /* ---------- Marquee: one copy is real, the clones are decoration. Paused or still, it becomes a plain scrolling row. ---------- */
+  .marquee {
+    display: flex;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  }
+
+  .marquee-track {
+    display: flex;
+    flex: none;
+    gap: var(--gap-m, 12px);
+    padding-right: var(--gap-m, 12px);
+    margin: 0;
+    list-style: none;
+    animation: marquee var(--speed, 36s) linear infinite;
+    will-change: transform;
+  }
+
+  .marquee:hover .marquee-track,
+  .marquee:focus-within .marquee-track,
+  .marquee[data-run='false'] .marquee-track {
+    animation-play-state: paused;
+  }
+
+  :root[data-still] .marquee {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+    scrollbar-width: thin;
+    padding-bottom: 8px;
+  }
+
+  :root[data-still] .marquee-track {
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
+
+  :root[data-still] .marquee-clone {
+    display: none;
+  }
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  /* ---------- Segment: a platter, one thumb on a physics spring, equal columns. ---------- */
+  .segment {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    padding: 4px;
+    border-radius: var(--r-pill);
+    background: var(--sunken);
+    isolation: isolate;
+  }
+
+  .segment-thumb {
+    position: absolute;
+    z-index: -1;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc((100% - 8px) / var(--n));
+    border-radius: var(--r-pill);
+    background: var(--surface-5);
+    box-shadow: 0 1px 2px rgb(24 20 40 / 0.12), 0 3px 8px -2px rgb(24 20 40 / 0.14);
+    will-change: transform;
+  }
+
+  .segment-opt {
+    position: relative;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 18px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 19px;
+    letter-spacing: -0.009em;
+    touch-action: manipulation;
+    transition: color var(--dur-hover) ease;
+  }
+
+  /* The platter stays 48 tall; the tap target is the full 44 and more. */
+  .segment-opt::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+
+  .segment-opt[aria-checked='true'] {
+    color: var(--ink);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .segment-opt:hover {
+      color: var(--ink);
+    }
+  }
+
+  /* ---------- Page skeleton, shaped like a real page ---------- */
+  .page-skeleton {
+    padding-top: calc(var(--nav-offset) + 64px);
+    padding-bottom: 96px;
+  }
+
+  .page-skeleton-title {
+    width: 62%;
+    height: 72px;
+    margin-inline: auto;
+    border-radius: var(--r-inner);
+  }
+
+  .page-skeleton-lead {
+    width: 40%;
+    height: 22px;
+    margin: 20px auto 0;
+    border-radius: 8px;
+  }
+
+  .page-skeleton-grid {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 64px;
+  }
+
+  .page-skeleton-grid > div {
+    aspect-ratio: 4 / 5;
+    border-radius: var(--r-tile);
+  }
+
+  @media (max-width: 734px) {
+    .page-skeleton-title {
+      width: 100%;
+      height: 48px;
+    }
+
+    .page-skeleton-lead {
+      width: 80%;
+    }
+
+    .page-skeleton-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .page-skeleton-grid > div:nth-child(n + 2) {
+      display: none;
+    }
+  }
+
+  /* ---------- Route error ---------- */
+  .route-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    min-height: min(720px, 80dvh);
+    padding: calc(var(--nav-offset) + 48px) 0 96px;
+    text-align: center;
+  }
+
+  /* ---------- Nav: one floating pill. Glass per R15, condenses past a sentinel, opaque panels. ---------- */
+  .nav-sentinel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 56px;
+    pointer-events: none;
+  }
+
+  /* Phones and tablets fill the width; from 1024 the pill lines up with the content column, then tightens to 1024 past the sentinel.
+     The tighten is a step, not a tween: only transform, opacity and filter animate, and a width or height tween is layout work on every frame. */
+  .nav-shell {
+    position: fixed;
+    z-index: var(--z-chrome);
+    top: max(var(--nav-top), env(safe-area-inset-top));
+    right: 12px;
+    left: 12px;
+    margin-inline: auto;
+  }
+
+  @media (min-width: 1024px) {
+    .nav-shell {
+      max-width: min(var(--content-max), var(--content-w));
+    }
+
+    .nav-shell[data-condensed] {
+      max-width: min(1024px, var(--content-w));
+    }
+  }
+
+  .nav-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 60px;
+    padding: 0 8px 0 14px;
+    border-radius: var(--r-nav);
+    /* Named here, not on .nav-shell: a named element is a backdrop root, so naming the wrapper would leave this glass with nothing to blur. */
+    view-transition-name: site-nav;
+  }
+
+  .nav-shell[data-condensed] .nav-pill {
+    height: var(--nav-h);
+  }
+
+  .nav-home {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 9px;
+    min-height: 44px;
+    border-radius: 12px;
+    color: var(--on-glass);
+    text-decoration: none;
+  }
+
+  .nav-logo {
+    display: block;
+    border-radius: 9px;
+  }
+
+  .nav-name {
+    display: none;
+    height: 17px;
+    width: auto;
+    color: var(--on-glass);
+  }
+
+  @media (min-width: 360px) {
+    .nav-name {
+      display: block;
+      height: 15px;
+    }
+  }
+
+  @media (min-width: 400px) {
+    .nav-name {
+      height: 17px;
+    }
+  }
+
+  .nav-links {
+    position: relative;
+    display: none;
+    align-items: stretch;
+    margin: 0 auto;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 1024px) {
+    .nav-links {
+      display: flex;
+    }
+  }
+
+  .nav-indicator {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 0;
+    width: 100px;
+    background: color-mix(in oklab, var(--on-glass) 9%, transparent);
+    opacity: 0;
+    transform-origin: 0 50%;
+    pointer-events: none;
+    transition: opacity var(--dur-hover) ease;
+    will-change: transform;
+  }
+
+  .nav-indicator[data-show] {
+    opacity: 1;
+  }
+
+  .nav-item {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+  }
+
+  .nav-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--on-glass);
+    cursor: pointer;
+    font: inherit;
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: -0.006em;
+    text-decoration: none;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+
+  .nav-top > svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.6;
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+
+  .nav-top[aria-expanded='true'] > svg {
+    transform: rotate(180deg);
+  }
+
+  /* Work is a link with its own small menu button, so the page is one click away with no dropdown in between. */
+  .nav-top:has(+ .nav-caret) {
+    padding-right: 2px;
+  }
+
+  .nav-caret {
+    padding: 0 10px 0 0;
+  }
+
+  .nav-actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  @media (min-width: 1024px) {
+    .nav-actions {
+      margin-left: 0;
+    }
+  }
+
+  .nav-cta {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .nav-cta {
+      display: inline-flex;
+    }
+  }
+
+  .nav-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition:
+      background-color var(--dur-hover) ease,
+      transform var(--dur-press) var(--ease-out);
+  }
+
+  .nav-icon:active {
+    transform: scale(0.92);
+  }
+
+  :root[data-still] .nav-icon:active {
+    transform: none;
+  }
+
+  .nav-icon[disabled] {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .nav-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--on-glass);
+    cursor: pointer;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 19px;
+    touch-action: manipulation;
+    transition: background-color var(--dur-hover) ease;
+  }
+
+  @media (min-width: 1024px) {
+    .nav-menu-btn {
+      display: none;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .nav-icon:hover:not([disabled]),
+    .nav-menu-btn:hover {
+      background: color-mix(in oklab, currentColor 9%, transparent);
+    }
+  }
+
+  /* The dropdown: opaque, tier 5. A blur inside a blur sees nothing (R17). */
+  .nav-drop {
+    position: absolute;
+    z-index: 1;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 280px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--surface-5);
+    color: var(--ink);
+    box-shadow: var(--shadow-5), 0 0 0 1px color-mix(in oklab, var(--ink) 8%, transparent);
+    transform-origin: 40px -8px;
+  }
+
+  .nav-drop-title {
+    margin: 0;
+    padding: 8px 12px 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+  }
+
+  .nav-drop-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 19px;
+    text-decoration: none;
+    touch-action: manipulation;
+    transition: background-color var(--dur-hover) ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .nav-drop-link:hover {
+      background: var(--sunken);
+    }
+  }
+
+  .nav-drop-link[aria-current='page'] {
+    font-weight: 600;
+  }
+
+  /* The phone menu: an opaque sheet under the pill. */
+  .nav-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    left: 0;
+    padding: 20px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 24px;
+    background: var(--surface-5);
+    color: var(--ink);
+    box-shadow: var(--shadow-5), 0 0 0 1px color-mix(in oklab, var(--ink) 8%, transparent);
+    max-height: calc(100dvh - var(--nav-offset) - 24px);
+    transform-origin: 100% -8px;
+  }
+
+  @media (min-width: 1024px) {
+    .nav-panel {
+      display: none;
+    }
+  }
+
+  .nav-panel-group {
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 17px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: inherit;
+    font-size: 17px;
+    line-height: 21px;
+    text-decoration: none;
+  }
+
+  .nav-link[aria-current='page'] {
+    font-weight: 600;
+  }
+
+  /* The phone's one persistent action. Solid red, not glass. Hides at the top of the page and where another action is already on screen. */
+  .mobile-cta {
+    position: fixed;
+    z-index: var(--z-ornament);
+    right: 16px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: 16px;
+    display: flex;
+    transform: translateY(calc(100% + 28px));
+    transition: transform var(--dur-sheet) var(--ease-out);
+    view-transition-name: mobile-cta;
+  }
+
+  .mobile-cta[data-show] {
+    transform: none;
+  }
+
+  .mobile-cta .btn {
+    width: 100%;
+    box-shadow: var(--shadow-4);
+  }
+
+  @media (min-width: 640px) {
+    .mobile-cta {
+      display: none;
+    }
+  }
+
+  :root[data-still] .mobile-cta {
+    transition: none;
+  }
+
+  /* One rhythm into the footer on every page. Each page's last block gives up its own bottom padding, and the footer's --end-y is the whole gap.
+     The id keeps this above any page's padding rule; a band with its own background keeps its padding inside it. */
+  main#main > div > :nth-last-child(1 of :not(dialog, script, template, style)):not(.band-dark, .band-alt) {
+    padding-bottom: 0;
+  }
+}

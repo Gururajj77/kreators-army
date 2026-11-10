@@ -1,0 +1,1757 @@
+/* Why Kreators, Why vox pop, Testimonials, The numbers. Each page has one signature layout. Prefixes: vs/wk (Why Kreators), vp (Why vox pop), tm (Testimonials), nb (Numbers). */
+@layer components {
+  /* ================ Why Kreators ================ */
+  .wk-top {
+    position: relative;
+    padding-top: calc(var(--nav-offset) + 56px);
+  }
+
+  .wk-top-in {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  .wk-top .page-hero-copy {
+    align-items: center;
+    text-align: center;
+  }
+
+  .wk-top .lead {
+    max-width: none;
+    text-wrap: balance;
+  }
+
+  /* ---------- The comparison stage ---------- */
+  .vs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .vs-segment {
+    width: min(420px, 100%);
+  }
+
+  .vs-stage {
+    --vs-flat: #e4e1da;
+    --vs-panel: #d9d6cf;
+    --vs-shape: #cbc7bf;
+    --vs-line: #bfbbb2;
+    position: relative;
+    width: 100%;
+    height: 620px;
+    overflow: clip;
+    border-radius: var(--r-tile);
+    background: var(--vs-flat);
+    isolation: isolate;
+    cursor: ew-resize;
+    touch-action: pan-y;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  :where([data-theme='dark']) .vs-stage {
+    --vs-flat: #1b1b21;
+    --vs-panel: #212128;
+    --vs-shape: #2d2d36;
+    --vs-line: #33333d;
+  }
+
+  .vs-world {
+    position: absolute;
+    inset: 0;
+  }
+
+  .vs-world[data-world='scripted'] {
+    color: var(--ink);
+    --vs-muted: var(--muted);
+  }
+
+  .vs-world[data-world='voxpop'] {
+    background: var(--c-ground);
+    color: #ffffff;
+    --vs-muted: #ffffff;
+  }
+
+  .vs-mask {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    /* The seam: a soft shadow cast by the vox pop side onto the scripted side. */
+    box-shadow: -16px 0 40px rgb(14 14 16 / 0.18);
+    will-change: transform;
+  }
+
+  .vs-mask > .vs-world {
+    will-change: transform;
+  }
+
+  .vs-frames {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .vs-photo {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vs-photo > img,
+  .vs-photo > video {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  .vs-photo > video {
+    opacity: 0;
+    transition: opacity 320ms ease;
+  }
+
+  .vs-photo > video[data-ready] {
+    opacity: 1;
+  }
+
+  /* Stronger than the default: the words on this side can land on a white shirt. */
+  .vs-scrim {
+    --scrim-a: 0.9;
+  }
+
+  /* Scripted's three stills. Flat, grey, patient. */
+  .vs-ad {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 28px;
+    background: var(--vs-panel);
+    box-shadow: inset 1px 0 0 color-mix(in oklab, var(--ink) 6%, transparent);
+  }
+
+  .vs-ad-tag {
+    align-self: flex-start;
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    background: var(--vs-shape);
+    color: color-mix(in oklab, var(--ink) 72%, transparent);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+  }
+
+  .vs-ad-product {
+    width: 42%;
+    aspect-ratio: 3 / 4;
+    margin-top: 44px;
+    border-radius: 18px;
+    background: var(--vs-shape);
+  }
+
+  .vs-ad-product[data-kind='1'] {
+    width: 48%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+  }
+
+  .vs-ad-product[data-kind='2'] {
+    width: 34%;
+    aspect-ratio: 2 / 3;
+    border-radius: 999px 999px 18px 18px;
+  }
+
+  .vs-ad-lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 60%;
+    margin-top: 14px;
+  }
+
+  .vs-ad-lines > i {
+    display: block;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--vs-line);
+  }
+
+  .vs-ad-lines > i:last-child {
+    width: 70%;
+  }
+
+  .vs-ad-btn {
+    margin-top: 12px;
+    padding: 8px 22px;
+    border-radius: var(--r-pill);
+    background: var(--vs-shape);
+    color: color-mix(in oklab, var(--ink) 55%, transparent);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 17px;
+  }
+
+  /* Clears a corner for the words without erasing the wall of ads behind them. */
+  .vs-fade {
+    position: absolute;
+    inset: 40% 42% 0 0;
+    background: radial-gradient(120% 100% at 0% 100%, var(--vs-flat) 62%, transparent);
+    pointer-events: none;
+  }
+
+  /* Each side's words sit at its own outer edge, so at the half-way mark you can read both. */
+  .vs-copy {
+    position: absolute;
+    bottom: 40px;
+    width: 400px;
+    pointer-events: none;
+  }
+
+  .vs-world[data-world='scripted'] .vs-copy {
+    left: 56px;
+  }
+
+  .vs-world[data-world='voxpop'] .vs-copy {
+    right: 56px;
+  }
+
+  .vs-copy-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .vs-title {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 36px;
+    letter-spacing: -0.012em;
+  }
+
+  .vs-cast {
+    flex: none;
+  }
+
+  .vs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 21px;
+    line-height: 26px;
+    letter-spacing: -0.012em;
+  }
+
+  .vs-list > li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .vs-world[data-world='scripted'] .vs-list {
+    color: var(--muted);
+  }
+
+  .vs-mark {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin-top: 1px;
+    border-radius: 50%;
+  }
+
+  .vs-world[data-world='scripted'] .vs-mark {
+    background: color-mix(in oklab, var(--ink) 14%, transparent);
+    color: var(--muted);
+  }
+
+  .vs-world[data-world='voxpop'] .vs-mark {
+    background: #ffffff;
+    color: #0e0e10;
+  }
+
+  /* The divider: a full-stage layer whose left edge is the line, so a percentage translate is a percentage of the stage. */
+  .vs-divider {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .vs-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    width: 2px;
+    background: #ffffff;
+  }
+
+  .vs-knob {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin: -28px 0 0 -28px;
+    border-radius: 50%;
+    background: var(--surface-5);
+    color: var(--ink);
+    box-shadow: var(--shadow-3);
+    transition: transform var(--spring-release);
+  }
+
+  .vs-stage[data-drag] .vs-knob {
+    transform: scale(0.92);
+  }
+
+  :root[data-still] .vs-knob {
+    transition: none;
+  }
+
+  /* The real control: a native range, so arrow keys, Home and End, and a phone's screen reader all work. Invisible over the knob; the stage does the pointer work. */
+  .vs-range {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 56px;
+    height: 56px;
+    margin: -28px 0 0 -28px;
+    opacity: 0;
+    pointer-events: none;
+    appearance: none;
+  }
+
+  .vs-range:focus-visible + .vs-knob {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  .vs-hint {
+    margin: 0;
+  }
+
+  @media (hover: none) {
+    .vs-hint {
+      display: none;
+    }
+  }
+
+  @media (max-width: 1068px) {
+    .vs-stage {
+      height: 560px;
+    }
+
+    .vs-copy {
+      width: 300px;
+    }
+
+    .vs-world[data-world='scripted'] .vs-copy {
+      left: 32px;
+    }
+
+    .vs-world[data-world='voxpop'] .vs-copy {
+      right: 32px;
+    }
+
+    .vs-title {
+      font-size: 26px;
+      line-height: 30px;
+    }
+
+    .vs-list {
+      font-size: 17px;
+      line-height: 22px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .vs-fade {
+      inset: 30% 0 0;
+      background: linear-gradient(to top, var(--vs-flat) 60%, transparent);
+    }
+
+    .wk-top {
+      padding-top: calc(var(--nav-offset) + 32px);
+    }
+
+    .wk-top-in {
+      gap: 28px;
+    }
+
+    .vs-stage {
+      height: 540px;
+    }
+
+    .vs-frames {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .vs-frames > :nth-child(n + 2) {
+      display: none;
+    }
+
+    /* Inset past the 24px sliver the divider leaves at either end, so a word is never under the line. */
+    .vs-copy {
+      right: 36px;
+      bottom: 28px;
+      left: 36px;
+      width: auto;
+    }
+
+    .vs-world[data-world='scripted'] .vs-copy,
+    .vs-world[data-world='voxpop'] .vs-copy {
+      right: 36px;
+      left: 36px;
+    }
+
+    .vs-knob,
+    .vs-range {
+      width: 44px;
+      height: 44px;
+      margin: -22px 0 0 -22px;
+    }
+
+    .vs-ad-product {
+      margin-top: 28px;
+    }
+  }
+
+  /* ---------- The case ---------- */
+  .wk-case-in {
+    display: grid;
+    gap: 48px;
+    align-items: end;
+  }
+
+  .wk-case-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+  }
+
+  .wk-figures {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 32px;
+    margin: 0;
+  }
+
+  .wk-figures > div {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 2px;
+  }
+
+  .wk-figures dt {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  .wk-figures dd {
+    margin: 0;
+    font-size: 48px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    letter-spacing: -0.02em;
+  }
+
+  @media (min-width: 1069px) {
+    .wk-case-in {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 80px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    /* Each figure keeps its own width and the spare room goes between them, so 100M+ never runs into 250K+. */
+    .wk-figures {
+      gap: 12px;
+      width: 100%;
+      grid-template-columns: repeat(3, auto);
+      justify-content: space-between;
+    }
+
+    .wk-figures dd {
+      font-size: clamp(24px, 8vw, 34px);
+    }
+
+    .wk-figures dt {
+      font-size: 13px;
+      line-height: 17px;
+    }
+  }
+
+  /* ---------- The line ---------- */
+  .wk-process {
+    overflow-x: clip;
+  }
+
+  .wk-line {
+    position: relative;
+    margin-top: 64px;
+  }
+
+  /* One rail across the whole page, not five boxes: it enters at the left edge of the screen and leaves at the right. */
+  .wk-rail {
+    position: absolute;
+    top: 70px;
+    right: calc(50% - 50vw);
+    left: calc(50% - 50vw);
+    height: 2px;
+    background: var(--line);
+  }
+
+  .wk-rail-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    transform-origin: 0 50%;
+    transition: transform 1500ms var(--ease-in-out) 120ms;
+  }
+
+  :root[data-js]:not([data-still]) [data-reveal]:not([data-in]) .wk-rail-fill {
+    transform: scaleX(0);
+  }
+
+  :root[data-still] .wk-rail-fill {
+    transition: none;
+  }
+
+  .wk-steps {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .wk-step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .wk-step-cast {
+    display: flex;
+    align-items: flex-end;
+    height: 70px;
+  }
+
+  .wk-step-dot {
+    width: 14px;
+    height: 14px;
+    margin: -6px 0 22px 21px;
+    border-radius: 50%;
+    background: var(--ink);
+    box-shadow: 0 0 0 4px var(--bg);
+    transition: transform 420ms var(--ease-out);
+    transition-delay: calc(240ms + var(--i, 0) * 260ms);
+  }
+
+  :root[data-js]:not([data-still]) [data-reveal]:not([data-in]) .wk-step-dot {
+    transform: scale(0);
+  }
+
+  :root[data-still] .wk-step-dot {
+    transition: none;
+  }
+
+  .wk-step-text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .wk-step-text p {
+    margin: 0;
+  }
+
+  .wk-step-text .small {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .wk-step-no {
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .wk-team {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 48px;
+    margin-top: 72px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  .wk-team-item {
+    margin: 0;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 25px;
+  }
+
+  .wk-team-item > b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* Below desktop the rail stands up: same line, down the left side. */
+  @media (max-width: 1068px) {
+    .wk-line {
+      margin-top: 48px;
+    }
+
+    .wk-rail {
+      top: 0;
+      right: auto;
+      bottom: 0;
+      left: 27px;
+      width: 2px;
+      height: auto;
+    }
+
+    .wk-rail-fill {
+      transform-origin: 50% 0;
+    }
+
+    :root[data-js]:not([data-still]) [data-reveal]:not([data-in]) .wk-rail-fill {
+      transform: scaleY(0);
+    }
+
+    .wk-steps {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 36px;
+    }
+
+    .wk-step {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    /* Only as tall as the character, so the rail shows the rest of the way down. */
+    .wk-step-cast {
+      align-self: start;
+      align-items: flex-start;
+      justify-content: center;
+      height: auto;
+      padding-block: 6px;
+      background: var(--bg);
+    }
+
+    .wk-step-dot {
+      display: none;
+    }
+  }
+
+  /* ---------- Included ---------- */
+  .wk-inc {
+    display: grid;
+    gap: 40px;
+  }
+
+  .wk-inc-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .wk-inc-list > li {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-block: 22px;
+    border-top: 1px solid var(--line);
+    font-size: 21px;
+    line-height: 27px;
+    letter-spacing: -0.012em;
+  }
+
+  .wk-inc-list > li:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .wk-inc-mark {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  @media (min-width: 1069px) {
+    .wk-inc {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 80px;
+    }
+
+    .wk-inc-head {
+      position: sticky;
+      top: calc(var(--nav-offset) + 32px);
+      align-self: start;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .wk-inc-list > li {
+      padding-block: 18px;
+      font-size: 17px;
+      line-height: 23px;
+    }
+  }
+
+  /* ================ Why vox pop ================ */
+  .vp-cover {
+    position: relative;
+    padding-top: calc(var(--nav-offset) + 56px);
+  }
+
+  .vp-cover-in {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 40px;
+  }
+
+  .vp-cover .page-hero-copy {
+    align-items: flex-start;
+    max-width: 860px;
+    padding-bottom: 64px;
+  }
+
+  .vp-host {
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 24px;
+  }
+
+  @media (max-width: 734px) {
+    .vp-cover-in {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+
+    .vp-cover .page-hero-copy {
+      padding-bottom: 24px;
+    }
+
+    /* Bolu's mic reaches about 40 px past the box: keep it inside the gutter. */
+    .vp-host {
+      margin-right: 40px;
+    }
+  }
+
+  /* Full-bleed: edge to edge, no radius. Three reels side by side at near their real size. */
+  .vp-band {
+    position: relative;
+    overflow: hidden;
+    height: clamp(520px, 78vh, 720px);
+    background: var(--c-ground);
+    color: #ffffff;
+    container-type: size;
+  }
+
+  /* One row the band's height, so object-fit really crops: without it the row grows to the photo's own height and the band cuts the bottom instead. */
+  .vp-band-photos {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  /* The top --crop of each frame (its burned-in title) sits above the band at every width. --h is the frame's height at the column's width (the reels are
+     507 x 900). The box is the band plus the share to hide, lifted by that share: where the frame is taller than the box, object-position takes the rest of
+     the crop; where it is not (a short band, a phone), cover scales the frame up to the box and trims its sides instead. */
+  .vp-band-photos > img {
+    --h: calc(100cqw / 3 * 900 / 507);
+    --box: calc(100cqh / (1 - var(--crop, 0)));
+    display: block;
+    width: 100%;
+    height: var(--box);
+    margin-top: calc(-1 * var(--crop, 0) * var(--box));
+    object-fit: cover;
+    object-position: 50% calc(-1 * var(--crop, 0) * max(0px, var(--h) - var(--box)));
+  }
+
+  .vp-band-scrim {
+    --scrim-a: 0.88;
+  }
+
+  .vp-band-line {
+    position: absolute;
+    right: 0;
+    bottom: 56px;
+    left: 0;
+    display: flex;
+  }
+
+  .vp-band-line > h2 {
+    max-width: 16ch;
+    color: #ffffff;
+  }
+
+  @media (max-width: 734px) {
+    .vp-band {
+      height: 620px;
+    }
+
+    .vp-band-photos {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .vp-band-photos > img {
+      --h: calc(100cqw * 900 / 507);
+    }
+
+    .vp-band-photos > :nth-child(n + 2) {
+      display: none;
+    }
+
+    .vp-band-line {
+      bottom: 32px;
+    }
+  }
+
+  .vp-thesis {
+    display: flex;
+  }
+
+  .vp-thesis-text {
+    max-width: 22ch;
+    margin: 0;
+    color: var(--muted);
+    font-size: 64px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 68px;
+    letter-spacing: -0.016em;
+  }
+
+  .vp-thesis-text > b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  @media (max-width: 1068px) {
+    .vp-thesis-text {
+      font-size: 48px;
+      line-height: 52px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .vp-thesis-text {
+      font-size: 36px;
+      line-height: 40px;
+    }
+  }
+
+  /* Six faces, six short lines, one strip from edge to edge. */
+  .vp-strip-list {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .vp-strip-item {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 9 / 16;
+    background: var(--c-ground);
+  }
+
+  .vp-strip-item > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .vp-strip-line {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    left: 20px;
+    margin: 0;
+    color: #ffffff;
+  }
+
+  @media (max-width: 1068px) {
+    .vp-strip-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 734px) {
+    .vp-strip-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vp-strip-line {
+      right: 16px;
+      bottom: 16px;
+      left: 16px;
+      font-size: 17px;
+      line-height: 21px;
+    }
+  }
+
+  /* The spread: photo out to the left edge, words on the band. */
+  .vp-spread {
+    display: grid;
+    margin-top: var(--section-y);
+  }
+
+  .vp-spread-photo {
+    position: relative;
+    overflow: hidden;
+    min-height: 620px;
+  }
+
+  .vp-spread-photo > img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Faces and the gift in hand. A small static zoom puts the reel's own captions, top and middle, outside the frame. */
+    object-position: 50% 38.5%;
+    transform: scale(1.07);
+    transform-origin: 50% 43%;
+  }
+
+  .vp-spread-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 48px;
+    padding: 72px max(6.25%, 24px);
+  }
+
+  .vp-quote {
+    margin: 0;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+  }
+
+  .vp-quote > p {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 34px;
+    letter-spacing: -0.008em;
+  }
+
+  .vp-quote > footer {
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  @media (min-width: 1069px) {
+    .vp-spread {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vp-spread-copy {
+      padding-inline: 88px max(6.25%, calc((100vw - 1260px) / 2));
+    }
+  }
+
+  @media (max-width: 734px) {
+    .vp-spread-photo {
+      min-height: 340px;
+    }
+
+    .vp-spread-photo > img {
+      object-position: 50% 38.5%;
+    }
+
+    .vp-spread-copy {
+      gap: 40px;
+      padding-block: 64px;
+    }
+
+    .vp-quote > p {
+      font-size: 22px;
+      line-height: 28px;
+    }
+  }
+
+  /* A contents page, not five cards. */
+  .vp-feeds {
+    display: grid;
+    gap: 40px;
+  }
+
+  .vp-feeds-action {
+    margin-top: 28px;
+  }
+
+  .vp-feeds-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .vp-feeds-list > li {
+    display: grid;
+    gap: 8px;
+    padding-block: 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  .vp-feeds-list > li:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .vp-feeds-list p {
+    margin: 0;
+  }
+
+  @media (min-width: 1069px) {
+    .vp-feeds {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 80px;
+    }
+
+    .vp-feeds-head {
+      position: sticky;
+      top: calc(var(--nav-offset) + 32px);
+      align-self: start;
+    }
+
+    .vp-feeds-list > li {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 32px;
+      align-items: baseline;
+    }
+  }
+
+  /* ================ Testimonials: the wall ================ */
+  .tm-page {
+    position: relative;
+    padding-top: calc(var(--nav-offset) + 48px);
+    padding-bottom: 96px;
+  }
+
+  .tm-wall {
+    position: relative;
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: 150px;
+    grid-template-areas:
+      'head head b c'
+      'head head b c'
+      'a a b d'
+      'a a e d'
+      'a a e d'
+      'f q q v'
+      'f q q v';
+  }
+
+  .tm-head {
+    grid-area: head;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 8px 32px 8px 0;
+  }
+
+  .tm-a {
+    grid-area: a;
+  }
+
+  .tm-b {
+    grid-area: b;
+  }
+
+  .tm-c {
+    grid-area: c;
+  }
+
+  .tm-d {
+    grid-area: d;
+  }
+
+  .tm-e {
+    grid-area: e;
+  }
+
+  .tm-f {
+    grid-area: f;
+  }
+
+  .tm-q {
+    grid-area: q;
+  }
+
+  .tm-v {
+    grid-area: v;
+  }
+
+  .tm-cell {
+    min-width: 0;
+  }
+
+  .tm-figure {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    margin: 0;
+    min-height: 0;
+  }
+
+  .tm-metric {
+    margin: 0;
+    font-size: 72px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .tm-unit {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 25px;
+    letter-spacing: -0.012em;
+  }
+
+  .tm-figure[data-size='xl'] .tm-metric {
+    font-size: 200px;
+    letter-spacing: -0.045em;
+  }
+
+  .tm-figure[data-size='l'] .tm-metric {
+    font-size: 76px;
+    letter-spacing: -0.035em;
+  }
+
+  .tm-figure[data-size='l'] .tm-quote {
+    font-size: 21px;
+    line-height: 27px;
+    letter-spacing: -0.012em;
+  }
+
+  .tm-quote {
+    margin: auto 0 0;
+    padding-top: 20px;
+    font-size: 17px;
+    line-height: 24px;
+  }
+
+  .tm-figure[data-size='xl'] .tm-quote {
+    max-width: 28ch;
+    font-size: 28px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 34px;
+    letter-spacing: -0.008em;
+  }
+
+  .tm-who {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .tm-quote-lg {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 41px;
+    letter-spacing: -0.012em;
+  }
+
+  .tm-figure[data-size='quote'] {
+    justify-content: space-between;
+  }
+
+  @media (max-width: 1068px) {
+    .tm-wall {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: auto;
+      grid-template-areas:
+        'head head'
+        'a a'
+        'b c'
+        'd e'
+        'f f'
+        'q q'
+        'v v';
+    }
+
+    .tm-v {
+      height: 260px;
+    }
+
+    .tm-head {
+      padding: 0 0 12px;
+    }
+
+    .tm-figure[data-size='xl'] .tm-metric {
+      font-size: 160px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .tm-page {
+      padding-top: calc(var(--nav-offset) + 32px);
+      padding-bottom: 64px;
+    }
+
+    .tm-wall {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        'head'
+        'a'
+        'b'
+        'c'
+        'd'
+        'e'
+        'f'
+        'q'
+        'v';
+    }
+
+    .tm-figure[data-size='xl'] .tm-metric {
+      font-size: 112px;
+    }
+
+    .tm-figure[data-size='xl'] .tm-quote {
+      font-size: 21px;
+      line-height: 26px;
+    }
+
+    .tm-figure[data-size='l'] .tm-metric {
+      font-size: 72px;
+    }
+
+    .tm-figure[data-size='m'] .tm-metric {
+      font-size: 56px;
+    }
+
+    .tm-quote {
+      padding-top: 24px;
+    }
+
+    .tm-quote-lg {
+      font-size: 24px;
+      line-height: 30px;
+    }
+
+    .tm-v {
+      height: 240px;
+    }
+  }
+
+  /* ================ The numbers: bento, then the board ================ */
+  .nb-top {
+    position: relative;
+    padding-top: calc(var(--nav-offset) + 56px);
+    padding-bottom: 48px;
+  }
+
+  .nb-top-in {
+    position: relative;
+    display: grid;
+    gap: 20px;
+    align-items: end;
+  }
+
+  @media (min-width: 1069px) {
+    .nb-top-in {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
+      gap: 48px;
+    }
+
+    .nb-top-lead {
+      padding-bottom: 8px;
+    }
+  }
+
+  .nb-cell {
+    min-width: 0;
+  }
+
+  @media (min-width: 1069px) {
+    .nb-wide {
+      grid-column: span 2;
+    }
+  }
+
+  /* Label pinned to the top, number to the bottom: the tile is the measure, not a card with some text in it. */
+  .nb-figure {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .nb-value {
+    margin: 0;
+    font-size: 72px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .nb-figure[data-big] .nb-value {
+    font-size: 112px;
+    letter-spacing: -0.04em;
+  }
+
+  .nb-label {
+    margin: 0;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 21px;
+  }
+
+  .nb-figure[data-big] .nb-label {
+    font-size: 21px;
+    line-height: 25px;
+    letter-spacing: -0.012em;
+  }
+
+  .nb-hero-tile {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 32px;
+  }
+
+  .nb-hero-tile > div:first-child {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .nb-sochu {
+    position: absolute;
+    right: 46px;
+    bottom: 10px;
+  }
+
+  .nb-sat {
+    display: flex;
+    flex: 1;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 32px;
+  }
+
+  .plate-body > .nb-figure {
+    flex: 1;
+  }
+
+  .nb-dots {
+    display: grid;
+    flex: none;
+    align-self: center;
+    gap: 6px;
+    grid-template-columns: repeat(10, 14px);
+  }
+
+  .nb-dots > span {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px color-mix(in oklab, currentColor 55%, transparent);
+    transition: transform 360ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 6ms + 200ms);
+  }
+
+  .nb-dots > span[data-on] {
+    background: currentColor;
+    box-shadow: none;
+  }
+
+  :root[data-js]:not([data-still]) [data-reveal]:not([data-in]) .nb-dots > span {
+    transform: scale(0);
+  }
+
+  :root[data-still] .nb-dots > span {
+    transition: none;
+  }
+
+  @media (max-width: 1068px) {
+    .nb-bento {
+      grid-auto-rows: minmax(200px, auto);
+    }
+
+    .nb-cell.nb-wide {
+      grid-column: span 2;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .nb-bento {
+      grid-auto-rows: minmax(168px, auto);
+    }
+
+    .nb-value {
+      font-size: 36px;
+    }
+
+    .nb-figure[data-big] .nb-value {
+      font-size: 80px;
+    }
+
+    .nb-hero-tile,
+    .nb-sat {
+      padding: 24px;
+    }
+
+    .nb-hero-tile {
+      min-height: 248px;
+    }
+
+    /* On a phone the number has the top of the tile and Sochu has the bottom: side by side they collide. */
+    .nb-hero-tile .nb-figure {
+      justify-content: flex-start;
+      gap: 6px;
+    }
+
+    .nb-sochu {
+      right: 28px;
+    }
+
+    .nb-dots {
+      gap: 4px;
+      grid-template-columns: repeat(10, 10px);
+    }
+
+    .nb-dots > span {
+      width: 10px;
+      height: 10px;
+    }
+  }
+
+  .nb-rank-in {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .nb-selection {
+    margin: 16px 0 0;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  .nb-board {
+    margin: 0;
+    padding: 8px;
+    list-style: none;
+  }
+
+  .nb-row-wrap + .nb-row-wrap {
+    border-top: 1px solid var(--line);
+  }
+
+  .nb-row {
+    display: grid;
+    grid-template-columns: 40px 52px minmax(0, 1.4fr) minmax(0, 1fr) 72px 28px;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    min-height: 92px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: var(--r-inner);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    touch-action: manipulation;
+    transition: background-color var(--dur-hover) ease;
+  }
+
+  .nb-rank {
+    color: var(--muted);
+    font-size: 17px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    line-height: 21px;
+  }
+
+  .nb-thumb {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 9 / 16;
+    border-radius: 10px;
+    background: var(--sunken);
+  }
+
+  .nb-thumb > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .nb-thumb-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .nb-info {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .nb-title {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 21px;
+    letter-spacing: -0.012em;
+  }
+
+  .nb-brand {
+    display: flex;
+    max-width: 100%;
+  }
+
+  .nb-brand .pill {
+    background: var(--sunken);
+    color: var(--ink);
+  }
+
+  .nb-bar {
+    position: relative;
+    display: block;
+    height: 10px;
+  }
+
+  .nb-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 0 4px 4px 0;
+    background: var(--c-purple);
+    transform-origin: 0 50%;
+    transition: transform 620ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 45ms + 120ms);
+  }
+
+  /* The leader's bar runs off the scale: it has no rounded end, and it stops short of the edge on a slash. */
+  .nb-fill[data-off] {
+    border-radius: 0;
+  }
+
+  .nb-fill[data-off]::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    right: 22px;
+    bottom: -3px;
+    width: 4px;
+    background: var(--surface);
+    transform: skewX(-20deg);
+  }
+
+  :root[data-js]:not([data-still]) [data-reveal]:not([data-in]) .nb-fill {
+    transform: scaleX(0);
+  }
+
+  :root[data-still] .nb-fill {
+    transition: none;
+  }
+
+  .nb-views {
+    font-size: 21px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    line-height: 25px;
+    letter-spacing: -0.012em;
+    text-align: right;
+  }
+
+  .nb-row[data-lead] .nb-views {
+    font-size: 32px;
+    line-height: 36px;
+  }
+
+  .nb-play {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--sunken);
+    color: var(--ink);
+    transition: transform var(--spring-release);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .nb-row:hover {
+      background: var(--sunken);
+    }
+
+    .nb-row:hover .nb-play {
+      background: var(--surface);
+    }
+
+    :root:not([data-still]) .nb-row:hover .nb-play {
+      transform: scale(1.1);
+    }
+  }
+
+  .nb-row:active {
+    background: var(--sunken);
+  }
+
+  .nb-row:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+  }
+
+  .nb-note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .nb-skeleton {
+    height: 92px;
+    margin: 6px 0;
+    border-radius: var(--r-inner);
+  }
+
+  .nb-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 40px;
+  }
+
+  .nb-state p {
+    margin: 0;
+  }
+
+  .nb-state .btn {
+    margin-top: 16px;
+  }
+
+  @media (max-width: 1068px) {
+    .nb-row {
+      grid-template-columns: 28px 44px minmax(0, 1fr) auto;
+      gap: 6px 14px;
+      min-height: 84px;
+      padding: 12px;
+    }
+
+    .nb-thumb {
+      grid-row: span 2;
+    }
+
+    .nb-rank {
+      grid-row: span 2;
+      align-self: center;
+    }
+
+    .nb-info {
+      gap: 4px;
+    }
+
+    /* The brand is the proof the ranking exists to show, so it stays: a quiet caption under the title rather than a pill. */
+    .nb-title {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .nb-brand .pill {
+      min-height: 0;
+      padding: 0;
+      background: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    .nb-views {
+      grid-column: 4;
+      grid-row: 1;
+    }
+
+    .nb-bar {
+      grid-column: 3 / 5;
+      grid-row: 2;
+      height: 8px;
+    }
+
+    .nb-play {
+      display: none;
+    }
+
+    .nb-row[data-lead] .nb-views {
+      font-size: 24px;
+      line-height: 28px;
+    }
+  }
+}

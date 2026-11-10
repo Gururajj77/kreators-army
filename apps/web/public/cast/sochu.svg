@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" width="480" height="480">
+<defs>
+<radialGradient id="g" gradientUnits="userSpaceOnUse" cx="178" cy="150" r="340" fx="170" fy="140"><stop offset="0" stop-color="#fff6c2"/><stop offset=".24" stop-color="#ffe680"/><stop offset=".56" stop-color="#fbd43f"/><stop offset=".84" stop-color="#f5bf2a"/><stop offset="1" stop-color="#d68a10"/></radialGradient>
+<radialGradient id="s"><stop offset="0" stop-color="#fff" stop-opacity=".92"/><stop offset=".55" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<radialGradient id="b" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffdf8a" stop-opacity=".55"/><stop offset="1" stop-color="#ffdf8a" stop-opacity="0"/></radialGradient>
+<clipPath id="c"><path d="M240 142.79A83.35 83.35 0 1 1 361.69 256.31A83.35 83.35 0 1 1 240 369.82A83.35 83.35 0 1 1 118.31 256.31A83.35 83.35 0 1 1 240 142.79Z"/></clipPath>
+<filter id="b6" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
+<filter id="puff" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+<feGaussianBlur in="SourceAlpha" stdDeviation="24" result="b1"/><feOffset in="b1" dx="-14" dy="-20" result="o1"/><feComposite in="SourceAlpha" in2="o1" operator="out" result="edge1"/>
+<feFlood flood-color="#d68a10" flood-opacity=".78"/><feComposite in2="edge1" operator="in" result="shade"/>
+<feGaussianBlur in="SourceAlpha" stdDeviation="7" result="b2"/><feOffset in="b2" dx="7" dy="9" result="o2"/><feComposite in="SourceAlpha" in2="o2" operator="out" result="edge2"/>
+<feFlood flood-color="#fff9d9" flood-opacity=".75"/><feComposite in2="edge2" operator="in" result="rim"/>
+<feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shade"/><feMergeNode in="rim"/></feMerge>
+</filter>
+</defs>
+<path d="M240 142.79A83.35 83.35 0 1 1 361.69 256.31A83.35 83.35 0 1 1 240 369.82A83.35 83.35 0 1 1 118.31 256.31A83.35 83.35 0 1 1 240 142.79Z" fill="url(#g)" filter="url(#puff)"/>
+<g clip-path="url(#c)" fill="none" stroke="#d68a10" stroke-linecap="round" filter="url(#b6)" opacity=".5"><path d="M240 142.8V192" stroke-width="14"/><path d="M240 369.8V322" stroke-width="14"/><path d="M118.3 256.3H164" stroke-width="14"/><path d="M361.7 256.3H316" stroke-width="14"/></g>
+<g clip-path="url(#c)"><ellipse cx="187" cy="174" rx="60" ry="42" transform="rotate(-32 187 174)" fill="url(#s)" opacity="0.92"/><ellipse cx="298" cy="176" rx="44" ry="30" transform="rotate(28 298 176)" fill="url(#s)" opacity="0.55"/></g>
+</svg>

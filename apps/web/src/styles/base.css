@@ -1,0 +1,142 @@
+/* The document itself: root behaviour, type defaults, selection, focus. Component classes live in components.css. */
+
+@layer base {
+  html {
+    /* The one number sticky filters and hash scrolls agree on. No global smooth scroll: it fights route changes. */
+    scroll-padding-top: calc(var(--nav-offset) + 16px);
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    background: var(--bg);
+  }
+
+  /* Below 640 the fixed action bar covers the bottom of the screen; a newly focused control scrolls clear of it (WCAG 2.4.11). Harmless while the bar is hidden. */
+  @media (max-width: 639.98px) {
+    html {
+      scroll-padding-bottom: calc(var(--mobile-cta-h) + 12px + 16px + env(safe-area-inset-bottom));
+    }
+  }
+
+  /* The player and any other modal pin the page. The gutter above keeps the layout still when the scrollbar goes. */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  /* Nothing in a page may widen the document: a character's stage or a bleed reaching past the edge is cut here, not scrolled to.
+     clip, not hidden, so sticky elements inside keep working. */
+  main {
+    overflow-x: clip;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 25px;
+    letter-spacing: -0.012em;
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* clip, never hidden: an overflow:hidden ancestor kills every sticky element under it. */
+    overflow-x: clip;
+  }
+
+  /* Browsers without view transitions fade the theme change this way instead. */
+  @supports not (view-transition-name: none) {
+    body {
+      transition:
+        background-color 0.25s ease,
+        color 0.25s ease;
+    }
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  img,
+  svg,
+  video {
+    max-width: 100%;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--c-yellow) 70%, transparent);
+    color: #0e0e10;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Targets focused by script (the page on a route change, a section after a hash link) take the focus without a ring around the whole block. */
+  main:focus,
+  [tabindex='-1']:focus {
+    outline: none;
+  }
+
+  /* iOS paints a grey flash over anything tappable; the press states replace it. */
+  a,
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  dialog {
+    color: inherit;
+  }
+
+  @media print {
+    [data-reveal] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+}
+
+/* ---------- Route change: a cross-fade, nothing else (R4). The nav and the mobile action are named so they stay on top of the fade. ---------- */
+@layer base {
+  ::view-transition-old(.page-out) {
+    animation: vt-fade-out 120ms ease both;
+  }
+
+  ::view-transition-new(.page-in) {
+    animation: vt-fade-in 200ms var(--ease-out) both;
+  }
+
+  :root[data-still]::view-transition-group(*),
+  :root[data-still]::view-transition-old(*),
+  :root[data-still]::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  /* The theme change fades as one surface: no half-transitioned tokens underneath it. */
+  :root[data-vt='theme'],
+  :root[data-vt='theme'] * {
+    transition: none !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 260ms;
+    animation-timing-function: var(--ease-out);
+  }
+
+  @keyframes vt-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes vt-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+}
