@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { TestimonialCard } from '../../components/TestimonialCard';
-import { Cta, Reveal, SectionHead } from '../../components/ui';
+import { Cta, Reveal, ResultsNote, SectionHead } from '../../components/ui';
 import { TESTIMONIALS } from '../../lib/content';
 
 // Below 735 the row scrolls sideways (home.css), and holds nothing focusable, so it takes a Tab stop itself there to be scrollable by keyboard. Above, it is a
@@ -20,17 +20,17 @@ const useScrollingRow = () =>
     () => false,
   );
 
-/** Static on desktop and a hand-scrolled row on phones. Never a marquee: every quote is reachable, once, by everyone. No characters beside a client's words (R42). */
+/** Static on desktop and a hand-scrolled row on phones. Never a marquee: every quote is reachable, once, by everyone. No characters beside a client's words (R42). The results note sits under the row. */
 export function Testimonials() {
   const scrolls = useScrollingRow();
   return (
-    <section className="section">
+    <section className="section band-alt t-section">
       <div className="wrap">
         <SectionHead
           center={false}
           eyebrow="Testimonials"
-          title="Feedback from happy clients"
-          lead="We value our clients’ feedback and showcase their experiences with our vox pop videos."
+          title="What clients told us"
+          lead="What founders and marketing teams said after their vox pop videos went live."
           action={
             <Cta to="/testimonials" kind="ghost" arrow>
               Read them all
@@ -44,6 +44,9 @@ export function Testimonials() {
             <TestimonialCard t={t} />
           </Reveal>
         ))}
+      </div>
+      <div className="wrap">
+        <ResultsNote short="phone" className="t-note" />
       </div>
     </section>
   );

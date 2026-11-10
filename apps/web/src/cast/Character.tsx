@@ -1,4 +1,4 @@
-import { useEffect, useId, useImperativeHandle, useInsertionEffect, useMemo, useRef, useState, type CSSProperties, type Ref } from 'react';
+import { useEffect, useId, useImperativeHandle, useInsertionEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
 import { castById, type CastId } from '../lib/content';
 import { BODY_COLOR, FlatBody, RestFace, insertCoreDefs } from './rest';
 import type { Actor, CastAction, LookTarget, PlayOptions } from './director';
@@ -41,6 +41,8 @@ export interface CharacterProps {
   className?: string;
   style?: CSSProperties;
   ref?: Ref<CharacterHandle>;
+  /** Rendered inside the character's box, after the figure: a speech bubble (CastBubble) sits here, above the head. */
+  children?: ReactNode;
 }
 
 export interface CharacterHandle {
@@ -54,6 +56,8 @@ export interface CharacterHandle {
   closeEyes: (closed: boolean) => void;
   /** Press squash for a parent button. */
   press: (down: boolean) => void;
+  /** The character's `.k-char` element, once mounted. Speech bubbles and performances share the one-speaker token under it. */
+  el: () => HTMLElement | null;
 }
 
 type Rig = typeof import('./live');
@@ -98,8 +102,10 @@ export function Character({
   className,
   style,
   ref,
+  children,
 }: CharacterProps) {
   const actor = useRef<Actor | null>(null);
+  const box = useRef<HTMLSpanElement>(null);
   const queue = useRef<((a: Actor, r: Rig) => void)[]>([]);
   const [live, setLive] = useState<Rig | null>(rig);
   const phase = hash(useId() + who);
@@ -135,6 +141,7 @@ export function Character({
       setExpression: (name, options) => send((a) => a.setExpression(name, options?.hold)),
       closeEyes: (closed) => send((a) => a.closeEyes(closed)),
       press: (down) => send((a) => a.setPressed(down)),
+      el: () => box.current,
     };
     handleActors.set(h, () => actor.current);
     return h;
@@ -163,6 +170,7 @@ export function Character({
 
   return (
     <span
+      ref={box}
       className={className ? `k-char ${className}` : 'k-char'}
       style={cssVars}
       data-who={who}
@@ -187,6 +195,7 @@ export function Character({
           <b>{name.name}</b> {name.role}
         </span>
       )}
+      {children}
     </span>
   );
 }

@@ -1,9 +1,11 @@
-import { formatViews, videoPoster, type Video } from '@kreators/shared';
+import { formatViews, type Video } from '@kreators/shared';
 import { Play } from 'lucide-react';
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { Character, type CharacterHandle } from '../../cast';
+import { CastBubble, useCastLine } from '../../components/chat';
+import { TileEmpty, ViewsSticker } from '../../components/frames';
 import { BrandPill, useVideoPlayer } from '../../components/video';
-import { Bento, Cta, HeroCopy, Reveal, RollNumber, SectionHead, Seo, Tile, TileBody, whenSeen } from '../../components/ui';
+import { Bento, Cta, HeroCopy, Reveal, ResultsNote, RollNumber, SectionHead, Seo, Tile, TileBody, whenSeen } from '../../components/ui';
 import { IMPACT, TEAM, type Stat } from '../../lib/content';
 import { useVideos } from '../../lib/queries';
 
@@ -32,11 +34,13 @@ function DotField({ filled }: { filled: number }) {
   );
 }
 
-/** Sochu's one moment: the count lands, its eyes open once. Nothing else on this page performs. */
+/** Sochu's one moment: the count lands, its eyes open, then surprise and its one line. Nothing else on this page performs. */
 function ViewsTile({ stat }: { stat: Stat }) {
   const tile = useRef<HTMLDivElement>(null);
   const number = useRef<HTMLDivElement>(null);
   const sochu = useRef<CharacterHandle>(null);
+  const cast = useCastLine();
+  const { say } = cast;
 
   useEffect(() => {
     const el = tile.current;
@@ -46,23 +50,28 @@ function ViewsTile({ stat }: { stat: Stat }) {
     const stop = whenSeen(el, () => {
       if (number.current) sochu.current?.lookAt(number.current, 2000);
       sochu.current?.setExpression('open', { hold: 900 });
-      timer = window.setTimeout(() => sochu.current?.setExpression('surprised', { hold: 1200 }), 850);
+      timer = window.setTimeout(() => {
+        sochu.current?.setExpression('surprised', { hold: 2400 });
+        void say('numbers.count', { by: sochu.current, expression: null });
+      }, 850);
     });
     return () => {
       stop();
       window.clearTimeout(timer);
     };
-  }, []);
+  }, [say]);
 
   return (
     <Reveal className="nb-cell nb-wide">
       <Tile tone="ink" className="h-full">
-        <div ref={tile} className="nb-hero-tile">
+        <div ref={tile} className="nb-hero-tile" data-bubble-bounds="">
           <div ref={number}>
             <Figure stat={stat} big />
           </div>
           <div className="nb-sochu">
-            <Character ref={sochu} who="sochu" size="clamp(112px, 12vw, 150px)" prop />
+            <Character ref={sochu} who="sochu" size="clamp(112px, 12vw, 150px)" prop>
+              <CastBubble {...cast.bubble('numbers.count')} side="end" />
+            </Character>
           </div>
         </div>
       </Tile>
@@ -70,9 +79,13 @@ function ViewsTile({ stat }: { stat: Stat }) {
   );
 }
 
-function Thumb({ video }: { video: Video }) {
-  const poster = videoPoster(video);
-  return <span className="nb-thumb">{poster ? <img src={poster} alt="" loading="lazy" /> : <span className="nb-thumb-empty">{video.brand.charAt(0)}</span>}</span>;
+/** The video's poster as a small frame that tips in when its row arrives (M10). Media only, so it may tilt. */
+function Thumb({ video, i }: { video: Video; i: number }) {
+  return (
+    <Reveal as="span" variant="tilt" i={i % 8} className="nb-thumb">
+      {video.posterUrl ? <img src={video.posterUrl} alt="" loading="lazy" /> : <TileEmpty video={video} />}
+    </Reveal>
+  );
 }
 
 function Ranking() {
@@ -131,7 +144,7 @@ function Ranking() {
             <li key={v.id} className="nb-row-wrap" style={{ '--i': i } as CSSProperties}>
               <button type="button" className="nb-row" data-lead={i === 0 ? '' : undefined} onClick={() => player.open(v)} aria-label={`Number ${i + 1}: ${v.title} by ${v.brand}. ${formatViews(v.views)} views. Play video.`}>
                 <span className="nb-rank">{i + 1}</span>
-                <Thumb video={v} />
+                <Thumb video={v} i={i} />
                 <span className="nb-info">
                   <span className="nb-title">{v.title}</span>
                   <span className="nb-brand">
@@ -141,7 +154,9 @@ function Ranking() {
                 <span className="nb-bar" aria-hidden>
                   <span className="nb-fill" data-off={off ? '' : undefined} style={{ width: `${pct}%` }} />
                 </span>
-                <span className="nb-views">{formatViews(v.views)}</span>
+                <span className="nb-views">
+                  <ViewsSticker views={v.views} tilt={i % 2 ? -4 : -6} />
+                </span>
                 <span className="nb-play" aria-hidden>
                   <Play className="size-3.5 fill-current" />
                 </span>
@@ -180,7 +195,7 @@ export default function Numbers() {
               </>
             }
           />
-          <p className="lead nb-top-lead">The reach behind the work, and a selection of videos ranked by the views they earned.</p>
+          <p className="lead nb-top-lead">The reach behind our past work, and a selection of videos ranked by the views each one earned.</p>
         </div>
       </section>
 
@@ -234,11 +249,12 @@ export default function Numbers() {
             </Reveal>
           )}
         </Bento>
+        <ResultsNote className="nb-note-results" />
       </section>
 
       <section className="section">
         <div className="wrap nb-rank-in">
-          <SectionHead center={false} title="Video by video" lead={`A selection of our videos, ranked by the views each one earned. A sample of the work, not the whole ${views ? `${views.end}${views.suffix}` : 'library'}.`} />
+          <SectionHead center={false} title="Video by video" lead={`A selection of our videos, ranked by views. A sample of the work, not the whole ${views ? `${views.end}${views.suffix}` : '100M+'}.`} />
           <Ranking />
         </div>
       </section>

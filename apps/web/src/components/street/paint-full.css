@@ -1,0 +1,441 @@
+/* Owner: A3 Scene. The street's paint, part two: shopfronts, the tea stall, the footpath, lamps, the scooter, and the How we work vignettes. Loads
+   with the full scene (art-full) and with the vignettes, never for the footer's skyline. Same selectors as paint.css. */
+@layer components {
+  :root,
+  .street[data-time='day'],
+  .street-day {
+    --st-vg-sky: #fbecd6;
+    --st-wall1: #fffaf2;
+    --st-wall2: #fbeedd;
+    --st-wall3: #f4edff;
+    --st-wall4: #fff0e3;
+    --st-trim: #e6d9ca;
+    --st-win: #dbe6f3;
+    --st-win-lit: #ffd75e;
+    --st-win-lit-o: 0;
+    --st-sill: #e8dccd;
+    --st-sign-y: color-mix(in oklab, #fbd43f 80%, #fffaf3);
+    --st-sign-p: color-mix(in oklab, #6d61fe 70%, #fffaf3);
+    --st-sign-g: color-mix(in oklab, #47c349 70%, #fffaf3);
+    --st-sign-o: color-mix(in oklab, #ff8d3a 75%, #fffaf3);
+    --st-sign-mark: rgb(255 255 255 / 0.9);
+    --st-aw-y: color-mix(in oklab, #fbd43f 62%, #fffaf3);
+    --st-aw-p: color-mix(in oklab, #8e84ff 52%, #fffaf3);
+    --st-aw-g: color-mix(in oklab, #6fd878 52%, #fffaf3);
+    --st-aw-o: color-mix(in oklab, #ffa765 58%, #fffaf3);
+    --st-aw-w: #fffaf3;
+    --st-aw-edge: #e2d4c3;
+    --st-inside: #fff1cf;
+    --st-inside-glow: rgb(255 214 120 / 0.35);
+    --st-shelf: #d6c2a2;
+    --st-shutter: #ddd6cd;
+    --st-shutter-line: #cbc2b6;
+    --st-handle: #a69d90;
+    --st-shutter-rest: -42%;
+    --st-shade-o: 0.05;
+    --st-tree: #6fc067;
+    --st-tree-hi: #98d88c;
+    --st-trunk: #9a7a5d;
+    --st-leaf: #66b85e;
+    --st-leaf-hi: #a3df97;
+    --st-roof: #ee9f63;
+    --st-roof-line: rgb(0 0 0 / 0.08);
+    --st-wood: #c68a5a;
+    --st-wood-top: #ab7046;
+    --st-kettle: #8f8b9c;
+    --st-glass: rgb(255 255 255 / 0.85);
+    --st-chai: #c77a40;
+    --st-stool: #47c349;
+    --st-wire: #6c6573;
+    --st-bulb: #fff6d8;
+    --st-path: #ece5db;
+    --st-path-line: #ddd3c5;
+    --st-curb-a: #2c2b33;
+    --st-curb-b: #fbd43f;
+    --st-road: #4a4752;
+    --st-pool-o: 0;
+    --st-pool: #ffd98a;
+    --st-post: #3c3b46;
+    --st-lamp-bulb: #fff7da;
+    --st-scoot: #6d61fe;
+    --st-seat: #2a2930;
+    --st-tyre: #24232b;
+    --st-hub: #cbc6d8;
+    --st-planter: #c68a5a;
+    --st-glow: rgb(255 214 92 / 0.26);
+    --st-tea-o: 0;
+    /* vignettes */
+    --st-person-a: #3f3d4a;
+    --st-person-b: color-mix(in oklab, #ff8d3a 72%, #fffaf3);
+    --st-person-head: #d9a37a;
+    --st-face: #2c2b33;
+    --st-card: #ffffff;
+    --st-card-line: #cbbfae;
+    --st-frame: #0e0e10;
+  }
+
+  :root[data-theme='dark'],
+  .band-dark,
+  .street[data-time='night'],
+  .street-night {
+    --st-vg-sky: #1c1a36;
+    --st-wall1: #222134;
+    --st-wall2: #262338;
+    --st-wall3: #201f33;
+    --st-wall4: #28233a;
+    --st-trim: #2f2c44;
+    --st-win: #2b2a42;
+    --st-win-lit-o: 1;
+    --st-sill: #2f2c44;
+    --st-sign-y: color-mix(in oklab, #fbd43f 72%, #15151a);
+    --st-sign-p: color-mix(in oklab, #6d61fe 78%, #15151a);
+    --st-sign-g: color-mix(in oklab, #47c349 70%, #15151a);
+    --st-sign-o: color-mix(in oklab, #ff8d3a 72%, #15151a);
+    --st-sign-mark: rgb(255 255 255 / 0.7);
+    --st-aw-y: color-mix(in oklab, #fbd43f 58%, #15151a);
+    --st-aw-p: color-mix(in oklab, #8e84ff 60%, #15151a);
+    --st-aw-g: color-mix(in oklab, #6fd878 52%, #15151a);
+    --st-aw-o: color-mix(in oklab, #ffa765 58%, #15151a);
+    --st-aw-w: #34304a;
+    --st-aw-edge: #3a3650;
+    --st-inside: #ffe2a0;
+    --st-inside-glow: rgb(255 200 90 / 0.45);
+    --st-shelf: #b8955f;
+    --st-shutter: #2e2c3f;
+    --st-shutter-line: #262536;
+    --st-handle: #4c4964;
+    --st-shutter-rest: 0%;
+    --st-shade-o: 0.18;
+    --st-tree: #213d2e;
+    --st-tree-hi: #2c5039;
+    --st-trunk: #2d2622;
+    --st-leaf: #24462f;
+    --st-leaf-hi: #33613f;
+    --st-roof: #4a3438;
+    --st-roof-line: rgb(0 0 0 / 0.2);
+    --st-wood: #5c412d;
+    --st-wood-top: #4a3323;
+    --st-kettle: #6c687c;
+    --st-glass: rgb(255 255 255 / 0.55);
+    --st-chai: #b0652e;
+    --st-stool: #2e6b34;
+    --st-wire: #4b4662;
+    --st-bulb: #ffd96b;
+    --st-path: #1c1b28;
+    --st-path-line: #252433;
+    --st-curb-a: #111117;
+    --st-curb-b: #8e7a2a;
+    --st-road: #0f0f14;
+    --st-pool-o: 1;
+    --st-post: #3a384c;
+    --st-lamp-bulb: #ffe9a6;
+    --st-scoot: #5b51d8;
+    --st-seat: #121218;
+    --st-tyre: #0c0c11;
+    --st-hub: #4c4964;
+    --st-planter: #5c412d;
+    --st-glow: rgb(255 210 130 / 0.3);
+    /* The tea stall is always open at night: the scene's warmest spot. */
+    --st-tea-o: 0.7;
+    --st-person-a: #5d5a75;
+    --st-person-b: color-mix(in oklab, #ff8d3a 62%, #15151a);
+    --st-person-head: #a87c5c;
+    --st-face: #15151a;
+    --st-card: #2d2d36;
+    --st-card-line: #45455a;
+    --st-frame: #f5f3ee;
+  }
+
+  /* The footer's skyline lifts the far tones so it reads, faintly, behind the wordmark on the dark stage. */
+  .s-shade {
+    fill: #000;
+    opacity: var(--st-shade-o);
+  }
+  .s-stars {
+    fill: #ffffff;
+    opacity: calc(var(--st-stars-o) * 0.55);
+  }
+  .s-wall1 {
+    fill: var(--st-wall1);
+  }
+  .s-wall2 {
+    fill: var(--st-wall2);
+  }
+  .s-wall3 {
+    fill: var(--st-wall3);
+  }
+  .s-wall4 {
+    fill: var(--st-wall4);
+  }
+  .s-trim {
+    fill: var(--st-trim);
+  }
+  .s-win {
+    fill: var(--st-win);
+  }
+  .s-win-lit {
+    fill: var(--st-win-lit);
+    opacity: calc(var(--st-win-lit-o) * 0.8);
+  }
+  .s-sill {
+    fill: var(--st-sill);
+  }
+  .s-sign-y {
+    fill: var(--st-sign-y);
+  }
+  .s-sign-p {
+    fill: var(--st-sign-p);
+  }
+  .s-sign-g {
+    fill: var(--st-sign-g);
+  }
+  .s-sign-o {
+    fill: var(--st-sign-o);
+  }
+  .s-sign-mark {
+    fill: var(--st-sign-mark);
+  }
+  .s-aw-y {
+    fill: var(--st-aw-y);
+  }
+  .s-aw-p {
+    fill: var(--st-aw-p);
+  }
+  .s-aw-g {
+    fill: var(--st-aw-g);
+  }
+  .s-aw-o {
+    fill: var(--st-aw-o);
+  }
+  .s-aw-w {
+    fill: var(--st-aw-w);
+  }
+  .s-aw-edge {
+    fill: var(--st-aw-edge);
+  }
+  .s-inside {
+    fill: var(--st-inside);
+  }
+  .s-inside-glow {
+    fill: var(--st-inside-glow);
+    opacity: 0;
+  }
+  .s-shop[data-shop='tea'] .s-inside-glow,
+  .s-shop[data-shop='vg'] .s-inside-glow {
+    opacity: var(--st-tea-o);
+  }
+  .s-shelf {
+    fill: var(--st-shelf);
+  }
+  .s-prod-y {
+    fill: #f5c518;
+  }
+  .s-prod-p {
+    fill: #7a6ff7;
+  }
+  .s-prod-g {
+    fill: #3fb144;
+  }
+  .s-prod-o {
+    fill: #ff8d3a;
+  }
+  .s-shutter-bg {
+    fill: var(--st-shutter);
+  }
+  .s-shutter-line {
+    fill: var(--st-shutter-line);
+  }
+  .s-shutter-handle {
+    fill: var(--st-handle);
+  }
+  .s-tree {
+    fill: var(--st-tree);
+  }
+  .s-tree-hi {
+    fill: var(--st-tree-hi);
+  }
+  .s-trunk {
+    fill: var(--st-trunk);
+  }
+  .s-leaf {
+    fill: var(--st-leaf);
+  }
+  .s-leaf-hi {
+    fill: var(--st-leaf-hi);
+  }
+  .s-roof {
+    fill: var(--st-roof);
+  }
+  .s-roof-line {
+    fill: var(--st-roof-line);
+  }
+  .s-wood {
+    fill: var(--st-wood);
+  }
+  .s-wood-top {
+    fill: var(--st-wood-top);
+  }
+  .s-kettle {
+    fill: var(--st-kettle);
+  }
+  .s-glass {
+    fill: var(--st-glass);
+  }
+  .s-chai {
+    fill: var(--st-chai);
+  }
+  .s-stool {
+    fill: var(--st-stool);
+  }
+  .s-wire {
+    stroke: var(--st-wire);
+  }
+  .s-bulb {
+    fill: var(--st-bulb);
+  }
+  .s-path {
+    fill: var(--st-path);
+  }
+  .s-path-line {
+    stroke: var(--st-path-line);
+  }
+  .s-path-line-h {
+    fill: var(--st-path-line);
+  }
+  .s-curb-a {
+    fill: var(--st-curb-a);
+  }
+  .s-curb-b {
+    fill: var(--st-curb-b);
+  }
+  .s-road {
+    fill: var(--st-road);
+  }
+  .s-pool {
+    fill: var(--st-pool);
+    opacity: calc(var(--st-pool-o) * 0.16);
+  }
+  .s-post,
+  .s-lamp-head,
+  .s-mirror,
+  .s-bollard {
+    fill: var(--st-post);
+  }
+  .s-lamp-bulb {
+    fill: var(--st-lamp-bulb);
+  }
+  .s-scoot {
+    fill: var(--st-scoot);
+  }
+  .s-seat {
+    fill: var(--st-seat);
+  }
+  .s-tyre {
+    fill: var(--st-tyre);
+  }
+  .s-hub {
+    fill: var(--st-hub);
+  }
+  .s-planter {
+    fill: var(--st-planter);
+  }
+
+  /* ---------- Vignettes (How we work, chapter 3) ---------- */
+  .street-vignette-box {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .street-vignette {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .s-vg-sky {
+    fill: var(--st-vg-sky);
+  }
+  .s-person-a {
+    fill: var(--st-person-a);
+  }
+  .s-person-b {
+    fill: var(--st-person-b);
+  }
+  .s-person circle:not(.s-person-face) {
+    fill: var(--st-person-head);
+  }
+  .s-person-face {
+    fill: var(--st-face);
+  }
+  .s-mic rect {
+    fill: var(--st-post);
+  }
+  .s-mic circle {
+    fill: #47c349;
+  }
+  .s-vg-bubble rect,
+  .s-vg-bubble path {
+    fill: var(--st-card);
+  }
+  .s-vg-dot {
+    fill: var(--st-person-a);
+    opacity: 0.6;
+  }
+  .s-lanyard {
+    stroke: #47c349;
+  }
+  .s-badge {
+    fill: var(--st-card);
+  }
+  .s-badge-big > rect {
+    fill: var(--st-card);
+  }
+  .s-badge-av {
+    fill: #6d61fe;
+  }
+  .s-badge-line {
+    fill: var(--st-card-line);
+  }
+  .s-badge-tick circle {
+    fill: #47c349;
+  }
+  .s-badge-tick path {
+    stroke: #0e0e10;
+  }
+  .s-gift-box {
+    fill: #6d61fe;
+  }
+  .s-gift-lid {
+    fill: #8e84ff;
+  }
+  .s-gift-ribbon,
+  .s-gift-bow {
+    fill: #fbd43f;
+  }
+  .s-branch path {
+    stroke: #ff8d3a;
+  }
+  .s-branch .s-branch-alt {
+    stroke: #6d61fe;
+  }
+  .s-branch path.s-branch-head {
+    fill: #ff8d3a;
+    stroke: none;
+  }
+  .s-branch path.s-branch-head.s-branch-alt {
+    fill: #6d61fe;
+  }
+  .s-branch-dot {
+    fill: #fbd43f;
+  }
+  .s-frame path {
+    stroke: var(--st-frame);
+  }
+  .s-frame .s-frame-thin {
+    opacity: 0.6;
+  }
+  .s-tally {
+    fill: #47c349;
+  }
+}
+

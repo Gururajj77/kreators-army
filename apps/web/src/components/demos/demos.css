@@ -1,0 +1,792 @@
+/* Owner: A3 Scene. Mechanism cards and chips with their demos, the creative loop and the control split (visual §1.5). Loads with the pages that use
+   them (How we work, the format pages, the blog), never in the first download. Every class is in @layer components. Transform and opacity only;
+   every demo plays once under [data-play] and ends on its rest frame; still shows the rest frames. */
+@layer components {
+  /* ---------- Mechanism card (How we work ch. 2) and chip (format pages, blog) ---------- */
+  .mech-card,
+  .mech-chip {
+    --mech-tone: var(--c-yellow);
+    --mech-disc: color-mix(in oklab, var(--mech-tone) 24%, var(--surface));
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  [data-tone='bolu'].mech-card,
+  [data-tone='bolu'].mech-chip {
+    --mech-tone: var(--c-green);
+  }
+  [data-tone='tiko'].mech-card,
+  [data-tone='tiko'].mech-chip {
+    --mech-tone: var(--c-purple);
+  }
+  [data-tone='gola'].mech-card,
+  [data-tone='gola'].mech-chip {
+    --mech-tone: var(--c-orange);
+  }
+
+  .mech-item {
+    display: contents;
+    list-style: none;
+  }
+
+  .mech-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    min-width: 0;
+    padding: 22px 22px 24px;
+    border-radius: var(--r-tile);
+    background: var(--surface);
+    box-shadow: var(--plate-edge);
+    list-style: none;
+    transition:
+      transform var(--spring-smooth),
+      box-shadow var(--dur-hover) ease;
+  }
+
+  .mech-disc {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--mech-disc);
+  }
+
+  .mech-disc > .mech-art {
+    width: 40px;
+    height: 40px;
+  }
+
+  .mech-card .mech-name {
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .mech-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 6px 16px 6px 6px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    box-shadow: var(--plate-edge);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 19px;
+    letter-spacing: -0.006em;
+    list-style: none;
+    transition:
+      transform var(--spring-smooth),
+      background-color var(--dur-hover) ease;
+  }
+
+  .mech-frame {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--mech-disc);
+  }
+
+  .mech-frame > .mech-art {
+    width: 22px;
+    height: 22px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .mech-card:hover,
+    :root:not([data-still]) .mech-chip:hover {
+      transform: translateY(-2px);
+      transition:
+        transform var(--spring-release),
+        background-color var(--dur-hover) ease;
+    }
+  }
+
+  a.mech-chip:focus-visible,
+  a.mech-card:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  :root:not([data-still]) a.mech-chip:active {
+    transform: scale(0.97);
+  }
+
+  /* ---------- The demos. Text glyphs and fills ---------- */
+  .mech-art {
+    display: block;
+    overflow: visible;
+    color: var(--ink);
+  }
+
+  .mech-art text {
+    fill: currentColor;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .mech-art .d-ab-txt {
+    font-size: 9px;
+  }
+
+  .d-tone {
+    fill: var(--mech-tone, var(--c-yellow));
+  }
+
+  .mech-art * {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* Rest frames (the end of every demo). */
+  .d-flip-q,
+  .d-jump-q {
+    opacity: 0;
+  }
+  .d-lid {
+    transform-origin: 0% 100%;
+    transform: translateY(-5px) rotate(-12deg);
+  }
+  .d-hand-up {
+    transform: translateY(-4px);
+  }
+  .d-hand {
+    transform-box: view-box;
+    transform-origin: 20px 22px;
+  }
+  .d-watch {
+    transform-box: view-box;
+    transform-origin: 20px 22px;
+  }
+  .d-say-l {
+    transform-origin: 20% 100%;
+  }
+  .d-say-r {
+    transform-origin: 80% 100%;
+  }
+  .d-seg {
+    transform-origin: 0% 50%;
+  }
+  .d-ab-thumb {
+    transform-box: view-box;
+  }
+
+  /* One play each. */
+  [data-play] .d-flip {
+    animation: d-flip 1.3s var(--ease-in-out) both;
+  }
+  [data-play] .d-flip-q {
+    animation: d-show-first 1.3s linear both;
+  }
+  [data-play] .d-flip-a {
+    animation: d-show-second 1.3s linear both;
+  }
+  [data-play] .d-ab-thumb {
+    animation: d-ab 1.4s var(--ease-in-out) both;
+  }
+  [data-play] .d-hand {
+    animation: d-hand 1.5s var(--ease-out) both;
+  }
+  [data-play] .d-watch {
+    animation: d-watch 1.5s var(--ease-out) both;
+  }
+  [data-play] .d-rank-1 {
+    animation: d-rank-1 1.3s var(--ease-in-out) both;
+  }
+  [data-play] .d-rank-3 {
+    animation: d-rank-3 1.3s var(--ease-in-out) both;
+  }
+  [data-play] .d-say-l {
+    animation: d-say-l 1.4s ease-in-out both;
+  }
+  [data-play] .d-say-r {
+    animation: d-say-r 1.4s ease-in-out both;
+  }
+  [data-play] .d-heart {
+    animation: d-heart 1.2s ease-in-out both;
+  }
+  [data-play] .d-lid {
+    animation: d-lid 1.3s var(--ease-out) both;
+  }
+  [data-play] .d-spark {
+    animation: d-spark 1.3s var(--ease-out) both;
+  }
+  [data-play] .d-smile {
+    animation: d-wobble 1.2s ease-in-out both;
+  }
+  [data-play] .d-jump-q {
+    animation: d-jump-q 1.2s var(--ease-out) both;
+  }
+  [data-play] .d-jump-a {
+    animation: d-jump-a 1.2s var(--ease-out) both;
+  }
+  [data-play] .d-hand-up {
+    animation: d-hand-up 0.7s var(--ease-out) both;
+  }
+  [data-play] .d-hand-up-1 {
+    animation-delay: 0.18s;
+  }
+  [data-play] .d-hand-up-2 {
+    animation-delay: 0.36s;
+  }
+  [data-play] .d-seg {
+    animation: d-grow 0.45s var(--ease-out) both;
+  }
+  [data-play] .d-seg-1 {
+    animation-delay: 0.38s;
+  }
+  [data-play] .d-seg-2 {
+    animation-delay: 0.6s;
+  }
+  [data-play] .d-seg-end {
+    animation: d-pop 0.4s var(--ease-out) both;
+  }
+  [data-play] .d-seg-end-1 {
+    animation-delay: 0.78s;
+  }
+  [data-play] .d-seg-end-2 {
+    animation-delay: 0.98s;
+  }
+
+  :root[data-still] .mech-art * {
+    animation: none !important;
+  }
+
+  @keyframes d-flip {
+    0%,
+    18% {
+      transform: scaleX(1);
+    }
+    46%,
+    54% {
+      transform: scaleX(0.04);
+    }
+    100% {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes d-show-first {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes d-show-second {
+    0%,
+    49% {
+      opacity: 0;
+    }
+    50%,
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes d-ab {
+    0% {
+      transform: translateX(0);
+    }
+    35%,
+    62% {
+      transform: translateX(14px);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  @keyframes d-hand {
+    0% {
+      transform: rotate(-300deg);
+    }
+    74%,
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+  @keyframes d-watch {
+    0%,
+    74% {
+      transform: scale(1);
+    }
+    86% {
+      transform: scale(1.08);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes d-rank-1 {
+    0%,
+    20% {
+      transform: translateY(20px);
+    }
+    80%,
+    100% {
+      transform: translateY(0);
+    }
+  }
+  @keyframes d-rank-3 {
+    0%,
+    20% {
+      transform: translateY(-20px);
+    }
+    80%,
+    100% {
+      transform: translateY(0);
+    }
+  }
+  @keyframes d-say-l {
+    0%,
+    30%,
+    50%,
+    80%,
+    100% {
+      transform: scale(1);
+    }
+    14%,
+    64% {
+      transform: scale(1.12);
+    }
+  }
+  @keyframes d-say-r {
+    0%,
+    20%,
+    54%,
+    70%,
+    100% {
+      transform: scale(1);
+    }
+    38%,
+    88% {
+      transform: scale(1.12);
+    }
+  }
+  @keyframes d-heart {
+    0%,
+    30%,
+    60%,
+    100% {
+      transform: scale(1);
+    }
+    15%,
+    45% {
+      transform: scale(1.22);
+    }
+  }
+  @keyframes d-lid {
+    0%,
+    40% {
+      transform: none;
+    }
+    70% {
+      transform: translateY(-7px) rotate(-15deg);
+    }
+    100% {
+      transform: translateY(-5px) rotate(-12deg);
+    }
+  }
+  @keyframes d-spark {
+    0%,
+    52% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    80% {
+      transform: scale(1.15);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  @keyframes d-wobble {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    20% {
+      transform: rotate(-8deg);
+    }
+    45% {
+      transform: rotate(8deg);
+    }
+    68% {
+      transform: rotate(-5deg);
+    }
+    86% {
+      transform: rotate(3deg);
+    }
+  }
+  @keyframes d-jump-q {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    38% {
+      opacity: 1;
+      transform: translateY(-6px);
+    }
+    46%,
+    100% {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+  @keyframes d-jump-a {
+    0%,
+    40% {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    48% {
+      opacity: 1;
+      transform: translateY(-6px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes d-hand-up {
+    0% {
+      transform: translateY(3px);
+    }
+    60% {
+      transform: translateY(-6px);
+    }
+    100% {
+      transform: translateY(-4px);
+    }
+  }
+  @keyframes d-grow {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes d-pop {
+    from {
+      transform: scale(0);
+    }
+    70% {
+      transform: scale(1.2);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  /* ---------- CreativeLoop: six nodes on a ring, a dot that travels it once, Sochu in the middle ---------- */
+  .loop {
+    --loop-d: 360px;
+    --pill-w: 112px;
+    --loop-cast: 96px;
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+    margin: 0;
+  }
+
+  .loop-ring {
+    position: relative;
+    width: calc(var(--loop-d) + var(--pill-w));
+    max-width: 100%;
+    aspect-ratio: 1;
+  }
+
+  .loop-svg {
+    position: absolute;
+    inset: calc(var(--pill-w) / 2);
+    overflow: visible;
+  }
+
+  .loop-track {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .loop-back {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .loop-back-head {
+    fill: var(--ink);
+  }
+
+  /* The dot's lap: the orbit group rotates once, 0 to 312 degrees, so the dot rests where the way back begins. Transform only. */
+  .loop-orbit {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    transform: rotate(312deg);
+  }
+
+  .loop[data-armed] .loop-orbit {
+    transform: rotate(0deg);
+  }
+
+  .loop[data-armed][data-run] .loop-orbit {
+    transform: rotate(312deg);
+    transition: transform 3.6s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .loop-dot {
+    position: absolute;
+    left: -6px;
+    top: calc(var(--loop-d) / -2 - 6px);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--c-yellow);
+    box-shadow:
+      0 0 0 2px var(--surface),
+      0 0 0 5px color-mix(in oklab, var(--c-yellow) 35%, transparent);
+  }
+
+  .loop-node {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--loop-d) / -2)) rotate(calc(var(--a) * -1));
+  }
+
+  .loop-node-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--pill-w);
+    min-height: 38px;
+    padding: 8px 12px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    box-shadow:
+      var(--plate-edge),
+      0 0 0 1px var(--line);
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    white-space: nowrap;
+    transition: color 240ms ease;
+  }
+
+  .loop-node-pill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: color-mix(in oklab, var(--c-yellow) 34%, var(--surface));
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out);
+  }
+
+  .loop-node[data-lit] .loop-node-pill {
+    color: var(--ink);
+  }
+
+  .loop-node[data-lit] .loop-node-pill::before {
+    opacity: 1;
+  }
+
+  .loop-node-pill {
+    isolation: isolate;
+  }
+
+  .loop-node-pill::before {
+    z-index: -1;
+  }
+
+  .loop-centre {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    transform: translate(-50%, -50%);
+  }
+
+  .loop-caption {
+    max-width: 40ch;
+    margin: 0;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 25px;
+    text-align: center;
+  }
+
+  :root[data-still] .loop-orbit,
+  :root[data-still] .loop-node-pill,
+  :root[data-still] .loop-node-pill::before {
+    transition: none !important;
+  }
+
+  @media (max-width: 734px) {
+    .loop {
+      --loop-d: min(232px, calc(100vw - 150px));
+      --pill-w: 88px;
+      --loop-cast: 72px;
+    }
+
+    .loop-node-pill {
+      min-height: 32px;
+      padding: 6px 8px;
+      font-size: 13px;
+      line-height: 16px;
+    }
+  }
+
+  /* ---------- ControlSplit: what we control, and the one thing we can't ---------- */
+  .split {
+    --split-cast: 96px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--gap);
+  }
+
+  .split-plate {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    padding: 28px;
+    border-radius: var(--r-tile);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--plate-edge);
+  }
+
+  .split-title {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.006em;
+  }
+
+  .split-list {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .split-list > li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 17px;
+    line-height: 24px;
+    letter-spacing: -0.012em;
+  }
+
+  .split-check {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    overflow: visible;
+  }
+
+  .split-check circle {
+    fill: var(--c-green);
+  }
+
+  .split-check path {
+    fill: none;
+    stroke: #0e0e10;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* The checks pop in order on view (scale .4 to 1 on --spring-bouncy, 60 ms apart). Visible with no JS or under still. */
+  .split-control[data-armed] .split-check {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+
+  .split-control[data-armed][data-ticked] .split-check {
+    transform: none;
+    opacity: 1;
+    transition:
+      transform var(--spring-bouncy),
+      opacity 160ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 60ms);
+  }
+
+  /* The near-black plate, dark in both themes. */
+  .split-cannot {
+    justify-content: flex-start;
+    padding-bottom: calc(var(--split-cast) * 0.92 + 120px);
+    background: var(--c-ground);
+    color: #f5f3ee;
+    --ink: #f5f3ee;
+    --muted: #c8c5bf;
+  }
+
+  .split-cannot-text {
+    max-width: 16ch;
+    margin: 0;
+    color: #f5f3ee;
+  }
+
+  .split-bolu {
+    position: absolute;
+    right: 32px;
+    bottom: 0;
+  }
+
+  .split-foot {
+    grid-column: 1 / -1;
+    max-width: 52ch;
+    margin: 8px 0 0;
+    color: var(--ink);
+    font-size: 21px;
+    line-height: 30px;
+    letter-spacing: -0.016em;
+  }
+
+  @media (max-width: 734px) {
+    .split {
+      --split-cast: 80px;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .split-plate {
+      padding: 22px 20px;
+    }
+
+    .split-cannot {
+      padding-bottom: calc(var(--split-cast) * 0.92 + 96px);
+    }
+
+    .split-foot {
+      font-size: 19px;
+      line-height: 27px;
+    }
+  }
+}

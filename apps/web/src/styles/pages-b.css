@@ -75,44 +75,20 @@
     isolation: isolate;
   }
 
-  /* The tile's own chips and play button stay above the loop, which is appended after them. */
-  .fp-frame .tile > .tile-scrim,
-  .fp-frame .tile > .tile-play,
-  .fp-frame .tile > .tile-views,
-  .fp-frame .tile > .tile-brand {
-    z-index: 1;
+  .fp-frame > .tile {
+    height: 100%;
   }
 
-  .fp-frame .tile > img,
-  .fp-loop {
+  .fp-frame .tile > img {
     object-position: 50% 30%;
   }
 
-  .fp-loop {
-    opacity: 0;
-  }
-
-  .fp-loop[data-on] {
-    opacity: 1;
-  }
-
-  .tile[data-lifted] > .fp-loop {
-    opacity: 0;
-    transition: none;
-  }
-
-  /* The loop is already playing here, so the tile's hover preview would only start the same video again underneath it. */
-  .fp-frame[data-playing] .tile-preview {
-    display: none;
-  }
-
+  /* Top right: the views sticker has the top left. */
   .fp-frame .fp-pause {
     position: absolute;
     z-index: 3;
     top: 12px;
-    left: 12px;
-    border-radius: var(--r-pill);
-    color: #f5f3ee;
+    right: 12px;
   }
 
   /* Stands on the portrait's corner. The mic reaches about 45px past the box, so this keeps it inside the column gap and clear of the buttons. */
@@ -281,30 +257,26 @@
     border-radius: var(--r-pill);
   }
 
+  .fp-qotw-deck {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    grid-area: stack;
+    align-self: center;
+  }
+
+  /* The deck of polaroids: posters only. Back cards tilt (media only, ±4 to 5°); the front one is level; the question sits under the deck. */
   .fp-stack {
     position: relative;
     z-index: 1;
-    width: min(100%, 400px);
-    aspect-ratio: 4 / 5;
-    grid-area: stack;
-    justify-self: center;
-    align-self: center;
-    margin-bottom: 30px;
+    width: min(100%, 264px);
+    aspect-ratio: 300 / 562;
     touch-action: pan-y;
   }
 
   .fp-card {
     position: absolute;
     inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 32px;
-    border-radius: var(--r-tile);
-    background: var(--surface-3);
-    color: var(--ink);
-    box-shadow: var(--shadow-3);
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
@@ -315,14 +287,61 @@
     cursor: grabbing;
   }
 
-  .fp-card a {
+  .fp-card a,
+  .fp-card img {
     -webkit-user-drag: none;
+  }
+
+  .fp-card > .vframe {
+    --fw: 100%;
+    width: 100%;
+  }
+
+  .fp-card-blank {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background: var(--surface-3);
+    box-shadow: var(--shadow-3);
+  }
+
+  /* The last card: words and the action, on a plain plate, only ever read when it is in front (level). */
+  .fp-card[data-action] {
+    display: flex;
+    border-radius: var(--r-tile);
+    background: var(--surface-3);
+    box-shadow: var(--shadow-3);
+  }
+
+  .fp-card-action {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 28px;
+    color: var(--ink);
+  }
+
+  .fp-card[data-action]:not([data-front]) .fp-card-action {
+    visibility: hidden;
+  }
+
+  .fp-qotw-caption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-height: 120px;
+    margin-top: 28px;
+    text-align: center;
   }
 
   .fp-card-week {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    margin: 0;
     color: var(--muted);
     font-size: 15px;
     font-weight: 600;
@@ -332,18 +351,30 @@
   .fp-card-q {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 44px;
+    font-size: 32px;
     font-weight: 600;
     font-variation-settings: 'opsz' 32;
-    line-height: 48px;
+    line-height: 36px;
     letter-spacing: -0.016em;
     text-wrap: balance;
   }
 
   .fp-card-hint {
+    margin: 0;
     color: var(--muted);
     font-size: 15px;
     line-height: 19px;
+  }
+
+  .fp-qotw-note {
+    color: var(--muted);
+  }
+
+  /* "We agree the introduction before the shoot…" under Founder with the mic. */
+  .fp-intro {
+    margin: 8px 0 0;
+    color: var(--ink);
+    font-weight: 600;
   }
 
   @media (max-width: 1068px) {
@@ -364,13 +395,17 @@
       padding: 32px 24px;
     }
 
-    .fp-card {
-      padding: 24px;
+    .fp-stack {
+      width: min(100%, 240px);
+    }
+
+    .fp-card-action {
+      padding: 20px;
     }
 
     .fp-card-q {
-      font-size: 32px;
-      line-height: 36px;
+      font-size: 26px;
+      line-height: 30px;
     }
   }
 
@@ -975,7 +1010,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    height: 232px;
+    height: 148px;
     margin: 8px 8px 0;
     padding-bottom: 28px;
     border-radius: var(--r-inner);
@@ -1078,5 +1113,87 @@
     .cr-close-action {
       align-items: flex-start;
     }
+  }
+
+  /* ================ v2 additions (V2-SPEC 5.8) ================ */
+
+  /* "Ideas that suit this format": four mechanism chips, the caption and the link. */
+  .fmt-ideas-section {
+    padding-top: 0;
+  }
+
+  .fmt-ideas {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .fmt-ideas h2 {
+    margin: 0;
+  }
+
+  .fmt-ideas-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .fmt-ideas-caption {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .fmt-ideas-link {
+    color: var(--ink);
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .fmt-ideas-link:hover {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
+
+  /* A video as a deck of posters (Events). */
+  .fmt-deck {
+    width: min(100%, 360px);
+    border-radius: var(--r-tile);
+  }
+
+  .fmt-deck .deckcard-stack {
+    width: min(100%, 260px);
+  }
+
+  .fmt-deck-title {
+    color: var(--ink);
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 22px;
+    letter-spacing: -0.01em;
+  }
+
+  .fmt-deck-meta {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  /* Events: what we lock before each shoot, on the call sheet. */
+  .ev-lock {
+    display: grid;
+    gap: 6px;
+    margin: 12px 0 0;
+    padding: 0 0 0 1.1em;
+  }
+
+  .ev-lock > li {
+    padding-left: 2px;
   }
 }

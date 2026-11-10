@@ -1,41 +1,62 @@
-import { Plans } from '../../components/Plans';
+import { formatInr } from '@kreators/shared';
+import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router';
+import { PackageCards, PackageIncludes } from '../../components/Packages';
 import { Reveal, SectionHead } from '../../components/ui';
-import { FAQS, FOUNDER_QUOTE } from '../../lib/content';
+import { ADD_ON, FOUNDER_QUOTE, OBJECTION_SLUGS } from '../../lib/content';
 
-/** The doubts people have at the moment they look at a price, answered in the FAQ's own words. */
-const OBJECTIONS = [
-  { slug: 'will-this-work-for-my-brand', q: 'Will it work for my brand?', a: 'Vox pop works best for brands with physical products, because real people can interact with the product and share honest reactions on camera.' },
-  { slug: 'how-long-does-production-take', q: 'How long does it take?', a: 'Our team usually plans, shoots and edits within a few days, delivering ready-to-post short videos.' },
-  { slug: 'do-you-handle-the-shoot', q: 'Do you handle the shoot?', a: 'Yes. Our team handles the entire process, including interview planning, street shooting and editing.' },
-  { slug: 'do-i-post-on-your-channel', q: 'Do I post on your channel?', a: 'No. The videos are delivered directly to you, so they become long-term content assets for your own brand channels.' },
-] as const;
+// #pricing (V2-SPEC 5.2 row 7, content §3.1.7): a summary of /pricing. The three packages with their static batch strips, the add-on and GST line in
+// view of every price, what every package includes, the founder's words, and the four doubts people have at a price, each linking to its answer.
+// No characters here: a price needs credibility, not company.
 
-const known = new Set(FAQS.map((f) => f.slug));
+/** content §3.1.7's labels for the four objection links, in OBJECTION_SLUGS order. */
+const OBJECTION_LABELS: Record<string, string> = {
+  'is-the-trial-free': 'Is the trial free?',
+  'can-an-agency-split-a-package': 'Can an agency split a package?',
+  'how-does-payment-work': 'How does payment work?',
+  'where-can-i-use-the-videos': 'Where can I use the videos?',
+};
 
 export function Pricing() {
   return (
-    <section id="pricing" className="band-alt">
-      <div className="wrap section">
-        <SectionHead eyebrow="Pricing" title="Simple plans for everyone" lead="Flexible retainer plans designed to help startups and D2C brands succeed with vox pop." />
-        <div className="price-plans">
-          <Plans />
-        </div>
+    <section id="pricing" className="section price-section">
+      <div className="wrap">
+        <SectionHead eyebrow="Pricing" title="Pay per batch, not per month" lead="Every package is for one brand and paid in full before production. The bigger the batch, the lower the rate per video." />
+        <PackageCards compact className="price-cards" />
+
+        <Reveal className="price-row">
+          <p>
+            More than {ADD_ON.after}? Add blocks of {ADD_ON.blockOf} videos at {formatInr(ADD_ON.fee)} a block.
+          </p>
+          <p className="price-gst">Prices in INR. GST extra where applicable.</p>
+          <Link to="/pricing" className="price-link">
+            See full pricing →
+          </Link>
+        </Reveal>
 
         <div className="price-more">
-          <Reveal className="price-quote">
-            <figure>
-              <blockquote>“{FOUNDER_QUOTE.quote}”</blockquote>
-              <figcaption>{FOUNDER_QUOTE.who}</figcaption>
-            </figure>
+          <Reveal className="price-includes">
+            <h3 className="eyebrow">Every package includes</h3>
+            <PackageIncludes phoneLimit={5} />
           </Reveal>
-          <dl className="price-answers">
-            {OBJECTIONS.filter((o) => known.has(o.slug)).map((o, i) => (
-              <Reveal key={o.slug} i={i}>
-                <dt>{o.q}</dt>
-                <dd>{o.a}</dd>
-              </Reveal>
-            ))}
-          </dl>
+          <div className="price-side">
+            <Reveal className="price-quote">
+              <figure>
+                <blockquote>“{FOUNDER_QUOTE.quote}”</blockquote>
+                <figcaption>{FOUNDER_QUOTE.who}</figcaption>
+              </figure>
+            </Reveal>
+            <Reveal as="ul" className="price-answers" i={1}>
+              {OBJECTION_SLUGS.map((slug) => (
+                <li key={slug}>
+                  <Link to={`/faq/${slug}`} className="price-answer">
+                    <span>{OBJECTION_LABELS[slug] ?? slug}</span>
+                    <ArrowRight className="size-4" aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </Reveal>
+          </div>
         </div>
       </div>
     </section>

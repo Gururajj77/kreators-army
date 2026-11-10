@@ -1,0 +1,66 @@
+/* Owner: A3 Scene. The street's art box: the frame, the sky, the layers and the footer's train, all the skyline needs. Imported by the lazy street
+   chunk (components/street/StreetScene.tsx), never by app.css, so it splits with the street. The full scene's own rules (sun and moon, the glow, the
+   shop that wakes, the short-window mask, phone offsets) are in components/street/full.css, which loads with it. Colours: components/street/paint*.css.
+   The host and the stage the cast stands on are in styles/cast.css (first download). Transform and opacity only. */
+@layer components {
+  .street {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: clip;
+    pointer-events: none;
+    contain: layout paint;
+    opacity: 0;
+    transition: opacity 400ms var(--ease-out);
+  }
+
+  .street[data-ready] {
+    opacity: 1;
+  }
+
+  :root[data-still] .street {
+    transition: none;
+  }
+
+  .street-sky {
+    position: absolute;
+    inset: 0;
+    background: var(--st-sky);
+  }
+
+  /* Layers are inline SVGs, xMidYMax slice, overscanned 24 px a side so the drift never shows an edge. */
+  .street-layer {
+    position: absolute;
+    left: -24px;
+    bottom: 0;
+    width: calc(100% + 48px);
+    height: 100%;
+    overflow: visible;
+    translate: var(--street-shift, 0) 0;
+  }
+
+  .street-celestial {
+    translate: none;
+  }
+
+  .street[data-live] .street-layer,
+  .street[data-live] .street-glow {
+    will-change: transform;
+  }
+
+  /* ---------- The footer's skyline: the far layer only, and the metro's one pass when it first comes into view ---------- */
+  .street-train {
+    transform: translateX(-320px);
+  }
+
+  .street[data-variant='skyline'][data-train] .street-train {
+    transform: translateX(2720px);
+    transition: transform 11s linear;
+  }
+
+  :root[data-still] .street-train {
+    transition: none;
+  }
+
+
+}

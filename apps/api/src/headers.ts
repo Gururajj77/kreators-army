@@ -1,6 +1,7 @@
 /**
  * Security headers for the pages the Worker answers itself, and the rules for a path that must never be served.
- * apps/web/public/_headers holds the same list for static files; change the two together.
+ * apps/web/public/_headers holds the same list for static files; change the two together (a test compares the CSP lines).
+ * v2's one change: https://mega.nz in frame-src, for the player's on-demand MEGA fallback (V2-SPEC 2.15).
  */
 
 export const CSP = [
@@ -11,7 +12,7 @@ export const CSP = [
   "img-src 'self' data: blob: https:",
   "media-src 'self'",
   "connect-src 'self'",
-  'frame-src https://www.youtube-nocookie.com https://*.wave.video',
+  'frame-src https://www.youtube-nocookie.com https://*.wave.video https://mega.nz',
   "worker-src 'self'",
   "manifest-src 'self'",
   "object-src 'none'",
@@ -19,6 +20,9 @@ export const CSP = [
   "form-action 'self'",
   "frame-ancestors 'none'",
 ].join('; ');
+
+/** /admin pages and the admin API: never indexed, followed or archived (admin brief 6.4). */
+export const NOINDEX = 'noindex, nofollow, noarchive';
 
 export const PAGE_HEADERS: Record<string, string> = {
   'Content-Security-Policy': CSP,

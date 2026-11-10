@@ -1,14 +1,18 @@
 import { lazy, useEffect, type ComponentType, type LazyExoticComponent } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter, RouterProvider, type RouteObject } from 'react-router';
 import { NotFound } from './screens/NotFound';
 import { Home } from './site/Home';
 import { Layout, RouteError } from './site/Layout';
 
 type PageModule = { default: ComponentType };
 
-// Every route but Home and the 404 is its own chunk. One list, so they can all be fetched after first paint.
+// Every public route but Home and the 404 is its own chunk. One list, so they can all be fetched after first paint. The admin is never in it: it is not
+// prefetched, not precached and not linked (V2-SPEC 2.13 item 7).
 export const ROUTE_LOADERS = {
   VideoLibrary: () => import('./site/VideoLibrary').then((m) => ({ default: m.VideoLibrary })),
+  HowWeWork: () => import('./site/pages/HowWeWork'),
+  Trial: () => import('./site/pages/Trial'),
+  Pricing: () => import('./site/pages/Pricing'),
   WhyKreators: () => import('./site/pages/WhyKreators'),
   WhyVoxpop: () => import('./site/pages/WhyVoxpop'),
   Testimonials: () => import('./site/pages/Testimonials'),
@@ -33,7 +37,24 @@ const page = (name: keyof typeof ROUTE_LOADERS) => {
   return <Component />;
 };
 
+// The component kit (site/Kit.tsx, A3) exists only in a kit build: `VITE_KIT=1 vite build`. Vite replaces the env value at build time, so in a normal
+// build this branch is dead and neither the route nor the chunk is emitted (scripts/perf-budget.mjs fails on `__kit` in dist).
+type KitModule = { Kit?: ComponentType; default?: ComponentType };
+const kitRoutes: RouteObject[] =
+  import.meta.env.VITE_KIT === '1'
+    ? Object.values(import.meta.glob<KitModule>('./site/Kit.tsx')).map((load) => ({
+        path: '/__kit',
+        lazy: () => load().then((m) => ({ Component: m.Kit ?? m.default ?? null })),
+      }))
+    : [];
+
 const router = createBrowserRouter([
+  {
+    // Outside Layout: no public nav, footer, cast or street. One lazy chunk; its own error boundary reloads once on a stale chunk.
+    path: '/admin/*',
+    lazy: () => import('./admin/AdminApp').then((m) => ({ Component: m.AdminApp })),
+    errorElement: <RouteError />,
+  },
   {
     element: <Layout />,
     errorElement: <RouteError />,
@@ -43,6 +64,9 @@ const router = createBrowserRouter([
         children: [
           { path: '/', element: <Home /> },
           { path: '/video-library', element: page('VideoLibrary') },
+          { path: '/how-we-work', element: page('HowWeWork') },
+          { path: '/trial', element: page('Trial') },
+          { path: '/pricing', element: page('Pricing') },
           { path: '/why-kreators', element: page('WhyKreators') },
           { path: '/why-voxpop', element: page('WhyVoxpop') },
           { path: '/testimonials', element: page('Testimonials') },
@@ -59,6 +83,7 @@ const router = createBrowserRouter([
           { path: '/faq/:slug', element: page('FaqAnswer') },
           { path: '/legal/privacy', element: page('Privacy') },
           { path: '/legal/terms', element: page('Terms') },
+          ...kitRoutes,
           { path: '*', element: <NotFound /> },
         ],
       },
@@ -66,8 +91,9 @@ const router = createBrowserRouter([
   },
 ]);
 
-/** After the first paint, fetch the other routes one at a time, so a click lands at once and a view transition never waits on the network. */
+/** After the first paint, fetch the other routes one at a time, so a click lands at once and a view transition never waits on the network. Never on /admin. */
 function prefetchRoutes() {
+  if (window.location.pathname.startsWith('/admin')) return;
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
   if (connection?.saveData || connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g') return;
   const queue = Object.values(ROUTE_LOADERS);

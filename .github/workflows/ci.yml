@@ -31,8 +31,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Typecheck
         run: pnpm typecheck
-      - name: Shared tests
-        run: pnpm --filter @kreators/shared test
+      - name: Tests
+        run: pnpm test
       - name: Build
         run: pnpm build
       - name: Size budget

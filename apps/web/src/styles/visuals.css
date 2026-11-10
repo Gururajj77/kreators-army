@@ -1,0 +1,532 @@
+/* Owner: A3 Scene. Content visuals on Home (visual §1.5): the interaction chain and the edit timeline (M9). The How we work, format-page and blog
+   pieces have their own stylesheet in components/demos/demos.css, which loads with them. Every class is in @layer components. */
+@layer components {
+  /* ---------- InteractionChain: Setup -> Question -> Participant -> Follow-up -> Reaction -> Edit ---------- */
+  .chain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chain-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chain-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 16px 8px 8px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    box-shadow: var(--plate-edge);
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 19px;
+    letter-spacing: -0.006em;
+    transition:
+      color 200ms ease,
+      transform var(--spring-bouncy);
+  }
+
+  /* The lit tint: a layer that fades in (18% green over the surface), so the fill never animates. */
+  .chain-pill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: color-mix(in oklab, var(--c-green) 18%, var(--surface));
+    opacity: 0;
+    transition: opacity 240ms var(--ease-out);
+  }
+
+  .chain-pill > * {
+    position: relative;
+  }
+
+  .chain-num {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--sunken);
+    color: var(--muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  .chain-arrow {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  .chain-step[data-lit] > .chain-pill {
+    color: var(--ink);
+  }
+
+  :root:not([data-still]) .chain-step[data-lit] > .chain-pill {
+    transform: translateY(-2px);
+  }
+
+  .chain-step[data-lit] > .chain-pill::before {
+    opacity: 1;
+  }
+
+  .chain-step[data-lit] .chain-num {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  :root[data-still] .chain-pill,
+  :root[data-still] .chain-pill::before,
+  :root[data-still] .chain-num {
+    transition: none;
+  }
+
+  /* Phones: no arrows (they wrap badly), three to a row in two rows. */
+  @media (max-width: 734px) {
+    .chain {
+      display: grid;
+      grid-template-columns: repeat(3, max-content);
+      gap: 8px 6px;
+    }
+
+    .chain-arrow {
+      display: none;
+    }
+
+    .chain-pill {
+      min-height: 36px;
+      padding: 6px 12px 6px 6px;
+      gap: 6px;
+      font-size: 13px;
+      line-height: 17px;
+    }
+
+    .chain-num {
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 359px) {
+    .chain {
+      grid-template-columns: repeat(2, max-content);
+    }
+  }
+
+  /* ---------- EditTimeline (M9): a ruler, one clip per step, a yellow playhead, captions under the track ---------- */
+  .etl {
+    --p: 1;
+    --n: 5;
+    --head: var(--c-yellow);
+    position: relative;
+  }
+
+  .etl-scene {
+    position: relative;
+    margin-bottom: 24px;
+  }
+
+  .etl-plate {
+    --clip-bg: rgb(255 255 255 / 0.06);
+    --clip-ink: #a8a59f;
+    --clip-lit-ink: #f5f3ee;
+    --rule: rgb(255 255 255 / 0.14);
+    --plate-bg: var(--c-ground);
+    position: relative;
+    padding: 28px 28px 32px;
+    border-radius: var(--r-tile);
+    background: var(--c-ground);
+    color: #f5f3ee;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  }
+
+  .etl[data-tone='plate'] .etl-plate {
+    --clip-bg: var(--sunken);
+    --clip-ink: var(--muted);
+    --clip-lit-ink: var(--ink);
+    --rule: var(--line);
+    --plate-bg: var(--surface);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--plate-edge);
+  }
+
+  /* Something standing on the plate's top edge, right: a character with its bubble. */
+  .etl-aside {
+    position: absolute;
+    right: 32px;
+    bottom: calc(100% - 6px);
+    z-index: 3;
+  }
+
+  .etl-ruler {
+    position: relative;
+    height: 26px;
+    border-bottom: 1px solid var(--rule);
+    color: var(--clip-ink);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 14px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  /* Each timecode sits over its tick: the first and last are held inside the plate. */
+  .etl-ruler > span {
+    position: absolute;
+    top: 0;
+    left: calc(var(--k) * 100%);
+    translate: -50% 0;
+    white-space: nowrap;
+  }
+
+  .etl-ruler > span:first-child {
+    translate: 0 0;
+  }
+
+  .etl-ruler > span:last-child {
+    translate: -100% 0;
+  }
+
+  .etl-ruler > span::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 19px;
+    width: 1px;
+    height: 7px;
+    background: var(--rule);
+  }
+
+  .etl-ruler > span:first-child::after {
+    left: 0;
+  }
+
+  .etl-ruler > span:last-child::after {
+    left: auto;
+    right: 0;
+  }
+
+  .etl-track {
+    position: relative;
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  .etl-clip {
+    --clip-color: var(--c-yellow);
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    height: 52px;
+    padding: 0 12px 0 10px;
+    border-radius: 12px;
+    background: var(--clip-bg);
+    color: var(--clip-ink);
+    transition:
+      color 200ms ease,
+      transform var(--spring-bouncy);
+  }
+
+  .etl-clip[data-who='bolu'] {
+    --clip-color: var(--c-green);
+  }
+  .etl-clip[data-who='tiko'] {
+    --clip-color: var(--c-purple);
+  }
+  .etl-clip[data-who='gola'] {
+    --clip-color: var(--c-orange);
+  }
+
+  .etl-clip::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: color-mix(in oklab, var(--clip-color) 44%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--clip-color) 75%, transparent);
+    opacity: 0;
+    transition: opacity 240ms var(--ease-out);
+  }
+
+  .etl-clip[data-lit] {
+    color: var(--clip-lit-ink);
+  }
+
+  .etl-clip[data-lit]::before {
+    opacity: 1;
+  }
+
+  :root:not([data-still]) .etl-clip[data-now] {
+    transform: translateY(-2px);
+  }
+
+  .etl-who {
+    position: relative;
+    display: block;
+    flex: none;
+  }
+
+  .etl-who .chat-avatar {
+    box-shadow: 0 0 0 2px var(--c-ground);
+  }
+
+  .etl[data-tone='plate'] .etl-who .chat-avatar {
+    box-shadow: 0 0 0 2px var(--surface);
+  }
+
+  .etl-clip-name {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 17px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The playhead: Sochu's yellow, never red. It moves by transform only: x = progress x the track's width. */
+  .etl-head {
+    position: absolute;
+    top: -14px;
+    bottom: -8px;
+    left: -1px;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--head);
+    transform: translateX(calc(var(--p) * 100cqw));
+    pointer-events: none;
+  }
+
+  .etl-cap {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px 3px 6px 6px;
+    background: var(--head);
+    translate: -50% 0;
+  }
+
+  .etl[data-armed][data-mode='reveal'] .etl-head,
+  .etl[data-armed][data-mode='reveal'] .etl-rail-fill,
+  .etl[data-armed][data-mode='reveal'] .etl-rail-dot-track {
+    transition: transform var(--spring-smooth);
+  }
+
+  .etl[data-armed] .etl-head {
+    will-change: transform;
+  }
+
+  .etl-list {
+    position: relative;
+  }
+
+  .etl-rail {
+    display: none;
+  }
+
+  .etl-steps {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: 6px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .etl-step {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 4px 0 2px;
+    min-width: 0;
+  }
+
+  .etl-step-num {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--clip-bg);
+    color: var(--clip-ink);
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  .etl-step-name {
+    margin: 0;
+    color: var(--clip-ink);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.006em;
+    transition: color 200ms ease;
+  }
+
+  .etl-step-body {
+    margin: 0;
+    color: var(--clip-ink);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .etl[data-n-large] .etl-step-body {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .etl-step[data-lit] .etl-step-name {
+    color: var(--clip-lit-ink);
+  }
+
+  /* Lit: the playhead's yellow. Now: with a halo. Unlit: an opaque disc with a ring, so the phone rail never shows through it. */
+  .etl-step[data-lit] .etl-step-num {
+    background: var(--head);
+    color: #0e0e10;
+  }
+
+  .etl-step[data-now] .etl-step-num {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--head) 30%, transparent);
+  }
+
+  .etl-step:not([data-lit]) .etl-step-num {
+    background: var(--plate-bg);
+    box-shadow: inset 0 0 0 1.5px var(--rule);
+  }
+
+  :root[data-still] .etl *,
+  :root[data-still] .etl *::before {
+    transition: none !important;
+  }
+
+  /* Desktop: a stage pins the timeline while the scroll moves the playhead. Never pinned under still or without JS. */
+  @media (min-width: 735px) {
+    .etl[data-mode='stage'][data-armed] .etl-stage {
+      height: 160vh;
+    }
+
+    .etl[data-mode='stage'][data-armed] .etl-sticky {
+      position: sticky;
+      top: calc(var(--nav-offset) + 16px);
+    }
+  }
+
+  /* Phones: vertical. A 2 px rail fills down the left as the dot travels; each step lights as the dot reaches it. Captions are always readable. */
+  @media (max-width: 734px) {
+    .etl-plate {
+      padding: 22px 18px 24px;
+    }
+
+    .etl-ruler,
+    .etl-track {
+      display: none;
+    }
+
+    .etl-aside {
+      right: 16px;
+    }
+
+    .etl-list {
+      padding-left: 30px;
+    }
+
+    .etl-rail {
+      position: absolute;
+      display: block;
+      left: 10px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      border-radius: 1px;
+      background: var(--rule);
+    }
+
+    .etl-rail-fill {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: var(--head);
+      transform-origin: 50% 0;
+      transform: scaleY(var(--p));
+    }
+
+    .etl-rail-dot-track {
+      position: absolute;
+      inset: 0;
+      transform: translateY(calc(var(--p) * 100%));
+    }
+
+    .etl-rail-dot {
+      position: absolute;
+      top: -5px;
+      left: -4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--head);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--head) 30%, transparent);
+    }
+
+    .etl-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      margin-top: 0;
+    }
+
+    .etl-step {
+      position: relative;
+      gap: 4px;
+      padding: 0;
+    }
+
+    .etl-step-num {
+      position: absolute;
+      left: -31px;
+      top: -1px;
+    }
+
+    .etl-step-name {
+      font-size: 17px;
+      line-height: 22px;
+    }
+
+    .etl-step-body {
+      font-size: 15px;
+      line-height: 21px;
+    }
+  }
+}

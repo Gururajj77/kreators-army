@@ -1,137 +1,68 @@
 import type { Video } from '@kreators/shared';
-import { ArrowRight, ChevronLeft, ChevronRight, Mic, Pause, Play } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Mic } from 'lucide-react';
 import { AnimatePresence, m, type Variants } from 'motion/react';
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type SyntheticEvent } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Link } from 'react-router';
-import { Character } from '../../cast';
+import { Character, type CharacterHandle } from '../../cast';
+import { CastBubble } from '../../components/chat';
+import { ReelPause, VideoFrame, previewAllowed, usePlayback } from '../../components/frames';
 import { HeroCopy, PrimaryCta, Reveal, SectionHead, Seo, Tile } from '../../components/ui';
-import { VideoTile } from '../../components/video';
-import { FORMATS } from '../../lib/content';
-import { useMotionOk, useRunning } from '../../lib/motionOk';
+import { VideoTile, useVideoPlayer } from '../../components/video';
+import { FORMATS, INTERACTION_THREAD } from '../../lib/content';
+import { useMotionOk } from '../../lib/motionOk';
+import { useVideos } from '../../lib/queries';
 import { spring } from '../../lib/spring';
-import { useStill } from '../../lib/store';
-import { FormatActions, FormatTitle, Reel, useFormat } from './FormatPage';
+import { FormatActions, FormatIdeas, FormatTitle, Reel, formatSlug, useFormat, useLineOnView } from './FormatPage';
 
-// Portrait-led: one large video opens the page, a second carries the argument, and the question-of-the-week idea is a deck you flick through.
+// Portrait-led: one large video opens the page, a second carries the argument, and the question-of-the-week idea is a deck of polaroids you flick
+// through, each a real question we have filmed with its real video.
 
 const content = FORMATS.founders;
 
-/** A reel opens on its hook, and edits cut away to film clips later on. Looping only the opening keeps a large portrait on real people, in any video. */
-const LOOP_SECONDS = 3.3;
-
-/** Worded from topics already in the video library, so nothing here is a made-up campaign. */
-const QUESTIONS = ['New phone or a Goa trip?', 'Worst thing you ever bought second-hand?', 'Hot take on Valentine’s Day?', 'What does AI change about design?'];
-
-type Card = { week: string; question: string; action?: boolean };
-// Labelled as examples, not weeks: these are topics from the library, not a weekly series that has run.
-const CARDS: Card[] = [...QUESTIONS.map((question, i) => ({ week: `Example ${i + 1}`, question })), { week: 'Next week', question: 'Your category, your question.', action: true }];
-
 // ---------- The large portrait ----------
 
-/** True while any <dialog> is open. Only the `open` attribute is watched, so this costs nothing the rest of the time. */
-function useDialogOpen(): boolean {
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const check = () => setOpen(document.querySelector('dialog[open]') !== null);
-    const watcher = new MutationObserver(check);
-    watcher.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['open'] });
-    return () => watcher.disconnect();
-  }, []);
-  return open;
-}
-
 /**
- * The large video: a real VideoTile, so it gets the tile-to-player morph, with a muted loop inside it. The one thing on this page that moves on its own.
- * Starts after fonts and idle, and stops off screen, in hidden tabs, behind the player and under Pause animations.
+ * The large video: a real VideoTile, so it gets the tile-to-player morph, playing its bounded muted preview while it is in view (desktop only, one video
+ * on the page at a time, V2-SPEC 3.4), with its own pause control.
  */
 function Portrait({ video, onOpen }: { video: Video; onOpen: (video: Video) => void }) {
-  const frame = useRef<HTMLDivElement>(null);
-  const clip = useRef<HTMLVideoElement>(null);
-  const running = useRunning(frame);
-  const behindPlayer = useDialogOpen();
-  const still = useStill((s) => s.still);
-  const locked = useStill((s) => s.locked);
-  const toggleStill = useStill((s) => s.toggle);
-  const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-  const loops = video.source === 'file' && !still && !saveData;
-  const [tile, setTile] = useState<HTMLElement | null>(null);
-  const [armed, setArmed] = useState(false);
-  const [playing, setPlaying] = useState(false);
-
-  useLayoutEffect(() => {
-    setTile(frame.current?.querySelector<HTMLElement>('.tile') ?? null);
-  }, [video.id]);
-
-  useEffect(() => {
-    if (!loops) return;
-    let on = true;
-    let cancel = () => undefined as void;
-    void document.fonts.ready.then(() => {
-      if (!on) return;
-      const go = () => setArmed(true);
-      // Safari has no requestIdleCallback.
-      const idle = window.requestIdleCallback as typeof window.requestIdleCallback | undefined;
-      if (idle) {
-        const id = idle(go, { timeout: 2000 });
-        cancel = () => window.cancelIdleCallback(id);
-      } else {
-        const id = window.setTimeout(go, 400);
-        cancel = () => window.clearTimeout(id);
-      }
-    });
-    return () => {
-      on = false;
-      cancel();
-      setPlaying(false);
-    };
-  }, [loops]);
-
-  const showLoop = Boolean(tile) && loops && armed;
-
-  const restartLoop = (e: SyntheticEvent<HTMLVideoElement>) => {
-    if (e.currentTarget.currentTime >= LOOP_SECONDS) e.currentTarget.currentTime = 0;
-  };
-
-  useEffect(() => {
-    const el = clip.current;
-    if (!el) return;
-    if (running && !behindPlayer) void el.play().catch(() => undefined);
-    else el.pause();
-  }, [running, behindPlayer, showLoop]);
-
+  const { wanted, label, toggle } = usePlayback();
+  const [allowed, setAllowed] = useState(false);
+  useEffect(() => setAllowed(previewAllowed(video)), [video]);
   return (
-    <div ref={frame} className="fp-frame" data-playing={playing ? '' : undefined}>
-      <VideoTile video={video} onOpen={onOpen} eager variant="bento" />
-      {tile && showLoop && createPortal(<video ref={clip} className="fp-loop" src={video.ref} muted loop playsInline preload="metadata" tabIndex={-1} aria-hidden data-on={playing ? '' : undefined} onPlaying={() => setPlaying(true)} onTimeUpdate={restartLoop} />, tile)}
-      {video.source === 'file' && !saveData && !locked && (
-        <button type="button" className="nav-icon glass-media fp-pause" onClick={toggleStill} aria-label="Pause animations" aria-pressed={still}>
-          {still ? <Play className="size-4 fill-current" aria-hidden /> : <Pause className="size-4 fill-current" aria-hidden />}
-        </button>
-      )}
+    <div className="fp-frame">
+      <VideoTile video={video} onOpen={onOpen} eager variant="bento" sticker preview="active" active={wanted} />
+      {allowed && <ReelPause wanted={wanted} label={label} onToggle={toggle} className="fp-pause" />}
     </div>
   );
 }
 
-// ---------- Question of the week: a deck of cue cards ----------
+// ---------- Question of the week: a deck of polaroids ----------
 
+type Card = { week: string; question: string; video?: Video; action?: boolean };
 type Flick = { dir: number; side: number };
 
+// Polaroids tilt (media only); the front card is always level, and nothing with words ever tilts: the question sits under the deck.
 const cardVariants: Variants = {
   enter: ({ dir }: Flick) => (dir > 0 ? { x: 0, y: 64, scale: 0.84, rotate: 0, opacity: 0 } : { x: '130%', y: 8, scale: 1, rotate: 9, opacity: 1 }),
   at0: { x: 0, y: 0, scale: 1, rotate: 0, opacity: 1 },
-  at1: { x: 10, y: 15, scale: 0.955, rotate: 2.4, opacity: 1 },
-  at2: { x: -8, y: 30, scale: 0.91, rotate: -2.2, opacity: 1 },
+  at1: { x: 18, y: 12, scale: 0.94, rotate: 5, opacity: 1 },
+  at2: { x: -16, y: 22, scale: 0.88, rotate: -4, opacity: 1 },
   exit: ({ dir, side }: Flick) => (dir > 0 ? { x: `${side * 130}%`, y: 8, scale: 1, rotate: side * 9, opacity: 0.4, zIndex: 5 } : { x: 0, y: 64, scale: 0.84, rotate: 0, opacity: 0, zIndex: 0 }),
 };
 
-function QuestionOfTheWeek({ name, body }: { name: string; body: string }) {
+function QuestionOfTheWeek({ name, body, videos, onOpen }: { name: string; body: string; videos: Video[]; onOpen: (video: Video) => void }) {
+  // Worded from topics already in the video library, labelled as examples, not weeks: these are real questions we have filmed, not a series that has run.
+  const cards: Card[] = [
+    ...INTERACTION_THREAD.map((t, i) => ({ week: `Example ${i + 1}`, question: t.q, video: videos.find((v) => v.id === t.videoId) })),
+    { week: 'Next week', question: 'Your category, your question.', action: true },
+  ];
   // A position on an endless tape, not an index: a card can leave and come round again while its last exit is still running, so each pass needs its own key.
   const [pos, setPos] = useState(0);
   const [flick, setFlick] = useState<Flick>({ dir: 1, side: 1 });
   const ok = useMotionOk();
-  const count = CARDS.length;
-  const cardAt = (tape: number) => CARDS[((tape % count) + count) % count] as Card;
+  const count = cards.length;
+  const cardAt = (tape: number) => cards[((tape % count) + count) % count] as Card;
   const current = cardAt(pos);
   const transition = ok ? spring.snappy : { duration: 0 };
 
@@ -154,66 +85,87 @@ function QuestionOfTheWeek({ name, body }: { name: string; body: string }) {
 
   return (
     <div role="group" aria-roledescription="carousel" aria-label={name} onKeyDown={onKey}>
-    <Tile tone="bolu" className="fp-qotw">
-      <div className="fp-qotw-copy">
-        <SectionHead center={false} title={name} />
-        <p className="lead">{body}</p>
-      </div>
-
-      <div className="fp-stack">
-        <AnimatePresence initial={false} custom={flick}>
-          {shown.map(({ depth, tape }) => {
-            const card = cardAt(tape);
-            const front = depth === 0;
-            return (
-              <m.article
-                key={tape}
-                className="fp-card"
-                custom={flick}
-                variants={cardVariants}
-                initial="enter"
-                animate={`at${depth}`}
-                exit="exit"
-                transition={transition}
-                style={{ zIndex: 3 - depth }}
-                aria-hidden={!front}
-                inert={!front}
-                drag={front && ok ? 'x' : false}
-                dragSnapToOrigin
-                dragElastic={0.7}
-                onDragEnd={(_, info) => {
-                  const away = Math.abs(info.offset.x) > 90 || Math.abs(info.velocity.x) > 500;
-                  if (away) go(1, info.offset.x < 0 ? -1 : 1);
-                }}
-              >
-                <span className="fp-card-week">
-                  <Mic className="size-4" aria-hidden />
-                  {card.week}
-                </span>
-                <p className="fp-card-q">{card.question}</p>
-                {card.action ? <PrimaryCta className="self-start" /> : <span className="fp-card-hint">Asked again and again.</span>}
-              </m.article>
-            );
-          })}
-        </AnimatePresence>
-      </div>
-
-      <div className="fp-qotw-nav">
-        <div className="flex gap-2">
-          <button type="button" className="nav-icon fp-deck-btn" onClick={() => go(-1)} aria-label="Previous question">
-            <ChevronLeft className="size-5" aria-hidden />
-          </button>
-          <button type="button" className="nav-icon fp-deck-btn" onClick={() => go(1)} aria-label="Next question">
-            <ChevronRight className="size-5" aria-hidden />
-          </button>
+      <Tile tone="bolu" className="fp-qotw">
+        <div className="fp-qotw-copy">
+          <SectionHead center={false} title={name} />
+          <p className="lead">{body}</p>
         </div>
-        <p className="small m-0 text-muted">Example questions, from topics we have filmed.</p>
-      </div>
 
-      <p className="sr-only" aria-live="polite">
-        {current.week}: {current.question}
-      </p>
-    </Tile>
+        <div className="fp-qotw-deck">
+          <div className="fp-stack">
+            <AnimatePresence initial={false} custom={flick}>
+              {shown.map(({ depth, tape }) => {
+                const card = cardAt(tape);
+                const front = depth === 0;
+                return (
+                  <m.div
+                    key={tape}
+                    className="fp-card"
+                    data-front={front ? '' : undefined}
+                    data-action={card.action ? '' : undefined}
+                    custom={flick}
+                    variants={cardVariants}
+                    initial="enter"
+                    animate={`at${depth}`}
+                    exit="exit"
+                    transition={transition}
+                    style={{ zIndex: 3 - depth }}
+                    aria-hidden={!front}
+                    inert={!front}
+                    drag={front && ok ? 'x' : false}
+                    dragSnapToOrigin
+                    dragElastic={0.7}
+                    onDragEnd={(_, info) => {
+                      const away = Math.abs(info.offset.x) > 90 || Math.abs(info.velocity.x) > 500;
+                      if (away) go(1, info.offset.x < 0 ? -1 : 1);
+                    }}
+                  >
+                    {card.action ? (
+                      <div className="fp-card-action">
+                        <p className="fp-card-q">{card.question}</p>
+                        <PrimaryCta intent={{ format: formatSlug(content) }} className="self-start" />
+                      </div>
+                    ) : card.video ? (
+                      <VideoFrame video={card.video} variant="polaroid" width="100%" onOpen={front ? onOpen : undefined} preview="none" />
+                    ) : (
+                      <div className="fp-card-blank" aria-hidden />
+                    )}
+                  </m.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+
+          <div className="fp-qotw-caption" aria-hidden={current.action ? true : undefined}>
+            <p className="fp-card-week">
+              <Mic className="size-4" aria-hidden />
+              {current.week}
+            </p>
+            {!current.action && (
+              <>
+                <p className="fp-card-q">{current.question}</p>
+                <p className="fp-card-hint">Asked again and again.</p>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="fp-qotw-nav">
+          <div className="flex gap-2">
+            <button type="button" className="nav-icon fp-deck-btn" onClick={() => go(-1)} aria-label="Previous question">
+              <ChevronLeft className="size-5" aria-hidden />
+            </button>
+            <button type="button" className="nav-icon fp-deck-btn" onClick={() => go(1)} aria-label="Next question">
+              <ChevronRight className="size-5" aria-hidden />
+            </button>
+          </div>
+          <p className="small m-0 fp-qotw-note">Example questions, from topics we have filmed.</p>
+        </div>
+
+        <p className="sr-only" aria-live="polite">
+          {current.week}: {current.question}
+        </p>
+      </Tile>
     </div>
   );
 }
@@ -222,8 +174,14 @@ function QuestionOfTheWeek({ name, body }: { name: string; body: string }) {
 
 export default function Founders() {
   const { picks, player, pending } = useFormat(content);
+  const { data: library = [] } = useVideos();
+  // The deck's videos are the library's, not only this format's, so they open in a player of their own.
+  const deckPlayer = useVideoPlayer(library);
   const [lead, second] = picks;
   const [withMic, inHand, qotw] = content.cards as [(typeof content.cards)[number], (typeof content.cards)[number], (typeof content.cards)[number]];
+  const bolu = useRef<CharacterHandle>(null);
+  const hero = useRef<HTMLDivElement>(null);
+  const cast = useLineOnView('founders.hero', bolu, hero, 900);
 
   return (
     <>
@@ -232,7 +190,7 @@ export default function Founders() {
       <section className="fp-hero">
         <div className="ground" aria-hidden />
         <div className="wrap fp-hero-in">
-          <div className="fp-hero-media">
+          <div ref={hero} className="fp-hero-media" data-bubble-bounds="">
             {lead ? (
               <Portrait video={lead} onOpen={player.open} />
             ) : pending ? (
@@ -243,10 +201,12 @@ export default function Founders() {
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
             )}
-            <Character who="bolu" size="clamp(104px, 27vw, 150px)" prop expression="happy" className="fp-bolu" />
+            <Character ref={bolu} who="bolu" size="clamp(104px, 27vw, 150px)" prop expression="happy" className="fp-bolu">
+              <CastBubble {...cast.bubble('founders.hero')} side="start" />
+            </Character>
           </div>
           <HeroCopy eyebrow={content.eyebrow} title={<FormatTitle content={content} />} lead={content.lead} titleClass="display">
-            <FormatActions />
+            <FormatActions content={content} />
           </HeroCopy>
         </div>
       </section>
@@ -260,12 +220,15 @@ export default function Founders() {
             <Reveal className="fp-ways">
               <h3 className="eyebrow">{content.cardsTitle}</h3>
               <ul>
-                {[withMic, inHand].map((way) => (
-                  <li key={way.name}>
-                    <h4 className="h4">{way.name}</h4>
-                    <p>{way.body}</p>
-                  </li>
-                ))}
+                <li>
+                  <h4 className="h4">{withMic.name}</h4>
+                  <p>{withMic.body}</p>
+                  {content.introLine && <p className="fp-intro">{content.introLine}</p>}
+                </li>
+                <li>
+                  <h4 className="h4">{inHand.name}</h4>
+                  <p>{inHand.body}</p>
+                </li>
               </ul>
             </Reveal>
           </div>
@@ -278,12 +241,15 @@ export default function Founders() {
       <section className="fp-deck-section">
         <div className="wrap">
           <Reveal>
-            <QuestionOfTheWeek name={qotw.name} body={qotw.body} />
+            <QuestionOfTheWeek name={qotw.name} body={qotw.body} videos={library} onOpen={deckPlayer.open} />
           </Reveal>
         </div>
       </section>
 
+      <FormatIdeas content={content} />
+
       {player.dialog}
+      {deckPlayer.dialog}
     </>
   );
 }

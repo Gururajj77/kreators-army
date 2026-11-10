@@ -1,23 +1,42 @@
+import type { Video } from '@kreators/shared';
 import { Check, ChevronsLeftRight, X } from 'lucide-react';
 import { useMotionValueEvent, useSpring } from 'motion/react';
 import { useEffect, useRef, useState, useSyncExternalStore, type ChangeEvent, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { Link } from 'react-router';
 import { Character, type CastId, type CharacterHandle } from '../../cast';
-import { HeroCopy, PrimaryCta, Reveal, RollNumber, SectionHead, Segment, Seo, whenSeen } from '../../components/ui';
-import { IMPACT, PLANS, SITE, STEPS, TEAM } from '../../lib/content';
+import { CastBubble, useCastLine } from '../../components/chat';
+import { usePreview } from '../../components/frames';
+import { PackageIncludes } from '../../components/Packages';
+import { HeroCopy, PrimaryCta, Reveal, RollNumber, SectionHead, Segment, Seo, Tile, whenSeen } from '../../components/ui';
+import { EditTimeline, type TimelineStep } from '../../components/visuals';
+import { HERO, IMPACT, JOURNEY, RESULTS_NOTE, SITE, STILLS, TEAM } from '../../lib/content';
 import { motionOk, useMotionOk, useRunning } from '../../lib/motionOk';
+import { useVideos } from '../../lib/queries';
 import { spring } from '../../lib/spring';
 
 // ---------- Scripted vs Vox pop: one stage, two worlds, a divider you can drag. ----------
 
 const SCRIPTED = ['Feels scripted', 'Reads as an ad', 'Gets scrolled past'];
-const VOXPOP = ['Real people, real reactions', 'Feels like a conversation', 'Stops the scroll'];
+const VOXPOP = ['Real people, real reactions', 'Feels like a conversation', 'Built to stop the scroll'];
 
-/** The real reels on the vox pop side. The middle one, cut in half by the divider at rest, is the one that comes alive. */
+/** The real reels on the vox pop side. The middle one, cut in half by the divider at rest, is the one that comes alive: the hero's own video, from the library. */
 const REACTIONS = [
-  { src: '/media/circlestore-1.jpg', position: '50% 62%' },
-  { src: '/media/fyndflow.jpg', position: '50% 72%', video: '/media/fyndflow.mp4' },
-  { src: '/media/circlestore-3.jpg', position: '50% 60%' },
+  { still: STILLS.streetTrio, live: false },
+  { still: STILLS.fyndflow, live: true },
+  { still: STILLS.streetCorner, live: false },
 ];
+
+/** The middle photo's video: the library row HERO.firstId, as its bounded preview (V2-SPEC 3.4), one video on the page at a time. */
+function LivePhoto({ video, playing, position, src }: { video: Video | undefined; playing: boolean; position?: string; src: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const pv = usePreview(video, { mode: 'active', active: playing, root: box });
+  return (
+    <div ref={box} className="vs-photo" data-playing={pv.playing ? '' : undefined}>
+      <img src={src} alt="" loading="lazy" draggable={false} style={{ objectPosition: position }} />
+      {pv.node}
+    </div>
+  );
+}
 
 type Stop = 'scripted' | 'both' | 'voxpop';
 
@@ -61,7 +80,11 @@ function Compare() {
   const dividerRef = useRef<HTMLDivElement>(null);
   const rangeRef = useRef<HTMLInputElement>(null);
   const bolu = useRef<CharacterHandle>(null);
+  const tiko = useRef<CharacterHandle>(null);
   const running = useRunning(stageRef);
+  const cast = useCastLine();
+  const { data: library } = useVideos();
+  const heroVideo = library?.find((v) => v.id === HERO.firstId);
 
   // On a phone the two worlds cannot sit side by side, so it opens on Scripted and wipes across once: the argument, made by moving. Still, it opens on the answer.
   const [start] = useState(() => (matchMedia(PHONE_QUERY).matches ? (motionOk() ? 0.08 : 0.92) : 0.5));
@@ -69,7 +92,6 @@ function Compare() {
   const [segment, setSegment] = useState<Stop>(start > 0.75 ? 'voxpop' : start < 0.25 ? 'scripted' : 'both');
   // The reel only plays once someone has asked to see this side. It is a real download, so nothing fetches it on arrival.
   const [asked, setAsked] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
 
   const touched = useRef(false);
   const drag = useRef<{ id: number; left: number; width: number } | null>(null);
@@ -91,6 +113,12 @@ function Compare() {
     }
   };
   useMotionValueEvent(pos, 'change', paint);
+  // Each side speaks once, the first time it passes 60% of the slider: Tiko, asleep, for the scripted side; Bolu for vox pop.
+  useMotionValueEvent(pos, 'change', (v) => {
+    if (!touched.current) return;
+    if (v >= 0.6) void cast.say('whyKreators.voxpop', { by: bolu.current });
+    else if (v <= 0.4) void cast.say('whyKreators.scripted', { by: tiko.current, expression: null });
+  });
   // Painted once by hand so the stage is right before the first spring frame, and again if the page is reopened with a value already set.
   useEffect(() => paint(pos.get()), [pos]);
 
@@ -209,18 +237,8 @@ function Compare() {
     settle(v);
   };
 
-  // Not on a phone, where this frame is not shown, and not for someone who has asked to save data.
-  const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
-  const playing = asked && !phone && !saveData && segment === 'voxpop' && ok && running;
-  const [mounted, setMounted] = useState(false);
-  const video = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    if (playing) setMounted(true);
-    const el = video.current;
-    if (!el) return;
-    if (playing) void el.play().catch(() => undefined);
-    else el.pause();
-  }, [playing]);
+  // Not on a phone, where this frame is not shown; usePreview adds the device rules (fine pointer, no Save-Data) and the one-video token.
+  const playing = asked && !phone && segment === 'voxpop' && ok && running;
 
   const options = phone
     ? ([
@@ -249,7 +267,9 @@ function Compare() {
           <div className="vs-copy">
             <div className="vs-copy-head">
               <h3 className="vs-title">Scripted content</h3>
-              <Character who="tiko" size={88} expression="sleepy" track={false} className="vs-cast" />
+              <Character ref={tiko} who="tiko" size={88} expression="sleepy" track={false} className="vs-cast">
+                <CastBubble {...cast.bubble('whyKreators.scripted')} side="end" />
+              </Character>
             </div>
             <ul className="vs-list">
               {SCRIPTED.map((x) => (
@@ -268,18 +288,23 @@ function Compare() {
         <div ref={maskRef} className="vs-mask">
           <div ref={innerRef} className="vs-world" data-world="voxpop">
             <div className="vs-frames" aria-hidden>
-              {REACTIONS.map((r) => (
-                <div key={r.src} className="vs-photo">
-                  <img src={r.src} alt="" loading="lazy" draggable={false} style={{ objectPosition: r.position }} />
-                  {r.video && mounted && <video ref={video} src={r.video} data-ready={videoReady ? '' : undefined} muted loop autoPlay playsInline preload="none" tabIndex={-1} style={{ objectPosition: r.position }} onCanPlay={() => setVideoReady(true)} />}
-                </div>
-              ))}
+              {REACTIONS.map((r) =>
+                r.live ? (
+                  <LivePhoto key={r.still.src} video={heroVideo} playing={playing} position={r.still.position} src={r.still.src} />
+                ) : (
+                  <div key={r.still.src} className="vs-photo">
+                    <img src={r.still.src} alt="" loading="lazy" draggable={false} style={{ objectPosition: r.still.position }} />
+                  </div>
+                ),
+              )}
             </div>
             <span className="scrim vs-scrim" aria-hidden />
             <div className="vs-copy">
               <div className="vs-copy-head">
                 <h3 className="vs-title">Vox pop by {SITE.name}</h3>
-                <Character ref={bolu} who="bolu" size={88} onDark className="vs-cast" />
+                <Character ref={bolu} who="bolu" size={88} onDark className="vs-cast">
+                  <CastBubble {...cast.bubble('whyKreators.voxpop')} side="end" />
+                </Character>
               </div>
               <ul className="vs-list">
                 {VOXPOP.map((x) => (
@@ -310,39 +335,27 @@ function Compare() {
   );
 }
 
-// ---------- The process: one line, five stations, nobody hands off to a stranger. ----------
+// ---------- The process: an editing timeline that crosses once (M9), the five journey steps, each with its character standing above its clip. ----------
 
-const STEP_CAST: CastId[] = ['sochu', 'bolu', 'tiko', 'gola', 'sochu'];
+const STEP_CAST: CastId[] = ['sochu', 'bolu', 'sochu', 'sochu', 'gola'];
+const TIMELINE: TimelineStep[] = JOURNEY.map((s, i) => ({ ...s, who: STEP_CAST[i] }));
 
-function Timeline() {
+/** The five, still, at 56 px: no bubbles here, the cast just stands over the work it does. */
+function StepCast() {
   return (
-    <Reveal className="wk-line">
-      <span className="wk-rail" aria-hidden>
-        <span className="wk-rail-fill" />
-      </span>
-      <ol className="wk-steps">
-        {STEPS.map((s, i) => (
-          <li key={s.name} className="wk-step" style={{ '--i': i } as CSSProperties}>
-            <span className="wk-step-cast">
-              <Character who={STEP_CAST[i] ?? 'sochu'} size={56} still />
-            </span>
-            <span className="wk-step-dot" aria-hidden />
-            <div className="wk-step-text">
-              <p className="caption wk-step-no">Step {i + 1}</p>
-              <h3 className="h4">{s.name}</h3>
-              <p className="small text-muted">{s.body}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </Reveal>
+    <div className="wk-cast" aria-hidden>
+      {STEP_CAST.map((who, i) => (
+        <span key={i} className="wk-cast-slot">
+          <Character who={who} size={56} still />
+        </span>
+      ))}
+    </div>
   );
 }
 
 // ---------- The page ----------
 
 export default function WhyKreators() {
-  const startup = PLANS[0];
   return (
     <>
       <Seo title="Why Kreators" description="Most UGC feels scripted. Kreators.Army takes the conversation to the street and captures real reactions around your product." />
@@ -378,6 +391,7 @@ export default function WhyKreators() {
                 </div>
               ))}
             </dl>
+            <p className="wk-note">{RESULTS_NOTE.short}</p>
             <PrimaryCta />
           </Reveal>
         </div>
@@ -385,10 +399,10 @@ export default function WhyKreators() {
 
       <section className="band-alt section wk-process">
         <div className="wrap">
-          <SectionHead center={false} title="One team, from question to post" lead="Our team handles the entire process, so you receive complete videos ready to publish." />
+          <SectionHead center={false} title="One team, from brief to batch" lead="Our team handles the whole process, from the questions to the edit." />
         </div>
-        <div className="wrap">
-          <Timeline />
+        <div className="wrap wk-timeline">
+          <EditTimeline mode="reveal" tone="plate" steps={TIMELINE} label="From brief to batch, in five steps" scene={() => <StepCast />} />
         </div>
         <div className="wrap wk-team">
           {TEAM.map((s) => (
@@ -403,22 +417,35 @@ export default function WhyKreators() {
         </div>
       </section>
 
-      {/* The page's one ask is the case's, beside the figures. What is included closes the page with no button of its own, so the footer asks once (R35). */}
-      <section className="section">
+      <section className="section wk-learned">
+        <div className="wrap">
+          <Reveal>
+            <Tile tone="tiko" className="wk-quote">
+            <h2 className="eyebrow wk-quote-eyebrow">What we've learned</h2>
+            <blockquote className="wk-quote-text">
+              <p>
+                The strongest vox pop campaigns don't come from asking more questions or making every video look completely different. They come from a clear objective, the right reaction mechanism, strong interactions with
+                real people, enough variety on the ground, and the strongest moments built in the edit.
+              </p>
+            </blockquote>
+            <p className="wk-quote-who">From working with brands such as Hack Daily, Circle and others across consumer categories.</p>
+            </Tile>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* The page's one ask is the case's, beside the figures. What is included closes the page with a link to the prices, so the footer asks once (R35). */}
+      <section className="section wk-inc-section">
         <div className="wrap wk-inc">
           <div className="wk-inc-head">
-            <SectionHead center={false} title="What is included" lead="Even the startup plan comes with the people and the production." />
+            <SectionHead center={false} title="Every package includes" lead="The same people and production in every package, whatever its size." />
+            <Reveal>
+              <Link to="/pricing" className="wk-inc-link">
+                See pricing →
+              </Link>
+            </Reveal>
           </div>
-          <ul className="wk-inc-list">
-            {startup?.items.map((item, i) => (
-              <Reveal as="li" key={item} i={i}>
-                <span className="wk-inc-mark" aria-hidden>
-                  <Check className="size-4" strokeWidth={3} />
-                </span>
-                {item}
-              </Reveal>
-            ))}
-          </ul>
+          <PackageIncludes className="wk-inc-list" />
         </div>
       </section>
     </>

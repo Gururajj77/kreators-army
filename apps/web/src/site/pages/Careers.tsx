@@ -1,8 +1,10 @@
 import { ArrowUpRight, Mail } from 'lucide-react';
 import { useRef, type FocusEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { Character, type CharacterHandle } from '../../cast';
+import { CastBubble } from '../../components/chat';
 import { HeroCopy, Reveal, RollNumber, SectionHead, Seo } from '../../components/ui';
 import { CAST, SITE, TEAM, type CastId } from '../../lib/content';
+import { useLineOnView } from './FormatPage';
 
 // A crew roster. The cast are mascots, one for each job on a shoot, and the page says so beside the roster, next to the real headcount.
 
@@ -37,7 +39,7 @@ function RoleCard({ id, name, role, i }: { id: CastId; name: string; role: strin
     <Reveal as="li" i={i} className="cr-cell">
       <article className="plate cr-card" onPointerEnter={onEnter} onFocus={onFocus} onPointerUp={onTap}>
         <div className="cr-stage">
-          <Character ref={mascot} who={id} size="clamp(120px, 11vw, 144px)" />
+          <Character ref={mascot} who={id} size={72} />
         </div>
         <div className="cr-card-body">
           <p className="caption cr-mascot">Mascot: {name}</p>
@@ -54,13 +56,16 @@ function RoleCard({ id, name, role, i }: { id: CastId; name: string; role: strin
 }
 
 export default function Careers() {
+  const bolu = useRef<CharacterHandle>(null);
+  const hero = useRef<HTMLDivElement>(null);
+  const cast = useLineOnView('careers.hero', bolu, hero, 900);
   return (
     <>
       <Seo title="Careers" description="Work on real street interviews with Kreators.Army." />
 
       <section className="page-hero cr-hero" data-align="left">
         <div className="ground" aria-hidden />
-        <div className="wrap cr-hero-in">
+        <div ref={hero} className="wrap cr-hero-in" data-bubble-bounds="">
           <HeroCopy
             eyebrow="Careers"
             title={
@@ -70,7 +75,9 @@ export default function Careers() {
             }
             lead="We are a team of creative professionals who take the conversation to the street and turn real reactions into content people actually watch."
           />
-          <Character who="bolu" size="clamp(112px, 30vw, 150px)" prop expression="talking" className="cr-hero-bolu" />
+          <Character ref={bolu} who="bolu" size="clamp(112px, 30vw, 150px)" prop expression="talking" className="cr-hero-bolu">
+            <CastBubble {...cast.bubble('careers.hero')} side="end" />
+          </Character>
         </div>
       </section>
 

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "pnpm -r --parallel --stream dev",
     "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
     "build": "pnpm --filter @kreators/web build",
     "perf:budget": "node scripts/perf-budget.mjs",
     "db:migrate:local": "pnpm --filter @kreators/api db:migrate:local",

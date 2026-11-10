@@ -1,0 +1,465 @@
+/* Owner: A2 Foundation. The tab kit (visual §1.4, motion M5): one thumb engine behind the nav, segments, chip rails, tab bars and the chapter index,
+   plus the label roll and the arrow disc. Shared micro-animations: label colour 160 ms, inactive hover to ink with a 1 px lift (in on --spring-release),
+   press scale .97, a solid 2 px focus ring. The thumb itself moves on spring.snappy in JS (useThumb). Everything is in @layer components. */
+@layer components {
+  /* ---------- The thumb: 100 px along its axis, scaled to its target by useThumb ---------- */
+  .tab-thumb {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 100px;
+    height: 100px;
+    transform-origin: 0 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-hover) ease;
+    will-change: transform;
+  }
+
+  .tab-thumb[data-show] {
+    opacity: 1;
+  }
+
+  /* ---------- Segment: a platter, equal columns ---------- */
+  .segment {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    padding: 4px;
+    border-radius: var(--r-pill);
+    background: var(--sunken);
+    isolation: isolate;
+  }
+
+  .segment-thumb {
+    background: var(--surface-5);
+    box-shadow:
+      0 1px 2px rgb(24 20 40 / 0.12),
+      0 3px 8px -2px rgb(24 20 40 / 0.14);
+  }
+
+  .segment-opt {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 18px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 19px;
+    letter-spacing: -0.009em;
+    touch-action: manipulation;
+    transition:
+      color var(--dur-hover) ease,
+      transform var(--spring-smooth);
+  }
+
+  .segment[data-size='sm'] .segment-opt {
+    min-height: 32px;
+    padding: 6px 14px;
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  /* The platter stays 48 tall; the tap target is the full 44 and more. */
+  .segment-opt::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+
+  .segment-opt[aria-checked='true'] {
+    color: var(--ink);
+  }
+
+  /* ---------- Chip rail ---------- */
+  .chip-rail {
+    position: relative;
+    display: flex;
+    gap: 8px;
+    max-width: 100%;
+    padding: 2px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    isolation: isolate;
+  }
+
+  .chip-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip-rail[data-wrap] {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .chip-thumb {
+    background: var(--ink);
+    box-shadow: 0 2px 8px -3px rgb(24 20 40 / 0.35);
+  }
+
+  .chip-opt {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 19px;
+    letter-spacing: -0.006em;
+    text-decoration: none;
+    white-space: nowrap;
+    scroll-snap-align: start;
+    touch-action: manipulation;
+    transition:
+      color var(--dur-hover) ease,
+      background-color var(--dur-hover) ease,
+      box-shadow var(--dur-hover) ease,
+      transform var(--spring-smooth);
+  }
+
+  .chip-rail[data-size='sm'] .chip-opt {
+    min-height: 36px;
+    padding: 0 13px;
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  /* On the sliding thumb: the label turns white and the outline steps back. */
+  .chip-rail:not([data-mode='multi']) .chip-opt[data-on] {
+    box-shadow: inset 0 0 0 1px transparent;
+    color: var(--bg);
+  }
+
+  /* Multi-select: a fill per pressed chip, and a check that slides in from the left. */
+  .chip-check {
+    display: none;
+  }
+
+  .chip-rail[data-mode='multi'] .chip-check {
+    display: block;
+    width: 0;
+    margin-right: -6px;
+    opacity: 0;
+    transform: translateX(-6px);
+    /* Only the check slides and fades; the room it takes is set at once (no animated width). */
+    transition:
+      opacity 140ms ease,
+      transform var(--spring-bouncy);
+  }
+
+  .chip-rail[data-mode='multi'] .chip-opt[aria-pressed='true'] {
+    background: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--ink);
+    color: var(--bg);
+  }
+
+  .chip-rail[data-mode='multi'] .chip-opt[aria-pressed='true'] .chip-check {
+    width: 14px;
+    margin-right: 0;
+    opacity: 1;
+    transform: none;
+  }
+
+  .chip-count {
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: var(--r-pill);
+    background: color-mix(in oklab, currentColor 14%, transparent);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    line-height: 16px;
+    text-align: center;
+  }
+
+  .chip-opt:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  /* ---------- Tab bar ---------- */
+  .tab-bar {
+    position: relative;
+    display: inline-flex;
+    gap: 4px;
+    max-width: 100%;
+    padding: 4px;
+    overflow-x: auto;
+    border-radius: var(--r-pill);
+    background: var(--sunken);
+    scrollbar-width: none;
+    isolation: isolate;
+  }
+
+  .tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-bar-thumb {
+    background: var(--surface-5);
+    box-shadow:
+      0 1px 2px rgb(24 20 40 / 0.12),
+      0 3px 8px -2px rgb(24 20 40 / 0.14);
+  }
+
+  .tab-opt {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 19px;
+    white-space: nowrap;
+    touch-action: manipulation;
+    transition:
+      color var(--dur-hover) ease,
+      transform var(--spring-smooth);
+  }
+
+  .tab-opt::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+
+  .tab-opt[aria-selected='true'] {
+    color: var(--ink);
+  }
+
+  .tab-count {
+    min-width: 22px;
+    padding: 2px 7px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    line-height: 16px;
+    text-align: center;
+  }
+
+  .tab-panel:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+    border-radius: var(--r-inner);
+  }
+
+  /* ---------- Index rail: a sticky "On this page" ---------- */
+  .index-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .index-rail-title {
+    margin: 0;
+    padding-left: 15px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 17px;
+  }
+
+  .index-rail-list {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    isolation: isolate;
+  }
+
+  /* A tinted pill with a 3 px rail marker at its left edge. */
+  .index-rail-thumb {
+    --thumb-r: 12;
+    background: color-mix(in oklab, var(--ink) 7%, transparent);
+  }
+
+  .index-rail-thumb::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--ink);
+  }
+
+  .index-rail-link {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 8px 12px 8px 15px;
+    border-radius: 12px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 19px;
+    text-decoration: none;
+    transition:
+      color var(--dur-hover) ease,
+      transform var(--spring-smooth);
+  }
+
+  .index-rail-link[aria-current='location'] {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ---------- Shared micro-animations: hover to ink with a 1 px lift, press .97, the focus ring ---------- */
+  @media (hover: hover) and (pointer: fine) {
+    :is(.segment-opt, .tab-opt, .index-rail-link):hover,
+    .chip-opt:not([data-on], [aria-pressed='true']):hover {
+      color: var(--ink);
+    }
+
+    :root:not([data-still]) :is(.segment-opt[aria-checked='false'], .tab-opt[aria-selected='false'], .chip-opt:not([data-on], [aria-pressed='true'])):hover {
+      transform: translateY(-1px);
+      transition:
+        color var(--dur-hover) ease,
+        transform var(--spring-release);
+    }
+
+    .chip-opt:not([data-on], [aria-pressed='true']):hover {
+      box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 40%, transparent);
+    }
+  }
+
+  :root:not([data-still]) :is(.segment-opt, .tab-opt, .chip-opt, .index-rail-link):active {
+    transform: scale(0.97);
+    transition-duration: var(--dur-press);
+  }
+
+  :is(.segment-opt, .tab-opt, .chip-opt, .index-rail-link):focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  :root[data-still] :is(.tab-thumb, .segment-opt, .tab-opt, .chip-opt, .chip-check, .index-rail-link) {
+    transition: none;
+  }
+
+  /* ---------- Label roll (M5b): the label slides up, an identical copy rises from below. Whole label, never per letter. ---------- */
+  .label-roll {
+    display: inline-grid;
+    overflow: clip;
+    line-height: inherit;
+    vertical-align: top;
+  }
+
+  .label-roll > span {
+    grid-area: 1 / 1;
+    transition: transform var(--spring-smooth);
+  }
+
+  .label-roll > span[aria-hidden] {
+    transform: translateY(105%);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) :is(a, button):hover > .label-roll > span {
+      transform: translateY(-105%);
+      transition: transform var(--spring-snappy);
+    }
+
+    :root:not([data-still]) :is(a, button):hover > .label-roll > span[aria-hidden] {
+      transform: none;
+    }
+  }
+
+  /* ---------- Arrow disc (M5c) ---------- */
+  .arrow-disc {
+    --disc: 32px;
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: var(--disc);
+    height: var(--disc);
+    margin-block: -6px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.92);
+    color: #0e0e10;
+    transition: transform var(--spring-smooth);
+  }
+
+  /* Red stays the button's: the disc is white, and only on the red action does its arrow take the red. */
+  .btn-accent > .arrow-disc {
+    color: var(--action);
+  }
+
+  .arrow-disc > svg {
+    transition: transform var(--spring-smooth);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) :is(a, button):hover > .arrow-disc {
+      transform: scale(1.08);
+      transition: transform var(--spring-bouncy);
+    }
+
+    :root:not([data-still]) :is(a, button):hover > .arrow-disc[data-kind='go'] > svg {
+      transform: rotate(45deg);
+      transition: transform var(--spring-bouncy);
+    }
+
+    :root:not([data-still]) :is(a, button):hover > .arrow-disc[data-kind='out'] > svg {
+      transform: translate(1.5px, -1.5px);
+      transition: transform var(--spring-bouncy);
+    }
+  }
+
+  :root:not([data-still]) :is(a, button):active > .arrow-disc {
+    transform: scale(0.92);
+    transition-duration: var(--dur-press);
+  }
+
+  /* The primary action with its disc: the padding on the disc's side tightens so the disc sits 6 px from the edge. */
+  .btn.btn-disc {
+    gap: 12px;
+    padding-right: 8px;
+  }
+
+  .btn-lg.btn-disc {
+    padding-right: 10px;
+  }
+
+  :root[data-still] :is(.label-roll > span, .arrow-disc, .arrow-disc > svg) {
+    transition: none;
+  }
+}

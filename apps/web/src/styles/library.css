@@ -1,873 +1,70 @@
-/* Video library, tiles and player. Every rule is inside @layer components, so a Tailwind utility on the same element always wins. */
+/* Video library (V2-SPEC 5.7, visual §2.6). The tile and player rules moved to frames.css with the player (A2). Owner: A5.
+   Every rule is inside @layer components, so a Tailwind utility on the same element always wins. */
 @layer components {
-  /* ---------- Tiles. .tile > img and .tile > video stay child combinators: BrandPill's logo is an img too, and the home reel keys off this. ---------- */
-  .tile {
-    position: relative;
-    display: block;
-    width: 100%;
-    padding: 0;
-    border: 0;
-    border-radius: var(--r-tile);
-    background: var(--sunken);
-    overflow: hidden;
-    aspect-ratio: 9 / 16;
-    color: #fff;
-    cursor: pointer;
-    text-align: left;
-    outline: 1px solid transparent;
-    outline-offset: -1px;
-    touch-action: manipulation;
-    transition:
-      transform 300ms var(--ease-card),
-      outline-color 300ms var(--ease-card);
-  }
-
-  .tile[data-variant='bento'] {
-    height: 100%;
-    aspect-ratio: auto;
-  }
-
-  .tile > img,
-  .tile > video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition:
-      transform 400ms var(--ease-out),
-      opacity 140ms ease 120ms;
-  }
-
-  .tile-preview {
-    opacity: 0;
-  }
-
-  .tile-preview[data-on] {
-    opacity: 1;
-  }
-
-  /* The empty anchor the player's frame flies from and back to. Same box and radius as the tile; holds nothing visible. */
-  .tile-anchor {
-    position: absolute;
-    inset: 0;
-    display: block;
-    pointer-events: none;
-  }
-
-  /* No poster: a character colour and the brand's name. Type is in container units so the morph is a true scale of the same picture. */
-  .tile-empty {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    padding: 12%;
-    container-type: inline-size;
-    color: var(--on-tiko);
-    background: var(--g-tiko);
-    transition: opacity 140ms ease 120ms;
-  }
-
-  .tile-empty > span {
-    display: block;
-    font-family: var(--font-display);
-    font-size: 11cqw;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 1.08;
-    letter-spacing: -0.012em;
-    text-align: center;
-    text-wrap: balance;
-  }
-
-  .tile-empty[data-tone='sochu'] {
-    color: var(--on-sochu);
-    background: var(--g-sochu);
-  }
-
-  .tile-empty[data-tone='bolu'] {
-    color: var(--on-bolu);
-    background: var(--g-bolu);
-  }
-
-  .tile-empty[data-tone='gola'] {
-    color: var(--on-gola);
-    background: var(--g-gola);
-  }
-
-  .tile-scrim {
-    position: absolute;
-    inset: auto 0 0;
-    height: 42%;
-    background: var(--g-scrim);
-    --scrim-a: 0.6;
-    pointer-events: none;
-    transition: opacity 140ms ease 120ms;
-  }
-
-  /* A colour tile has no picture to protect its text from. */
-  .tile-empty ~ .tile-scrim {
-    display: none;
-  }
-
-  .tile-views {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    transition: opacity 140ms ease 120ms;
-  }
-
-  .tile-brand {
-    position: absolute;
-    right: 12px;
-    bottom: 12px;
-    left: 12px;
-    display: flex;
-    transition: opacity 140ms ease 120ms;
-  }
-
-  .tile-play {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    display: grid;
-    place-items: center;
-    width: 56px;
-    height: 56px;
-    margin: -28px 0 0 -28px;
-    border-radius: var(--r-pill);
-    background: rgb(255 255 255 / 0.92);
-    color: #0e0e10;
-    opacity: 0;
-    transform: scale(0.82);
-    transition:
-      opacity 200ms ease,
-      transform 200ms var(--ease-out);
-  }
-
-  /* The poster has left for the player. The slot waits, empty, until it comes home. */
-  .tile[data-lifted] > img,
-  .tile[data-lifted] > .tile-empty,
-  .tile[data-lifted] > .tile-scrim,
-  .tile[data-lifted] > .tile-views,
-  .tile[data-lifted] > .tile-brand,
-  .tile[data-lifted] > .tile-play {
-    opacity: 0;
-    transition: none;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .tile:hover {
-      z-index: var(--z-raised);
-      outline-color: color-mix(in oklab, var(--ink) 35%, transparent);
-    }
-
-    :root:not([data-still]) .tile:hover {
-      transform: scale(calc(1 + 6 / var(--tile-w, 300)));
-    }
-
-    :root:not([data-still]) .tile:hover > img {
-      transform: scale(1.04);
-    }
-
-    .tile:hover > .tile-play {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  .tile:focus-visible {
-    z-index: var(--z-raised);
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-  }
-
-  .tile:focus-visible > .tile-play {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  .tile:active {
-    transform: scale(0.985);
-    transition-duration: var(--dur-press), 300ms;
-  }
-
-  :root:not([data-still]) .tile:active {
-    transform: scale(0.985);
-  }
-
-  :root[data-still] .tile:active {
-    transform: none;
-  }
-
-  /* Touch has no hover, so the affordance stays, quiet. */
-  @media (hover: none), (pointer: coarse) {
-    .tile > .tile-play {
-      width: 44px;
-      height: 44px;
-      margin: -22px 0 0 -22px;
-      background: var(--chip-bg);
-      color: #fff;
-      opacity: 1;
-      transform: none;
-    }
-  }
-
-  .tile-skeleton {
-    border-radius: var(--r-tile);
-    aspect-ratio: 9 / 16;
-  }
-
-  .tile-host {
-    display: grid;
-    place-items: center;
-    background: var(--sunken);
-  }
-
-  @media (max-width: 734px) {
-    .lib-grid .tile,
-    .lib-grid .tile-skeleton {
-      border-radius: var(--r-inner);
-    }
-
-    .tile-views {
-      top: 8px;
-      right: 8px;
-    }
-
-    .tile-brand {
-      right: 8px;
-      bottom: 8px;
-      left: 8px;
-    }
-  }
-
-  /* ---------- Player: a transparent, full-viewport dialog, so the frame can start anywhere. Scrolling lives on inner wrappers. ---------- */
-  .player {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    max-height: none;
-    margin: 0;
-    padding: 24px;
-    border: 0;
-    background: transparent;
-    color: #f5f3ee;
-    overflow: visible;
-  }
-
-  .player[open] {
-    display: grid;
-    place-items: center;
-  }
-
-  .player:focus-visible,
-  .player:focus {
-    outline: none;
-  }
-
-  /* Motion cannot animate ::backdrop, so the dim is CSS. In over 280 ms, out with the same curve. */
-  .player::backdrop {
-    background-color: rgb(0 0 0 / 0.78);
-    transition: background-color 280ms var(--ease-out);
-  }
-
-  @starting-style {
-    .player::backdrop {
-      background-color: rgb(0 0 0 / 0);
-    }
-  }
-
-  .player[data-closing]::backdrop {
-    background-color: rgb(0 0 0 / 0);
-  }
-
-  .player-sheet {
-    position: relative;
-    display: grid;
-    max-width: 100%;
-    max-height: 100%;
-    --frame-h: min(100dvh - 48px, 780px, (100vw - 368px) * 16 / 9);
-    --frame-w: calc(var(--frame-h) * 9 / 16);
-    --land-w: min(100vw - 48px, 1040px, (100dvh - 216px) * 16 / 9);
-  }
-
-  /* Pages stack in one cell so prev and next can slide over each other. */
-  .player-page {
-    grid-area: 1 / 1;
-    display: grid;
-    gap: var(--gap);
-    min-width: 0;
-    min-height: 0;
-  }
-
-  .player-page[data-shape='vertical'] {
-    grid-template-columns: var(--frame-w) minmax(300px, 380px);
-    height: var(--frame-h);
-  }
-
-  .player-page[data-shape='landscape'] {
-    grid-template-columns: var(--land-w);
-  }
-
-  .player-stage {
-    min-width: 0;
-    min-height: 0;
-  }
-
-  .player-frame {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-    background: #000;
-  }
-
-  .player-page[data-shape='vertical'] .player-frame {
-    height: 100%;
-  }
-
-  .player-page[data-shape='landscape'] .player-frame {
-    aspect-ratio: 16 / 9;
-  }
-
-  .player-frame > img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .player-embed,
-  .player-video {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
-    border: 0;
-    background: #000;
-  }
-
-  .player-video {
-    object-fit: contain;
-  }
-
-  /* An embed draws white for a moment; the poster stays until it has something to show. */
-  .player-embed {
-    opacity: 0;
-    transition: opacity 240ms ease;
-  }
-
-  .player-embed[data-ready] {
-    opacity: 1;
-  }
-
-  .player-close {
-    position: absolute;
-    z-index: 2;
-    top: 12px;
-    right: 12px;
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border: 0;
-    border-radius: var(--r-pill);
-    cursor: pointer;
-    touch-action: manipulation;
-    transition:
-      opacity 200ms ease,
-      transform var(--dur-press) var(--ease-out);
-  }
-
-  .player-close:active {
-    transform: scale(0.92);
-  }
-
-  :root[data-still] .player-close:active {
-    transform: none;
-  }
-
-  .player[data-closing] .player-close {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  /* The panel beside the video: dark in both themes, because the video is the show. */
-  .player-info.band-dark {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    gap: 16px;
-    padding: 24px;
-    border-radius: var(--r-tile);
-    background: #15151a;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-
-  .player-head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-right: 52px;
-    min-height: 44px;
-  }
-
-  .player-index {
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 18px;
-    letter-spacing: -0.006em;
-    white-space: nowrap;
-  }
-
-  .player-title {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 32px;
-    letter-spacing: -0.01em;
-    text-wrap: balance;
-  }
-
-  .player-facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px 24px;
-    margin: 0;
-  }
-
-  .player-facts dt {
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 18px;
-  }
-
-  .player-facts dd {
-    margin: 2px 0 0;
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 22px;
-  }
-
-  .player-views {
-    flex-basis: 100%;
-  }
-
-  .player-views dd {
-    font-family: var(--font-display);
-    font-size: 48px;
-    font-variation-settings: 'opsz' 32;
-    line-height: 52px;
-    letter-spacing: -0.016em;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .player-next {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-inline: -8px;
-    padding-top: 4px;
-  }
-
-  .player-next h3 {
-    margin: 0 0 4px 8px;
-    color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.006em;
-  }
-
-  .player-next-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    padding: 6px 8px;
-    border: 0;
-    border-radius: var(--r-field);
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-    text-align: left;
-    touch-action: manipulation;
-    transition: background-color var(--dur-hover) ease;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .player-next-row:hover {
-      background: rgb(255 255 255 / 0.08);
-    }
-  }
-
-  .player-next-thumb {
-    position: relative;
-    flex: none;
-    width: 40px;
-    height: 71px;
-    overflow: hidden;
-    border-radius: 8px;
-    background: rgb(255 255 255 / 0.1);
-  }
-
-  .player-next-thumb > img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .player-next-thumb .tile-empty > span {
-    font-size: 16cqw;
-  }
-
-  .player-next-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-
-  .player-next-title {
-    display: -webkit-box;
-    overflow: hidden;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
-    letter-spacing: -0.009em;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-  }
-
-  .player-next-brand {
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 17px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Only when the panel has the room. It is what fills the panel, never what pushes the action off it. */
-  @media (max-width: 1068px), (max-height: 780px) {
-    .player-next {
-      display: none;
-    }
-  }
-
-  .player-page[data-shape='landscape'] .player-next {
-    display: none;
-  }
-
-  .player-actions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 12px;
-    margin-top: auto;
-    padding-top: 8px;
-  }
-
-  .player-steps {
-    display: flex;
-    gap: 8px;
-  }
-
-  .player-step {
-    border-radius: var(--r-pill);
-    box-shadow: inset 0 0 0 1.5px var(--line);
-  }
-
-  .player-ask {
-    margin: 0;
-    color: var(--muted);
-    font-size: 15px;
-    line-height: 20px;
-  }
-
-  .player-cta {
-    grid-column: 1 / -1;
-    width: 100%;
-  }
-
-  /* Landscape: picture on top, a strip of words and the action beneath it. */
-  .player-page[data-shape='landscape'] .player-info {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 40px;
-    align-items: center;
-    padding: 20px 24px;
-  }
-
-  .player-page[data-shape='landscape'] .player-head {
-    grid-column: 1;
-    padding-right: 0;
-    min-height: 0;
-  }
-
-  .player-page[data-shape='landscape'] .player-title {
-    grid-column: 1;
-    font-size: 21px;
-    line-height: 25px;
-  }
-
-  .player-page[data-shape='landscape'] .player-facts {
-    grid-column: 1;
-  }
-
-  .player-page[data-shape='landscape'] .player-views {
-    flex-basis: auto;
-  }
-
-  .player-page[data-shape='landscape'] .player-views dd {
-    font-size: 17px;
-    line-height: 22px;
-    letter-spacing: normal;
-  }
-
-  .player-page[data-shape='landscape'] .player-actions {
-    grid-column: 2;
-    grid-row: 1 / span 3;
-    display: flex;
-    margin-top: 0;
-    padding-top: 0;
-  }
-
-  .player-page[data-shape='landscape'] .player-ask {
-    display: none;
-  }
-
-  .player-page[data-shape='landscape'] .player-cta {
-    width: auto;
-  }
-
-  /* Short laptop windows: the words shrink before the picture does. */
-  @media (max-height: 640px) and (min-width: 735px) {
-    .player-title {
-      font-size: 21px;
-      line-height: 25px;
-    }
-
-    .player-views dd {
-      font-size: 28px;
-      line-height: 32px;
-    }
-
-    .player-ask {
-      display: none;
-    }
-  }
-
-  /* A phone held sideways: only what fits with the action still in view. */
-  @media (max-height: 480px) and (min-width: 735px) {
-    .player-info.band-dark {
-      gap: 8px;
-      padding: 16px;
-    }
-
-    .player-head {
-      min-height: 30px;
-    }
-
-    .player-facts {
-      display: none;
-    }
-
-    .player-page[data-shape='vertical'] .player-actions {
-      grid-template-columns: auto minmax(0, 1fr);
-    }
-
-    .player-page[data-shape='vertical'] .player-cta {
-      grid-column: auto;
-    }
-  }
-
-  /* Phone: the whole screen. The stage sizes the picture so the words and the action below it are never pushed off. */
-  @media (max-width: 734px) {
-    .player {
-      padding: 0;
-    }
-
-    .player:not([data-closing])::backdrop {
-      background-color: rgb(0 0 0 / 0.92);
-    }
-
-    .player-sheet {
-      width: 100%;
-      height: 100%;
-      max-width: none;
-      max-height: none;
-    }
-
-    .player-page,
-    .player-page[data-shape='vertical'],
-    .player-page[data-shape='landscape'] {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    .player-stage {
-      display: grid;
-      flex: 1;
-      place-items: center;
-      container-type: size;
-      padding-top: env(safe-area-inset-top);
-    }
-
-    .player-page[data-shape='vertical'] .player-frame {
-      width: min(100cqw, 100cqh * 9 / 16);
-      height: auto;
-      aspect-ratio: 9 / 16;
-    }
-
-    .player-page[data-shape='landscape'] .player-frame {
-      width: min(100cqw, 100cqh * 16 / 9);
-    }
-
-    .player-close {
-      top: max(12px, env(safe-area-inset-top));
-    }
-
-    .player-info.band-dark,
-    .player-page[data-shape='landscape'] .player-info.band-dark {
-      display: grid;
-      flex: none;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 6px 12px;
-      align-items: center;
-      padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
-      border-radius: var(--r-inner) var(--r-inner) 0 0;
-      overflow: visible;
-    }
-
-    .player-head,
-    .player-page[data-shape='landscape'] .player-head {
-      grid-column: 1;
-      min-height: 30px;
-      padding-right: 0;
-    }
-
-    .player-title,
-    .player-page[data-shape='landscape'] .player-title {
-      grid-column: 1 / -1;
-      display: -webkit-box;
-      overflow: hidden;
-      font-size: 17px;
-      line-height: 22px;
-      letter-spacing: -0.012em;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
-    }
-
-    .player-facts,
-    .player-page[data-shape='landscape'] .player-facts {
-      grid-column: 2;
-      grid-row: 1;
-      gap: 0;
-      justify-content: flex-end;
-    }
-
-    .player-facts > div:not(.player-views) {
-      display: none;
-    }
-
-    .player-views,
-    .player-page[data-shape='landscape'] .player-views {
-      display: flex;
-      flex-basis: auto;
-      flex-direction: row-reverse;
-      align-items: baseline;
-      gap: 4px;
-    }
-
-    .player-views dt {
-      font-size: 13px;
-      text-transform: lowercase;
-    }
-
-    .player-views dd,
-    .player-page[data-shape='landscape'] .player-views dd {
-      margin: 0;
-      font-size: 15px;
-      line-height: 20px;
-      letter-spacing: -0.009em;
-    }
-
-    .player-actions,
-    .player-page[data-shape='landscape'] .player-actions {
-      grid-column: 1 / -1;
-      grid-row: auto;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 4px;
-      padding-top: 0;
-    }
-
-    .player-ask {
-      display: none;
-    }
-
-    .player-cta,
-    .player-page[data-shape='landscape'] .player-cta {
-      flex: 1;
-      width: auto;
-      min-width: 0;
-      padding-inline: 16px;
-      font-size: 16px;
-    }
-  }
-
-  :root[data-still] .tile,
-  :root[data-still] .tile > img,
-  :root[data-still] .tile-empty,
-  :root[data-still] .tile-scrim,
-  :root[data-still] .tile-views,
-  :root[data-still] .tile-brand,
-  :root[data-still] .tile-play,
-  :root[data-still] .player::backdrop {
-    transition: none;
-  }
-
-  /* ---------- Page header ---------- */
+  /* ---------- Page header: the words, then the brands as story rings ---------- */
   .lib-head {
     position: relative;
     padding-top: calc(var(--nav-offset) + 56px);
-    padding-bottom: 40px;
+    padding-bottom: 32px;
   }
 
   .lib-head-in {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  .lib-head-copy {
     display: grid;
     align-items: end;
-    gap: 16px 64px;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    gap: 12px 64px;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   }
 
-  .lib-head .eyebrow {
-    margin: 0 0 12px;
+  .lib-head-copy .eyebrow {
+    grid-column: 1 / -1;
+    margin: 0;
   }
 
-  .lib-head .lead {
+  .lib-head-copy .lead {
+    margin: 0;
     padding-bottom: 8px;
   }
 
+  /* The ring row keeps its height while the library loads, so the bar below never moves. */
+  .lib-rings-wrap {
+    min-height: 106px;
+  }
+
+  .lib-rings {
+    display: flex;
+    gap: 6px;
+    margin-inline: -10px;
+    padding: 4px 10px 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .lib-rings::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lib-rings > .story-ring {
+    scroll-snap-align: start;
+  }
+
+  .lib-rings .story-ring-caption {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   @media (max-width: 1068px) {
-    .lib-head-in {
+    .lib-head-copy {
       grid-template-columns: minmax(0, 1fr);
     }
   }
@@ -875,11 +72,22 @@
   @media (max-width: 734px) {
     .lib-head {
       padding-top: calc(var(--nav-offset) + 28px);
-      padding-bottom: 24px;
+      padding-bottom: 20px;
+    }
+
+    .lib-head-in {
+      gap: 24px;
+    }
+
+    .lib-rings {
+      margin-inline: calc(-6.25vw - 1px);
+      padding-inline: 6.25vw;
+      scroll-padding-inline: 6.25vw;
+      scroll-snap-type: x mandatory;
     }
   }
 
-  /* ---------- The bar ---------- */
+  /* ---------- The bar: glass, sticky under the nav. The count, the chip rails as one sideways strip, the search and the sort. ---------- */
   .lib-body {
     position: relative;
     padding-bottom: 96px;
@@ -898,9 +106,9 @@
 
   .lib-count {
     flex: none;
-    min-width: 96px;
+    min-width: 92px;
     margin: 0;
-    padding: 0 8px 0 12px;
+    padding: 0 4px 0 12px;
     color: var(--on-glass);
     font-size: 15px;
     font-weight: 600;
@@ -910,11 +118,51 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .lib-menus {
+  .lib-facets {
     display: flex;
     flex: 1;
+    align-items: center;
+    gap: 20px;
     min-width: 0;
-    gap: 2px;
+    padding: 2px 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    /* The strip fades at its right edge, so a cut chip reads as "more this way". A static mask. */
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+
+  .lib-facets::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lib-facet {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lib-facet:last-child {
+    padding-right: 24px;
+  }
+
+  .lib-facet + .lib-facet {
+    padding-left: 20px;
+    border-left: 1px solid color-mix(in oklab, var(--on-glass) 14%, transparent);
+  }
+
+  .lib-facet-label {
+    color: var(--on-glass-2);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 16px;
+    white-space: nowrap;
+  }
+
+  .lib-facet .chip-rail {
+    flex-wrap: nowrap;
   }
 
   .lib-tools {
@@ -958,8 +206,7 @@
     transform: none;
   }
 
-  .lib-btn[aria-expanded='true'],
-  .lib-btn[data-on] {
+  .lib-btn[aria-expanded='true'] {
     background: color-mix(in oklab, var(--on-glass) 10%, transparent);
   }
 
@@ -978,30 +225,15 @@
     transform: rotate(180deg);
   }
 
-  .lib-badge {
-    display: inline-grid;
-    place-items: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: var(--r-pill);
-    background: var(--on-glass);
-    color: var(--glass-count, #fff);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 16px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  [data-theme='dark'] .lib-badge {
-    --glass-count: #0e0e10;
+  :root[data-still] .lib-chev {
+    transition: none;
   }
 
   .lib-search {
     position: relative;
     display: flex;
     align-items: center;
-    width: 240px;
+    width: 220px;
   }
 
   .lib-search-icon {
@@ -1051,26 +283,23 @@
     cursor: pointer;
   }
 
-  .lib-filters {
-    display: none;
+  /* The sort menu: opaque, always (R17), from its button, with a check on the current order. */
+  .lib-sort-wrap {
+    position: relative;
   }
 
-  /* Opaque, always (R17). Opens from its button, with no exit animation: this is used often and should get out of the way. */
   .lib-pop {
     position: absolute;
     z-index: var(--z-popover);
     top: calc(100% + 8px);
-    left: var(--pop-x, 0);
-    width: 288px;
-    max-height: min(420px, var(--panel-max, 420px));
-    padding: 8px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    right: 0;
+    width: 224px;
+    padding: 6px;
     border-radius: var(--r-inner);
     background: var(--surface-5);
     color: var(--ink);
     box-shadow: var(--shadow-5);
-    transform-origin: var(--pop-origin, 28px) -8px;
+    transform-origin: calc(100% - 28px) -8px;
     transition:
       opacity var(--dur-pop) var(--ease-out),
       transform var(--dur-pop) var(--ease-out);
@@ -1091,13 +320,19 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    width: 100%;
     min-height: 44px;
-    padding: 0 10px;
+    padding: 0 12px;
+    border: 0;
     border-radius: 12px;
+    background: transparent;
+    color: var(--ink);
     cursor: pointer;
+    font: inherit;
     font-size: 15px;
     line-height: 20px;
     letter-spacing: -0.009em;
+    text-align: left;
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -1106,13 +341,9 @@
     }
   }
 
-  .lib-opt input {
-    flex: none;
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    accent-color: var(--ink);
-    cursor: pointer;
+  .lib-opt:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
   }
 
   .lib-opt-label {
@@ -1120,21 +351,39 @@
     min-width: 0;
   }
 
-  .lib-opt-count {
-    color: var(--muted);
-    font-size: 14px;
-    font-variant-numeric: tabular-nums;
+  .lib-opt-check {
+    flex: none;
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity 120ms ease,
+      transform var(--spring-smooth);
   }
 
-  /* ---------- Status row: the live count (phones) and the active filters ---------- */
+  .lib-opt[aria-checked='true'] {
+    font-weight: 600;
+  }
+
+  .lib-opt[aria-checked='true'] .lib-opt-check {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 120ms ease,
+      transform var(--spring-bouncy);
+  }
+
+  :root[data-still] .lib-opt-check {
+    transition: none;
+  }
+
+  /* ---------- Status row: the live count (narrow screens) and the active filters ---------- */
   .lib-status {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    min-height: 0;
     margin-top: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 4px;
   }
 
   .lib-status:not(:has(button)) {
@@ -1153,6 +402,7 @@
   }
 
   .lib-chip {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -1169,7 +419,6 @@
     font-weight: 600;
     line-height: 18px;
     letter-spacing: -0.006em;
-    position: relative;
     touch-action: manipulation;
   }
 
@@ -1186,6 +435,7 @@
   }
 
   .lib-clear {
+    position: relative;
     min-height: 36px;
     padding: 0 8px;
     border: 0;
@@ -1197,7 +447,6 @@
     font-weight: 600;
     line-height: 18px;
     letter-spacing: -0.006em;
-    position: relative;
   }
 
   .lib-clear::after {
@@ -1210,6 +459,12 @@
     .lib-clear:hover {
       color: var(--ink);
     }
+  }
+
+  /* ---------- Featured (M14) ---------- */
+  .lib-featured {
+    margin-top: 36px;
+    margin-bottom: 12px;
   }
 
   /* ---------- Grid ---------- */
@@ -1225,141 +480,50 @@
     min-width: 0;
   }
 
+  /* The end card fills the last row's gap; on a full row it takes one cell of a new row. */
   .lib-end {
-    grid-column: span var(--rest-4, 1);
+    position: relative;
     min-width: 0;
-    position: relative;
+    grid-column: span var(--rest-4, 1);
   }
 
-  .lib-end[data-r4='0'] {
-    display: none;
-  }
-
-  .lib-end-tile {
+  .lib-end-card {
     height: 100%;
-    justify-content: flex-end;
-    container-type: inline-size;
+    justify-content: center;
+    border-radius: var(--r-tile);
   }
 
-  .lib-end-copy {
-    position: relative;
-    flex: 1;
-    justify-content: flex-end;
-    gap: 12px;
+  .lib-end[data-r4='2'] .lib-end-card,
+  .lib-end[data-r4='3'] .lib-end-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+  }
+
+  .lib-end[data-r4='2'] .deckcard-stack,
+  .lib-end[data-r4='3'] .deckcard-stack {
+    flex: none;
+    width: 200px;
+    margin-inline: 0;
+  }
+
+  .lib-end .deckcard-text {
+    align-items: flex-start;
+    gap: 14px;
   }
 
   .lib-end-title {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: 28px;
+    color: var(--ink);
+    font-size: 24px;
     font-weight: 600;
     font-variation-settings: 'opsz' 32;
-    line-height: 32px;
-    letter-spacing: -0.01em;
-    text-wrap: balance;
-  }
-
-  .lib-end-lead {
-    display: none;
-    margin: 0;
-    color: var(--muted);
-    font-size: 17px;
-    line-height: 24px;
-    letter-spacing: -0.012em;
-    text-wrap: pretty;
+    line-height: 28px;
+    letter-spacing: -0.014em;
   }
 
   .lib-end-go {
-    align-self: flex-start;
-    margin-top: 8px;
-  }
-
-  /* The fan of posters only appears on a tile with room to hold it: the last row after a short set. */
-  .lib-end-fan {
-    position: absolute;
-    top: 0;
-    right: 32px;
-    bottom: 0;
-    display: none;
-    gap: 16px;
     pointer-events: none;
-  }
-
-  .lib-end-fan > img {
-    width: 176px;
-    height: 420px;
-    border-radius: var(--r-inner);
-    object-fit: cover;
-  }
-
-  .lib-end-fan > img:nth-child(1) {
-    margin-top: 250px;
-  }
-
-  .lib-end-fan > img:nth-child(2) {
-    margin-top: 190px;
-  }
-
-  .lib-end-fan > img:nth-child(3) {
-    margin-top: 130px;
-  }
-
-  @container (min-width: 480px) {
-    .lib-end-lead {
-      display: block;
-      max-width: 40ch;
-    }
-
-    .lib-end-go {
-      min-height: 48px;
-      padding: 12px 24px;
-      font-size: 17px;
-      line-height: 21px;
-      letter-spacing: -0.012em;
-    }
-  }
-
-  @container (min-width: 620px) {
-    .lib-end-copy {
-      max-width: 340px;
-    }
-
-    .lib-end-fan {
-      display: flex;
-    }
-
-    /* As many posters as fit beside the 340 px of words: each needs 176 px and a 16 px gap, with 24 px kept clear of the copy. */
-    .lib-end-fan > img:nth-child(n + 2) {
-      display: none;
-    }
-
-    .lib-end-title {
-      font-size: 40px;
-      line-height: 44px;
-      letter-spacing: -0.012em;
-    }
-  }
-
-  @container (min-width: 800px) {
-    .lib-end-fan > img:nth-child(2) {
-      display: block;
-    }
-  }
-
-  @container (min-width: 1000px) {
-    .lib-end-fan > img:nth-child(3) {
-      display: block;
-    }
-  }
-
-  .lib-end-arrow {
-    display: none;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--r-pill);
-    background: var(--action);
-    color: var(--on-action);
   }
 
   @media (max-width: 1068px) {
@@ -1367,27 +531,31 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .lib-end,
-    .lib-end[data-r4='0'] {
-      display: block;
+    .lib-end {
       grid-column: span var(--rest-3, 1);
     }
 
-    .lib-end[data-r3='0'] {
-      display: none;
+    .lib-end .lib-end-card {
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .lib-end .deckcard-stack {
+      width: min(100%, 220px);
+      margin-inline: auto;
     }
 
     .lib-count {
       display: none;
     }
 
-    .lib-menus,
-    .lib-sort {
-      display: none;
+    .lib-bar {
+      flex-wrap: wrap;
     }
 
     .lib-tools {
-      flex: 1;
+      order: 1;
+      flex: 1 1 100%;
     }
 
     .lib-search {
@@ -1395,8 +563,9 @@
       width: auto;
     }
 
-    .lib-filters {
-      display: inline-flex;
+    .lib-facets {
+      order: 2;
+      flex: 1 1 100%;
     }
 
     .lib-count-line {
@@ -1406,79 +575,7 @@
 
     .lib-status:not(:has(button)) {
       margin-top: 16px;
-      margin-bottom: 20px;
-    }
-
-    .lib-pop[data-panel] {
-      right: 0;
-      left: 0;
-      display: flex;
-      flex-direction: column;
-      width: auto;
-      max-height: min(620px, var(--panel-max, 620px));
-      padding: 0;
-      overflow: hidden;
-      transform-origin: calc(100% - 40px) -8px;
-    }
-
-    .lib-panel-scroll {
-      flex: 1;
-      min-height: 0;
-      padding: 16px;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-    }
-
-    .lib-panel-group + .lib-panel-group {
-      margin-top: 20px;
-    }
-
-    .lib-panel-group h3 {
-      margin: 0 0 8px;
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 600;
-      line-height: 18px;
-    }
-
-    .lib-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .lib-tag {
-      min-height: 44px;
-      padding: 0 16px;
-      border: 0;
-      border-radius: var(--r-pill);
-      background: var(--sunken);
-      color: var(--ink);
-      cursor: pointer;
-      font: inherit;
-      font-size: 15px;
-      font-weight: 600;
-      line-height: 20px;
-      letter-spacing: -0.009em;
-      touch-action: manipulation;
-    }
-
-    .lib-tag[aria-pressed='true'],
-    .lib-tag[aria-checked='true'] {
-      background: var(--ink);
-      color: var(--bg);
-    }
-
-    .lib-panel-foot {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px 16px;
-      border-top: 1px solid var(--line);
-    }
-
-    .lib-panel-foot .btn {
-      min-height: 48px;
+      margin-bottom: 4px;
     }
   }
 
@@ -1487,19 +584,12 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .lib-end,
-    .lib-end[data-r4='0'],
-    .lib-end[data-r3='0'] {
-      display: block;
+    .lib-end {
       grid-column: span var(--rest-2, 1);
     }
 
-    .lib-end[data-r2='0'] {
-      display: none;
-    }
-
-    .lib-end-copy {
-      padding: 20px;
+    .lib-end-card {
+      padding: 18px 14px 16px;
     }
 
     .lib-end-title {
@@ -1508,16 +598,23 @@
       letter-spacing: -0.012em;
     }
 
-    .lib-end-lead {
-      display: none;
-    }
-
     .lib-end-go {
-      display: none;
+      align-self: stretch;
+      justify-content: center;
+      white-space: normal;
+      text-align: center;
     }
 
-    .lib-end-arrow {
-      display: grid;
+    .lib-facets {
+      gap: 14px;
+    }
+
+    .lib-facet + .lib-facet {
+      padding-left: 14px;
+    }
+
+    .lib-featured {
+      margin-top: 28px;
     }
 
     .lib-body {
@@ -1525,14 +622,14 @@
     }
   }
 
-  /* ---------- Empty and error ---------- */
+  /* ---------- Empty, error and loading ---------- */
   .lib-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
     margin-top: 20px;
-    padding: 72px 24px 56px;
+    padding: 96px 24px 56px;
     text-align: center;
   }
 

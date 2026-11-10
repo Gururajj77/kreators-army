@@ -1,6 +1,6 @@
-/* Contact, FAQ, blog, reading pages, legal and the 404. Every rule is inside @layer components, so a Tailwind utility on the same element wins. */
+/* Contact (with the guided trial brief), FAQ, blog, reading pages and legal. The 404 lives in notfound.css. Every rule is inside @layer components, so a Tailwind utility on the same element wins. */
 @layer components {
-  /* ---------- Contact: the page is the form, and the cast stands on it ---------- */
+  /* ---------- Contact: the page is the form, and the cast stands on it (content §3.5, visual §2.5) ---------- */
   .contact {
     position: relative;
     padding-top: calc(var(--nav-offset) + 40px);
@@ -12,14 +12,14 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'head' 'form' 'next';
-    gap: 48px;
+    gap: 40px;
   }
 
   .contact-head {
     grid-area: head;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 28px;
   }
 
   .contact-form {
@@ -31,7 +31,7 @@
     grid-area: next;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 18px;
   }
 
   @media (min-width: 1069px) {
@@ -40,87 +40,117 @@
       grid-template-areas: 'head form' 'next form';
       grid-template-rows: auto 1fr;
       column-gap: 72px;
-      row-gap: 40px;
+      row-gap: 44px;
+    }
+
+    .contact-head,
+    .contact-next {
+      max-width: 460px;
     }
   }
 
-  .contact-email {
+  /* Direct contacts: a compact list, one tap each. */
+  .reach {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .reach-list {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .reach-row {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .reach-row > dt {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+  }
+
+  .reach-row > dd {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 2px 6px;
+    min-width: 0;
     margin: 0;
   }
 
-  .contact-email-link {
-    font-weight: 600;
-    text-underline-offset: 3px;
+  .reach-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     color: var(--ink);
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 22px;
+    letter-spacing: -0.012em;
+    text-decoration: none;
+    text-underline-offset: 3px;
     overflow-wrap: anywhere;
   }
 
-  .contact-copy-btn {
-    position: relative;
-    display: inline-grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    margin: -8px -8px -8px -4px;
-    border: 0;
-    border-radius: 12px;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: color var(--dur-hover) ease, background-color var(--dur-hover) ease;
-  }
-
-  .contact-copy-btn > svg {
-    grid-area: 1 / 1;
-    transition:
-      opacity var(--dur-pop) ease,
-      transform var(--dur-pop) var(--ease-out),
-      filter var(--dur-pop) ease;
-  }
-
-  .contact-copy-b {
-    opacity: 0;
-    transform: scale(0.8);
-    filter: blur(2px);
-  }
-
-  .contact-copy-btn[data-state='copied'] {
-    color: var(--ink);
-  }
-
-  .contact-copy-btn[data-state='copied'] .contact-copy-a {
-    opacity: 0;
-    transform: scale(0.8);
-    filter: blur(2px);
-  }
-
-  .contact-copy-btn[data-state='copied'] .contact-copy-b {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-
   @media (hover: hover) and (pointer: fine) {
-    .contact-copy-btn:hover {
-      background: var(--sunken);
-      color: var(--ink);
+    .reach-link:hover {
+      text-decoration: underline;
     }
   }
 
-  :root[data-still] .contact-copy-btn > svg {
-    transition: none;
+  .reach-sep {
+    color: var(--muted);
+    white-space: pre;
   }
 
-  /* What happens next: STEPS, verbatim, on one quiet rail. */
+  .reach-email .copy {
+    margin-left: 4px;
+  }
+
+  .reach-city {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  /* Phones: a narrower label column, and the two call numbers one under the other with no separator left hanging. */
+  @media (max-width: 734px) {
+    .reach-row {
+      grid-template-columns: 76px minmax(0, 1fr);
+    }
+
+    .reach-link {
+      font-size: 16px;
+    }
+
+    .reach-email {
+      flex-wrap: nowrap;
+    }
+
+    .reach-calls {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .reach-sep {
+      display: none;
+    }
+  }
+
+  /* What happens next: four quiet rows on one rail. */
   .contact-steps {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -130,15 +160,23 @@
     position: relative;
     display: grid;
     grid-template-columns: 28px minmax(0, 1fr);
+    align-items: start;
     gap: 14px;
+    font-size: 17px;
+    line-height: 24px;
+    letter-spacing: -0.012em;
+  }
+
+  .contact-steps > li > p {
+    padding-top: 2px;
   }
 
   .contact-steps > li + li::before {
     content: '';
     position: absolute;
     left: 13.5px;
-    top: -14px;
-    height: 12px;
+    top: -12px;
+    height: 10px;
     width: 1px;
     background: var(--line);
   }
@@ -162,43 +200,72 @@
     color: var(--bg);
   }
 
-  .contact-steps .label {
-    display: block;
-    padding-top: 3px;
+  .contact-q-line {
+    margin: 0;
+    font-size: 19px;
+    line-height: 28px;
+    letter-spacing: -0.014em;
   }
 
-  .contact-steps p {
-    margin-top: 2px;
-  }
-
+  /* Socials with the dock pop (M5g): in fast with a little bounce, out slow and clean. Neighbours do nothing. */
   .contact-socials {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px 20px;
-    margin: 8px 0 0;
+    margin: 8px 0 0 -10px;
     padding: 0;
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
     list-style: none;
   }
 
-  /* 44 px targets without moving the words: the padding is taken back by the margin. */
-  .contact-socials a {
-    display: inline-block;
-    min-width: 44px;
-    padding: 12px;
-    margin: -12px;
-    text-align: center;
+  .contact-social {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: var(--r-pill);
+    color: var(--muted);
+    transition:
+      color var(--dur-hover) ease,
+      background-color var(--dur-hover) ease,
+      transform var(--spring-smooth);
+  }
+
+  .contact-social[data-tone='tiko'] {
+    --tint: var(--c-purple-text);
+  }
+  .contact-social[data-tone='sochu'] {
+    --tint: #b8920a;
+  }
+  .contact-social[data-tone='bolu'] {
+    --tint: #2f9a33;
+  }
+  .contact-social[data-tone='gola'] {
+    --tint: #d9661a;
+  }
+
+  .contact-social:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .contact-socials a:hover {
-      color: var(--ink);
+    .contact-social:hover {
+      background: var(--sunken);
+      color: var(--tint);
+    }
+
+    :root:not([data-still]) .contact-social:hover {
+      transform: translateY(-4px) scale(1.08);
+      transition:
+        color var(--dur-hover) ease,
+        background-color var(--dur-hover) ease,
+        transform var(--spring-bouncy);
     }
   }
 
-  /* The form */
+  :root:not([data-still]) .contact-social:active {
+    transform: scale(0.97);
+  }
+
+  /* ---------- The form ---------- */
   .cf {
     --cf-k: clamp(104px, min(9.4vw, 15.2vh), 136px);
     position: relative;
@@ -211,14 +278,34 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    gap: clamp(20px, 5vw, 56px);
+    gap: clamp(20px, 4vw, 52px);
+    min-height: calc(var(--cf-k) * 0.92);
     margin-bottom: -2px;
+  }
+
+  .cf-k {
+    display: block;
+  }
+
+  /* Desktop: four slots spread along the top edge. Gola's, at the right end, stays empty until steps 4 and 5 (it pops in with the Character's own
+     intro) and empties again at the review, so the others never move. */
+  .cf-cast[data-slots='4'] {
+    justify-content: space-evenly;
+    gap: 8px;
+  }
+
+  .cf-k[data-empty] {
+    width: calc(var(--cf-k) * 0.86);
+  }
+
+  .cf {
+    scroll-margin-top: var(--nav-offset);
   }
 
   .cf-card {
     position: relative;
     display: grid;
-    padding: 36px;
+    padding: 32px 36px 36px;
     border-radius: var(--r-tile);
     background: var(--surface);
     box-shadow: var(--plate-edge);
@@ -226,17 +313,18 @@
 
   @media (max-width: 734px) {
     .cf {
-      --cf-k: 104px;
+      --cf-k: 96px;
       --spread: 0.52;
     }
 
     .cf-cast {
       justify-content: flex-end;
+      gap: 20px;
       padding-right: 16px;
     }
 
     .cf-card {
-      padding: 24px;
+      padding: 20px 18px 24px;
     }
   }
 
@@ -249,8 +337,13 @@
   .cf-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 22px;
     transition: opacity 180ms ease;
+  }
+
+  .cf-mode {
+    width: 100%;
+    max-width: 440px;
   }
 
   .cf-grid {
@@ -288,17 +381,18 @@
     letter-spacing: -0.009em;
   }
 
-  .cf-pills > legend {
-    display: block;
-    width: 100%;
-    padding: 0;
-  }
-
   .cf-opt {
     color: var(--muted);
     font-size: 13px;
     font-weight: 400;
     line-height: 18px;
+  }
+
+  .cf-help {
+    margin: -2px 0 8px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 20px;
   }
 
   .cf-input {
@@ -372,71 +466,8 @@
     animation: none;
   }
 
-  /* Service pills: real radios, optional, tap the chosen one again to clear it. Ink, never red: red means act. */
-  .cf-pill-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .cf-pill {
-    position: relative;
-    display: inline-flex;
-    cursor: pointer;
-  }
-
-  .cf-pill > input {
-    position: absolute;
-    inset: 0;
-    margin: 0;
-    opacity: 0;
-    cursor: pointer;
-  }
-
-  .cf-pill > span {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 16px;
-    border-radius: var(--r-pill);
-    box-shadow: inset 0 0 0 1.5px var(--line);
-    color: var(--ink);
-    font-size: 15px;
-    line-height: 19px;
-    letter-spacing: -0.009em;
-    white-space: nowrap;
-    transition:
-      background-color var(--dur-hover) ease,
-      color var(--dur-hover) ease,
-      box-shadow var(--dur-hover) ease,
-      transform var(--dur-press) var(--ease-out);
-  }
-
-  .cf-pill > input:checked + span {
-    background: var(--ink);
-    color: var(--bg);
-    box-shadow: none;
-    font-weight: 600;
-  }
-
-  .cf-pill > input:focus-visible + span {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-  }
-
-  .cf-pill:active > span {
-    transform: scale(0.97);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .cf-pill:hover > input:not(:checked) + span {
-      background: color-mix(in oklab, var(--ink) 6%, transparent);
-      box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--ink) 40%, transparent);
-    }
-  }
-
-  :root[data-still] .cf-pill:active > span {
-    transform: none;
+  .cf-pills .chip-rail {
+    margin-top: 2px;
   }
 
   .cf-alert {
@@ -475,12 +506,8 @@
     overflow-wrap: anywhere;
   }
 
-  .cf-submit {
-    width: 100%;
-  }
-
   .cf-fine {
-    margin: -4px 0 0;
+    margin: -6px 0 0;
     color: var(--muted);
     text-align: center;
     text-wrap: balance;
@@ -489,6 +516,582 @@
   .cf-fine a {
     color: inherit;
     text-underline-offset: 2px;
+  }
+
+  /* ---------- The brief builder (visual §1.5) ---------- */
+  .bf-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 20px;
+  }
+
+  .bf-progress[data-review] {
+    justify-content: flex-end;
+  }
+
+  .bf-progress-label {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Five dots: done ones ink, the active one a pill (an 8 px dot stretched 2.4 times from its left edge, on the snappy spring), the rest a line. */
+  .bf-dots {
+    display: flex;
+    gap: 18px;
+    margin: 0;
+    padding: 0 12px 0 0;
+    list-style: none;
+  }
+
+  .bf-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--line);
+    transform-origin: 0 50%;
+    transition:
+      transform var(--spring-snappy),
+      background-color 160ms ease;
+  }
+
+  .bf-dot[data-state='done'],
+  .bf-progress[data-review] .bf-dot {
+    background: var(--ink);
+  }
+
+  .bf-dot[data-state='now'] {
+    background: var(--ink);
+    transform: scaleX(2.4);
+  }
+
+  .bf-panels {
+    min-width: 0;
+  }
+
+  .bf-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .bf-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 32px;
+    letter-spacing: -0.006em;
+  }
+
+  .bf-title:focus {
+    outline: none;
+  }
+
+  .bf-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .bf-choices {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .bf-q {
+    display: block;
+    margin: 0 0 12px;
+    padding: 0;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 23px;
+    letter-spacing: -0.012em;
+  }
+
+  /* Single-select cards: real radios. The chosen card gets an ink 2 px ring and a check badge that pops. */
+  .bf-cards {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bf-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 64px;
+    padding: 12px 46px 12px 18px;
+    border-radius: 18px;
+    background: color-mix(in oklab, var(--sunken) 60%, var(--surface));
+    box-shadow: inset 0 0 0 1.5px var(--line);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 21px;
+    letter-spacing: -0.009em;
+    touch-action: manipulation;
+    transition:
+      box-shadow var(--dur-hover) ease,
+      background-color var(--dur-hover) ease,
+      transform var(--spring-smooth);
+  }
+
+  .bf-card > input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .bf-card[data-on] {
+    background: var(--surface);
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
+
+  .bf-card:has(> input:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .bf-badge {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    margin-top: -11px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    opacity: 0;
+    transform: scale(0.4);
+    transition:
+      transform var(--spring-smooth),
+      opacity 120ms ease;
+  }
+
+  .bf-card[data-on] .bf-badge {
+    opacity: 1;
+    transform: none;
+    transition:
+      transform var(--spring-bouncy),
+      opacity 120ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .bf-card:not([data-on]):hover {
+      box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--ink) 40%, transparent);
+    }
+
+    :root:not([data-still]) .bf-card:not([data-on]):hover {
+      transform: translateY(-1px);
+      transition:
+        box-shadow var(--dur-hover) ease,
+        transform var(--spring-release);
+    }
+  }
+
+  :root:not([data-still]) .bf-card:active {
+    transform: scale(0.98);
+    transition-duration: var(--dur-hover), var(--dur-hover), var(--dur-press);
+  }
+
+  /* "Something else" reveals its field: it rises 4 px and fades in. The layout change is the visitor's own. */
+  .bf-other {
+    margin-top: 14px;
+  }
+
+  :root:not([data-still]) .bf-other {
+    animation: bf-rise 260ms var(--ease-out) both;
+  }
+
+  @keyframes bf-rise {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+
+  /* The agency box: a real checkbox drawn as a 22 px square. */
+  .bf-check {
+    position: relative;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: 44px;
+    padding-top: 11px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: -0.009em;
+  }
+
+  .bf-check > input {
+    position: absolute;
+    top: 11px;
+    left: 0;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .bf-check-box {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    box-shadow: inset 0 0 0 1.5px var(--field-line);
+    color: var(--bg);
+    transition:
+      background-color var(--dur-hover) ease,
+      box-shadow var(--dur-hover) ease;
+  }
+
+  .bf-check-box > svg {
+    opacity: 0;
+    transform: scale(0.5);
+    transition:
+      opacity 120ms ease,
+      transform var(--spring-smooth);
+  }
+
+  .bf-check:has(> input:checked) .bf-check-box {
+    background: var(--ink);
+    box-shadow: none;
+  }
+
+  .bf-check:has(> input:checked) .bf-check-box > svg {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 120ms ease,
+      transform var(--spring-bouncy);
+  }
+
+  .bf-check:has(> input:focus-visible) .bf-check-box {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .bf-agency-help {
+    margin: 2px 0 0 34px;
+  }
+
+  .bf-refs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .bf-refs > .bf-q {
+    margin-bottom: 4px;
+  }
+
+  .bf-add {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px 0 12px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--line);
+    color: var(--ink);
+    cursor: pointer;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    touch-action: manipulation;
+    transition:
+      box-shadow var(--dur-hover) ease,
+      transform var(--spring-smooth);
+  }
+
+  .bf-add > span {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .bf-add:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .bf-add:hover {
+      box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--ink) 40%, transparent);
+    }
+  }
+
+  :root:not([data-still]) .bf-add:active {
+    transform: scale(0.97);
+  }
+
+  .bf-five {
+    margin: 4px 0 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  .bf-guide-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .bf-guide-field > .bf-q {
+    margin-bottom: 2px;
+  }
+
+  .bf-guide > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+    list-style: none;
+  }
+
+  .bf-guide > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .bf-guide > summary:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  .bf-guide-list {
+    padding-bottom: 6px;
+  }
+
+  .bf-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bf-next {
+    min-width: 120px;
+    margin-left: auto;
+  }
+
+  .bf-skip {
+    min-height: 44px;
+    padding: 0 10px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, currentColor 40%, transparent);
+    text-underline-offset: 3px;
+    touch-action: manipulation;
+  }
+
+  .bf-skip:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .bf-skip:hover {
+      color: var(--ink);
+    }
+  }
+
+  .bf-nav-send {
+    flex-wrap: nowrap;
+  }
+
+  .bf-nav-send .cf-submit {
+    flex: 1;
+  }
+
+  /* The review: every answer, with an Edit that jumps to its step. */
+  .bf-review {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bf-rv {
+    padding: 14px 0 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .bf-rv:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .bf-rv-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .bf-rv-title {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  .bf-edit {
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--ink);
+    cursor: pointer;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    touch-action: manipulation;
+    transition:
+      box-shadow var(--dur-hover) ease,
+      transform var(--spring-smooth);
+  }
+
+  .bf-edit:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .bf-edit:hover {
+      box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 40%, transparent);
+    }
+  }
+
+  :root:not([data-still]) .bf-edit:active {
+    transform: scale(0.97);
+  }
+
+  .bf-rv-list {
+    display: grid;
+    gap: 6px;
+    margin: 6px 0 0;
+  }
+
+  .bf-rv-row {
+    display: grid;
+    grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+    gap: 4px 16px;
+  }
+
+  .bf-rv-row > dt {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 21px;
+  }
+
+  .bf-rv-row > dd {
+    min-width: 0;
+    margin: 0;
+    font-size: 15px;
+    line-height: 21px;
+    overflow-wrap: anywhere;
+  }
+
+  .bf-rv-sub {
+    display: block;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .bf-rv-links {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bf-rv-text {
+    margin: 6px 0 0;
+    font-size: 15px;
+    line-height: 21px;
+  }
+
+  .bf-rv-not {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 21px;
+  }
+
+  .bf-note {
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: var(--r-field);
+    background: var(--sunken);
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  @media (max-width: 734px) {
+    .bf-cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bf-card {
+      min-height: 56px;
+    }
+
+    .bf-title {
+      font-size: 24px;
+      line-height: 28px;
+    }
+
+    .bf-rv-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bf-nav-send {
+      flex-wrap: wrap;
+    }
+
+    .bf-nav-send .cf-submit {
+      flex-basis: 100%;
+      order: -1;
+    }
+  }
+
+  :root[data-still] :is(.bf-dot, .bf-badge, .bf-card, .bf-check-box, .bf-check-box > svg, .bf-add, .bf-edit) {
+    transition: none;
   }
 
   /* Sent: the form fades, the thanks settles in its place. */
@@ -502,11 +1105,13 @@
     pointer-events: auto;
   }
 
-  /* A phone's form is twice the height of the thanks: let the card close up instead of leaving a hole. */
-  @media (max-width: 734px) {
-    .cf[data-state='done'] .cf-form {
-      display: none;
-    }
+  /* The review is far taller than the thanks: once sent, the card closes up around the thanks instead of leaving a hole above it. */
+  .cf[data-state='done'] .cf-form {
+    display: none;
+  }
+
+  .cf[data-state='done'] .cf-done-wrap {
+    align-content: start;
   }
 
   .cf-done {
@@ -519,6 +1124,13 @@
 
   .cf-done h2:focus {
     outline: none;
+  }
+
+  .cf-done-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 4px;
   }
 
   @keyframes cf-done-in {
@@ -612,8 +1224,9 @@
     display: none;
   }
 
-  /* ---------- FAQ: two calm columns. The left one stays with you, and Sochu stands in it. ---------- */
+  /* ---------- FAQ: two calm columns. The left one stays with you, with the group index and Sochu. Phones: the groups as sticky chips. ---------- */
   .faq {
+    --faq-k: clamp(96px, 8.4vw, 120px);
     position: relative;
     padding-top: calc(var(--nav-offset) + 40px);
     padding-bottom: 96px;
@@ -623,26 +1236,14 @@
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 40px;
-  }
-
-  @media (min-width: 1069px) {
-    .faq-in {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-      column-gap: 72px;
-    }
-
-    .faq-sticky {
-      position: sticky;
-      top: calc(var(--nav-offset) + 24px);
-    }
+    gap: 32px;
   }
 
   .faq-sticky {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+    align-items: stretch;
+    gap: 24px;
   }
 
   .faq-rail {
@@ -650,52 +1251,98 @@
     align-items: flex-end;
     justify-content: space-between;
     gap: 24px;
-    width: 100%;
-    padding-top: 16px;
   }
 
   .faq-index {
-    display: flex;
     flex: 1;
-    flex-direction: column;
     min-width: 0;
-    border-top: 1px solid var(--line);
   }
 
-  .faq-index-link {
-    display: flex;
-    align-items: center;
+  .faq-index .index-rail-link {
     justify-content: space-between;
     gap: 12px;
-    min-height: 44px;
-    border-bottom: 1px solid var(--line);
-    color: var(--muted);
-    font-size: 15px;
-    line-height: 20px;
-    letter-spacing: -0.009em;
-    text-decoration: none;
-    transition: color var(--dur-hover) ease;
   }
 
   .faq-index-n {
+    color: var(--muted);
     font-size: 13px;
+    font-weight: 400;
     font-variant-numeric: tabular-nums;
   }
 
-  .faq-index-link[aria-current='true'] {
-    color: var(--ink);
-    font-weight: 600;
+  .faqp-sochu {
+    flex: none;
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .faq-index-link:hover {
-      color: var(--ink);
+  .faq-chips {
+    position: sticky;
+    z-index: var(--z-ornament);
+    top: calc(var(--nav-offset) - 4px);
+    padding: 5px;
+    border-radius: 26px;
+    background: var(--glass-bg);
+    box-shadow: var(--glass-edge);
+    -webkit-backdrop-filter: var(--glass-fx);
+    backdrop-filter: var(--glass-fx);
+  }
+
+  .faq-chips .chip-opt {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 14px;
+  }
+
+  .faq-chips .chip-opt:not([data-on]) {
+    box-shadow: none;
+  }
+
+  /* 44 px tap targets on phones (A7). */
+  @media (max-width: 734px) {
+    .faq-chips .chip-opt {
+      min-height: 44px;
+    }
+  }
+
+  @media (min-width: 1069px) {
+    .faq-in {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      grid-template-areas: 'side main';
+      column-gap: 72px;
+    }
+
+    .faqp-side {
+      grid-area: side;
+    }
+
+    .faq-main {
+      grid-area: main;
+    }
+
+    .faq-sticky {
+      position: sticky;
+      top: calc(var(--nav-offset) + 24px);
+    }
+
+    .faq-chips {
+      display: none;
     }
   }
 
   @media (min-width: 1069px) and (max-height: 760px) {
     .faq-sticky .lead {
       display: none;
+    }
+  }
+
+  /* Tablets and phones: the chips carry the groups; Sochu stays in the hero, thinking. */
+  @media (max-width: 1068px) {
+    .faq-index {
+      display: none;
+    }
+
+    .faq-rail {
+      justify-content: flex-end;
+      margin-top: -16px;
     }
   }
 
@@ -706,166 +1353,40 @@
     min-width: 0;
   }
 
+  .qa-group {
+    scroll-margin-top: calc(var(--nav-offset) + 72px);
+  }
+
   .qa-group-title {
     margin: 0 0 14px;
   }
 
   .qa-plate {
-    overflow: hidden;
+    padding: 6px;
     border-radius: var(--r-tile);
     background: var(--surface);
     box-shadow: var(--plate-edge);
   }
 
-  .qa + .qa {
-    border-top: 1px solid var(--line);
+  .qa-plate .faqi {
+    scroll-margin-top: calc(var(--nav-offset) + 72px);
   }
 
-  .qa > summary {
+  .faq-foot {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
-    min-height: 44px;
-    padding: 20px 24px 20px 28px;
-    font-size: 19px;
-    font-weight: 600;
-    line-height: 25px;
-    letter-spacing: -0.014em;
-    list-style: none;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: background-color var(--dur-hover) ease;
-  }
-
-  .qa > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .qa > summary:focus-visible {
-    outline-offset: -2px;
-    border-radius: var(--r-inner);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .qa > summary:hover {
-      background: color-mix(in oklab, var(--ink) 4%, transparent);
-    }
-  }
-
-  /* Plus to minus: the upright bar lies down. */
-  .qa-icon {
-    position: relative;
-    flex: none;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--r-pill);
-    background: var(--sunken);
-    color: var(--ink);
-    transition:
-      background-color var(--dur-hover) ease,
-      color var(--dur-hover) ease;
-  }
-
-  .qa-icon::before,
-  .qa-icon::after {
-    content: '';
-    position: absolute;
-    top: 15px;
-    left: 9px;
-    width: 14px;
-    height: 2px;
-    border-radius: 1px;
-    background: currentColor;
-    transition: transform var(--dur-sheet) var(--ease-out);
-  }
-
-  .qa-icon::after {
-    transform: rotate(90deg);
-  }
-
-  .qa[open] > summary .qa-icon {
-    background: var(--ink);
-    color: var(--bg);
-  }
-
-  .qa[open] > summary .qa-icon::before {
-    transform: rotate(180deg);
-  }
-
-  .qa[open] > summary .qa-icon::after {
-    transform: rotate(180deg);
-  }
-
-  /* The one accepted layout animation (microinteractions 28). Without ::details-content it simply opens. */
-  .qa::details-content {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition:
-      grid-template-rows 280ms var(--ease-out),
-      content-visibility 280ms allow-discrete;
-  }
-
-  .qa[open]::details-content {
-    grid-template-rows: 1fr;
-  }
-
-  .qa-a {
-    overflow: hidden;
-    min-height: 0;
-  }
-
-  .qa-a-in {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 0 76px 24px 28px;
-  }
-
-  .qa-a-in p {
-    margin: 0;
-    color: var(--muted);
-  }
-
-  .qa-more {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    min-height: 44px;
-    margin-bottom: -10px;
-    color: var(--ink);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
-    letter-spacing: -0.009em;
-    text-decoration: none;
-  }
-
-  .qa-more > svg {
-    transition: transform var(--dur-hover) var(--ease-out);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    :root:not([data-still]) .qa-more:hover > svg {
-      transform: translateX(3px);
-    }
-  }
-
-  :root[data-still] .qa::details-content,
-  :root[data-still] .qa-icon::before,
-  :root[data-still] .qa-icon::after {
-    transition: none;
+    gap: 16px 24px;
   }
 
   .faq-more {
+    max-width: 34em;
     margin: 0;
     color: var(--muted);
   }
 
   .faq-more a {
-    display: inline-block;
-    max-width: 100%;
     color: var(--ink);
     font-weight: 600;
     text-underline-offset: 2px;
@@ -873,14 +1394,12 @@
   }
 
   @media (max-width: 734px) {
-    .qa > summary {
-      padding: 18px 16px 18px 20px;
-      font-size: 17px;
-      line-height: 23px;
+    .faq {
+      padding-top: calc(var(--nav-offset) + 28px);
     }
 
-    .qa-a-in {
-      padding: 0 20px 22px;
+    .faq-in {
+      gap: 24px;
     }
   }
 
@@ -913,6 +1432,13 @@
     .blog-mast .lead {
       padding-bottom: 10px;
     }
+  }
+
+  .blog-mast-title {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
   }
 
   .blog-grid {
@@ -1014,6 +1540,7 @@
 
   /* G1, once each. The art inside is flat white layers, so the gradient stays the only gradient. */
   .post-cover {
+    --cover-ink: #0e0e10;
     position: relative;
     overflow: hidden;
   }
@@ -1134,6 +1661,36 @@
   .read-prose a {
     color: inherit;
     text-underline-offset: 2px;
+  }
+
+  /* A post's plain list, and post 5's eleven mechanisms as static chips (a hover plays a chip's demo once). */
+  .read-list {
+    margin: 0 0 1em;
+    padding-left: 1.2em;
+    list-style: disc;
+  }
+
+  .read-list > li {
+    margin: 0.4em 0;
+    padding-left: 0.2em;
+    text-wrap: pretty;
+  }
+
+  .read-list > li::marker {
+    color: var(--muted);
+  }
+
+  .read-mechs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0.6em 0 1.4em;
+    padding: 0;
+    list-style: none;
+  }
+
+  .read-onward {
+    margin: 1.6em 0 0;
   }
 
   .read-prose-post {
@@ -1355,37 +1912,6 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0 20px;
-    }
-  }
-
-  /* ---------- 404 ---------- */
-  .lost {
-    position: relative;
-    padding-top: calc(var(--nav-offset) + 48px);
-    padding-bottom: 96px;
-  }
-
-  .lost-in {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 32px;
-    text-align: center;
-  }
-
-  .lost-crew {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: clamp(12px, 3.4vw, 48px);
-    padding-top: 8px;
-  }
-
-  /* Bolu's mic reaches past its box, so its neighbour stands a little further off. */
-  @media (min-width: 735px) {
-    .lost-crew > [data-who='bolu'] {
-      margin-right: clamp(0px, 2vw, 30px);
     }
   }
 }

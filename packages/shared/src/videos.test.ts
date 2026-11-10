@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatViews, isValidPosterUrl, parseVideoRef, videoEmbedUrl, videoPoster } from './videos.ts';
+import { formatViews, isMegaStream, isValidPosterUrl, parseVideoRef, previewSrc, probeSrc, videoEmbedUrl, videoPoster } from './videos.ts';
 
 const ID = 'dQw4w9WgXcQ';
 
@@ -74,5 +74,30 @@ describe('formatViews', () => {
     [999, '999'],
   ])('%d reads %s', (n, label) => {
     expect(formatViews(n)).toBe(label);
+  });
+});
+
+describe('v2 stream helpers', () => {
+  const mega = { streamUrl: '/media/v/seed-fyndflow.mp4?v=0123abcd' };
+  const file = { streamUrl: '/media/ansh-mehra.mp4' };
+  const embed = { streamUrl: null };
+
+  it('tells a MEGA stream from a bundled file', () => {
+    expect(isMegaStream(mega)).toBe(true);
+    expect(isMegaStream(file)).toBe(false);
+    expect(isMegaStream(embed)).toBe(false);
+  });
+
+  it('previews MEGA bounded to 6 s, a bundled file as it is, and never an embed', () => {
+    expect(previewSrc(mega)).toBe('/media/v/seed-fyndflow.mp4?v=0123abcd&preview=6');
+    expect(previewSrc({ streamUrl: '/media/v/x.mp4' })).toBe('/media/v/x.mp4?preview=6');
+    expect(previewSrc(file)).toBe('/media/ansh-mehra.mp4');
+    expect(previewSrc(embed)).toBeNull();
+  });
+
+  it('probes only MEGA streams', () => {
+    expect(probeSrc(mega)).toBe('/media/v/seed-fyndflow.mp4?v=0123abcd&probe=1');
+    expect(probeSrc(file)).toBeNull();
+    expect(probeSrc(embed)).toBeNull();
   });
 });

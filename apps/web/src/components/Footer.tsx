@@ -2,9 +2,10 @@ import { m } from 'motion/react';
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { Link, useLocation, useMatches } from 'react-router';
 import { Character, cascade, castLookAt, loadRig, type CastId, type CharacterHandle } from '../cast';
-import { CLOSING, FOOTER_CAST_ORDER, FOOTER_GROUPS, OWN_ACTION_ROUTES, SITE, SOCIALS } from '../lib/content';
+import { CLOSING, FOOTER_CAST_ORDER, FOOTER_GROUPS, OWN_ACTION_ROUTES, SITE, SOCIALS, whatsappHref, whatsappPhone, type FormatSlug } from '../lib/content';
 import { spring } from '../lib/spring';
 import { useStill } from '../lib/store';
+import { Street } from './street';
 import { Cta, PrimaryCta, whenSeen } from './ui';
 import { WORDMARK } from './wordmark';
 
@@ -56,7 +57,8 @@ function PauseSwitch() {
   return (
     <button type="button" role="switch" aria-checked={still} disabled={locked} onClick={toggle} className="ft-pause" title={locked ? 'Your device is set to reduce motion' : undefined}>
       <span className="ft-pause-track" aria-hidden>
-        <m.span className="ft-pause-thumb" initial={false} animate={{ x: still ? 14 : 0 }} transition={spring.snappy} />
+        {/* The knob squashes at mid-travel (M5f): scaleX 1.12 and back, on the same spring as its slide. */}
+        <m.span className="ft-pause-thumb" initial={false} animate={{ x: still ? 14 : 0, scaleX: [1, 1.12, 1] }} transition={{ x: spring.snappy, scaleX: { duration: 0.26, ease: 'easeOut' } }} />
       </span>
       {locked ? 'Animations off on this device' : 'Pause animations'}
     </button>
@@ -75,6 +77,12 @@ export function Footer() {
 
   const cast = useRef<Partial<Record<CastId, CharacterHandle | null>>>({});
   const stage = useRef<HTMLDivElement>(null);
+  const phone = whatsappPhone();
+  // On a format page the message names the format (content §6.3, V2-SPEC 5.8 "WhatsApp links pass the format").
+  const format = path === '/founders' || path === '/events' || path === '/retail' ? path.slice(1) as FormatSlug : undefined;
+  const wa = whatsappHref(format);
+  // "Managed and owned by BrandingBum, Bengaluru.", with the owner's name as a link.
+  const operator = SITE.operatorLine.split(SITE.owner.name) as [string, string?];
 
   // Arrival: one hop cascade, left to right, each time a page reaches its footer. Legal pages stand still.
   useEffect(() => {
@@ -127,21 +135,35 @@ export function Footer() {
           <div className="ft-lead">
             {asks && (
               <div className="ft-ask">
+                <p className="eyebrow ft-eyebrow">{CLOSING.eyebrow}</p>
                 <h2 className="h2-sm ft-title">{CLOSING.title.replace('vox pop', 'vox\u00a0pop')}</h2>
+                <p className="ft-copy">{CLOSING.body}</p>
                 <div className="ft-actions" onPointerEnter={(e) => e.pointerType === 'mouse' && lookAtAction(e.currentTarget)}>
                   <PrimaryCta chrome />
                   {path !== '/video-library' && (
                     <Cta to="/video-library" kind="ghost" arrow>
-                      Browse video library
+                      {CLOSING.secondary}
                     </Cta>
                   )}
                 </div>
               </div>
             )}
             <div className="ft-reach">
-              <a className="ft-link ft-mail" href={`mailto:${SITE.email}`}>
-                {SITE.email}
-              </a>
+              <ul className="ft-contacts">
+                <li>
+                  <a className="ft-link ft-mail" href={`mailto:${SITE.email}`}>
+                    {SITE.email}
+                  </a>
+                </li>
+                {wa && phone && (
+                  <li>
+                    <a className="ft-link" href={wa} target="_blank" rel="noreferrer">
+                      WhatsApp {phone.display}
+                    </a>
+                  </li>
+                )}
+                <li className="ft-city">{SITE.city}</li>
+              </ul>
               <ul className="ft-socials" onPointerEnter={(e) => e.pointerType === 'mouse' && wink()} onFocus={wink}>
                 {SOCIALS.map((s, i) => (
                   <li key={s.label}>
@@ -187,10 +209,11 @@ export function Footer() {
 
         <div className="ft-bar">
           <p className="ft-legal">
-            © {new Date().getFullYear()} {SITE.name}. Managed &amp; owned by{' '}
+            © {new Date().getFullYear()} {SITE.name}. {operator[0]}
             <a className="ft-owner" href={SITE.owner.url} target="_blank" rel="noreferrer">
               {SITE.owner.name}
             </a>
+            {operator[1]}
           </p>
           <div className="ft-bar-end">
             <Link className="ft-link" to="/legal/privacy">
@@ -205,6 +228,8 @@ export function Footer() {
       </div>
 
       <div className="ft-stage" ref={stage}>
+        {/* The skyline behind the wordmark: water tanks, the tower, the metro. Its train crosses once a page view, when the footer first shows. */}
+        <Street variant="skyline" cue={pathname} className="ft-skyline" />
         <div className="ft-pools" aria-hidden>
           {FOOTER_CAST_ORDER.map((who) => (
             <span key={who} className="ft-pool" data-who={who} />

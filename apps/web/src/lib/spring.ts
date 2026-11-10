@@ -30,6 +30,9 @@ export const spring = {
   /** Characters only. */
   hop: fromSwiftUI(0.38, 0.55),
 
+  /** Heavy things that trail the pointer: the street's depth layers and its glow (motion §3). Gate by hand, like every useSpring. */
+  drift: fromSwiftUI(0.8, 1),
+
   /** Pointer followers (magnet). Judgement, tuned by feel. Always gate by hand: useSpring ignores reduced motion. */
   follow: { type: 'spring', stiffness: 260, damping: 26, mass: 0.6 } as SpringToken,
 

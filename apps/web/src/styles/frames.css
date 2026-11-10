@@ -1,0 +1,1883 @@
+/* Owner: A2 Foundation. Video frames (visual §1.2), the hero deck (M1), deck cards (M8), story rings (M6), coverflow (M14), the views sticker and the player.
+   The tile and player rules below were carried over from v1 library.css (lines 3 to 845) unchanged, so the player no longer depends on a page stylesheet.
+   Every rule is inside @layer components, so a Tailwind utility on the same element always wins. */
+@layer components {
+  /* ---------- Tiles. .tile > img and .tile > video stay child combinators: BrandPill's logo is an img too, and the home reel keys off this. ---------- */
+  .tile {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-tile);
+    background: var(--sunken);
+    overflow: hidden;
+    aspect-ratio: 9 / 16;
+    color: #fff;
+    cursor: pointer;
+    text-align: left;
+    outline: 1px solid transparent;
+    outline-offset: -1px;
+    touch-action: manipulation;
+    transition:
+      transform 300ms var(--ease-card),
+      outline-color 300ms var(--ease-card);
+  }
+
+  .tile[data-variant='bento'] {
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .tile > img,
+  .tile > video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition:
+      transform 400ms var(--ease-out),
+      opacity 140ms ease 120ms;
+  }
+
+  .tile-preview {
+    opacity: 0;
+  }
+
+  .tile-preview[data-on] {
+    opacity: 1;
+  }
+
+  /* The empty anchor the player's frame flies from and back to. Same box and radius as the tile; holds nothing visible. */
+  .tile-anchor {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+  }
+
+  /* No poster: a character colour and the brand's name. Type is in container units so the morph is a true scale of the same picture. */
+  .tile-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 12%;
+    container-type: inline-size;
+    color: var(--on-tiko);
+    background: var(--g-tiko);
+    transition: opacity 140ms ease 120ms;
+  }
+
+  .tile-empty > span {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 11cqw;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 1.08;
+    letter-spacing: -0.012em;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .tile-empty[data-tone='sochu'] {
+    color: var(--on-sochu);
+    background: var(--g-sochu);
+  }
+
+  .tile-empty[data-tone='bolu'] {
+    color: var(--on-bolu);
+    background: var(--g-bolu);
+  }
+
+  .tile-empty[data-tone='gola'] {
+    color: var(--on-gola);
+    background: var(--g-gola);
+  }
+
+  .tile-scrim {
+    position: absolute;
+    inset: auto 0 0;
+    height: 42%;
+    background: var(--g-scrim);
+    --scrim-a: 0.6;
+    pointer-events: none;
+    transition: opacity 140ms ease 120ms;
+  }
+
+  /* A colour tile has no picture to protect its text from. */
+  .tile-empty ~ .tile-scrim {
+    display: none;
+  }
+
+  .tile-views {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    transition: opacity 140ms ease 120ms;
+  }
+
+  .tile-brand {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    display: flex;
+    transition: opacity 140ms ease 120ms;
+  }
+
+  .tile-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin: -28px 0 0 -28px;
+    border-radius: var(--r-pill);
+    background: rgb(255 255 255 / 0.92);
+    color: #0e0e10;
+    opacity: 0;
+    transform: scale(0.82);
+    transition:
+      opacity 200ms ease,
+      transform 200ms var(--ease-out);
+  }
+
+  /* The poster has left for the player. The slot waits, empty, until it comes home. */
+  .tile[data-lifted] > img,
+  .tile[data-lifted] > .tile-empty,
+  .tile[data-lifted] > .tile-scrim,
+  .tile[data-lifted] > .tile-views,
+  .tile[data-lifted] > .tile-brand,
+  .tile[data-lifted] > .tile-play {
+    opacity: 0;
+    transition: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .tile:hover {
+      z-index: var(--z-raised);
+      outline-color: color-mix(in oklab, var(--ink) 35%, transparent);
+    }
+
+    :root:not([data-still]) .tile:hover {
+      transform: scale(calc(1 + 6 / var(--tile-w, 300)));
+    }
+
+    :root:not([data-still]) .tile:hover > img {
+      transform: scale(1.04);
+    }
+
+    .tile:hover > .tile-play {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .tile:focus-visible {
+    z-index: var(--z-raised);
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .tile:focus-visible > .tile-play {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .tile:active {
+    transform: scale(0.985);
+    transition-duration: var(--dur-press), 300ms;
+  }
+
+  :root:not([data-still]) .tile:active {
+    transform: scale(0.985);
+  }
+
+  :root[data-still] .tile:active {
+    transform: none;
+  }
+
+  /* Touch has no hover, so the affordance stays, quiet. */
+  @media (hover: none), (pointer: coarse) {
+    .tile > .tile-play {
+      width: 44px;
+      height: 44px;
+      margin: -22px 0 0 -22px;
+      background: var(--chip-bg);
+      color: #fff;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .tile-skeleton {
+    border-radius: var(--r-tile);
+    aspect-ratio: 9 / 16;
+  }
+
+  .tile-host {
+    display: grid;
+    place-items: center;
+    background: var(--sunken);
+  }
+
+  @media (max-width: 734px) {
+    .lib-grid .tile,
+    .lib-grid .tile-skeleton {
+      border-radius: var(--r-inner);
+    }
+
+    .tile-views {
+      top: 8px;
+      right: 8px;
+    }
+
+    .tile-brand {
+      right: 8px;
+      bottom: 8px;
+      left: 8px;
+    }
+  }
+
+  /* ---------- Player: a transparent, full-viewport dialog, so the frame can start anywhere. Scrolling lives on inner wrappers. ---------- */
+  .player {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 24px;
+    border: 0;
+    background: transparent;
+    color: #f5f3ee;
+    overflow: visible;
+  }
+
+  .player[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  .player:focus-visible,
+  .player:focus {
+    outline: none;
+  }
+
+  /* Motion cannot animate ::backdrop, so the dim is CSS. In over 280 ms, out with the same curve. */
+  .player::backdrop {
+    background-color: rgb(0 0 0 / 0.78);
+    transition: background-color 280ms var(--ease-out);
+  }
+
+  @starting-style {
+    .player::backdrop {
+      background-color: rgb(0 0 0 / 0);
+    }
+  }
+
+  .player[data-closing]::backdrop {
+    background-color: rgb(0 0 0 / 0);
+  }
+
+  .player-sheet {
+    position: relative;
+    display: grid;
+    max-width: 100%;
+    max-height: 100%;
+    --frame-h: min(100dvh - 48px, 780px, (100vw - 368px) * 16 / 9);
+    --frame-w: calc(var(--frame-h) * 9 / 16);
+    --land-w: min(100vw - 48px, 1040px, (100dvh - 216px) * 16 / 9);
+  }
+
+  /* Pages stack in one cell so prev and next can slide over each other. */
+  .player-page {
+    grid-area: 1 / 1;
+    display: grid;
+    gap: var(--gap);
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .player-page[data-shape='vertical'] {
+    grid-template-columns: var(--frame-w) minmax(300px, 380px);
+    height: var(--frame-h);
+  }
+
+  .player-page[data-shape='landscape'] {
+    grid-template-columns: var(--land-w);
+  }
+
+  .player-stage {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .player-frame {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .player-page[data-shape='vertical'] .player-frame {
+    height: 100%;
+  }
+
+  .player-page[data-shape='landscape'] .player-frame {
+    aspect-ratio: 16 / 9;
+  }
+
+  .player-frame > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .player-embed,
+  .player-video {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #000;
+  }
+
+  .player-video {
+    object-fit: contain;
+  }
+
+  /* An embed draws white for a moment; the poster stays until it has something to show. */
+  .player-embed {
+    opacity: 0;
+    transition: opacity 240ms ease;
+  }
+
+  .player-embed[data-ready] {
+    opacity: 1;
+  }
+
+  .player-close {
+    position: absolute;
+    z-index: 2;
+    top: 12px;
+    right: 12px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition:
+      opacity 200ms ease,
+      transform var(--dur-press) var(--ease-out);
+  }
+
+  .player-close:active {
+    transform: scale(0.92);
+  }
+
+  :root[data-still] .player-close:active {
+    transform: none;
+  }
+
+  .player[data-closing] .player-close {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* The panel beside the video: dark in both themes, because the video is the show. */
+  .player-info.band-dark {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    gap: 16px;
+    padding: 24px;
+    border-radius: var(--r-tile);
+    background: #15151a;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .player-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-right: 52px;
+    min-height: 44px;
+  }
+
+  .player-index {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: -0.006em;
+    white-space: nowrap;
+  }
+
+  .player-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 32px;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .player-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    margin: 0;
+  }
+
+  .player-facts dt {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  .player-facts dd {
+    margin: 2px 0 0;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 22px;
+  }
+
+  .player-views {
+    flex-basis: 100%;
+  }
+
+  .player-views dd {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-variation-settings: 'opsz' 32;
+    line-height: 52px;
+    letter-spacing: -0.016em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .player-next {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-inline: -8px;
+    padding-top: 4px;
+  }
+
+  .player-next h3 {
+    margin: 0 0 4px 8px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    letter-spacing: -0.006em;
+  }
+
+  .player-next-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: var(--r-field);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+    touch-action: manipulation;
+    transition: background-color var(--dur-hover) ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .player-next-row:hover {
+      background: rgb(255 255 255 / 0.08);
+    }
+  }
+
+  .player-next-thumb {
+    position: relative;
+    flex: none;
+    width: 40px;
+    height: 71px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: rgb(255 255 255 / 0.1);
+  }
+
+  .player-next-thumb > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .player-next-thumb .tile-empty > span {
+    font-size: 16cqw;
+  }
+
+  .player-next-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .player-next-title {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: -0.009em;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .player-next-brand {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 17px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Only when the panel has the room. It is what fills the panel, never what pushes the action off it. */
+  @media (max-width: 1068px), (max-height: 780px) {
+    .player-next {
+      display: none;
+    }
+  }
+
+  .player-page[data-shape='landscape'] .player-next {
+    display: none;
+  }
+
+  .player-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 8px;
+  }
+
+  .player-steps {
+    display: flex;
+    gap: 8px;
+  }
+
+  .player-step {
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1.5px var(--line);
+  }
+
+  .player-ask {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  .player-cta {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  /* Landscape: picture on top, a strip of words and the action beneath it. */
+  .player-page[data-shape='landscape'] .player-info {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 40px;
+    align-items: center;
+    padding: 20px 24px;
+  }
+
+  .player-page[data-shape='landscape'] .player-head {
+    grid-column: 1;
+    padding-right: 0;
+    min-height: 0;
+  }
+
+  .player-page[data-shape='landscape'] .player-title {
+    grid-column: 1;
+    font-size: 21px;
+    line-height: 25px;
+  }
+
+  .player-page[data-shape='landscape'] .player-facts {
+    grid-column: 1;
+  }
+
+  .player-page[data-shape='landscape'] .player-views {
+    flex-basis: auto;
+  }
+
+  .player-page[data-shape='landscape'] .player-views dd {
+    font-size: 17px;
+    line-height: 22px;
+    letter-spacing: normal;
+  }
+
+  .player-page[data-shape='landscape'] .player-actions {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    display: flex;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .player-page[data-shape='landscape'] .player-ask {
+    display: none;
+  }
+
+  .player-page[data-shape='landscape'] .player-cta {
+    width: auto;
+  }
+
+  /* Short laptop windows: the words shrink before the picture does. */
+  @media (max-height: 640px) and (min-width: 735px) {
+    .player-title {
+      font-size: 21px;
+      line-height: 25px;
+    }
+
+    .player-views dd {
+      font-size: 28px;
+      line-height: 32px;
+    }
+
+    .player-ask {
+      display: none;
+    }
+  }
+
+  /* A phone held sideways: only what fits with the action still in view. */
+  @media (max-height: 480px) and (min-width: 735px) {
+    .player-info.band-dark {
+      gap: 8px;
+      padding: 16px;
+    }
+
+    .player-head {
+      min-height: 30px;
+    }
+
+    .player-facts {
+      display: none;
+    }
+
+    .player-page[data-shape='vertical'] .player-actions {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .player-page[data-shape='vertical'] .player-cta {
+      grid-column: auto;
+    }
+  }
+
+  /* Phone: the whole screen. The stage sizes the picture so the words and the action below it are never pushed off. */
+  @media (max-width: 734px) {
+    .player {
+      padding: 0;
+    }
+
+    .player:not([data-closing])::backdrop {
+      background-color: rgb(0 0 0 / 0.92);
+    }
+
+    .player-sheet {
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+    }
+
+    .player-page,
+    .player-page[data-shape='vertical'],
+    .player-page[data-shape='landscape'] {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .player-stage {
+      display: grid;
+      flex: 1;
+      place-items: center;
+      container-type: size;
+      padding-top: env(safe-area-inset-top);
+    }
+
+    .player-page[data-shape='vertical'] .player-frame {
+      width: min(100cqw, 100cqh * 9 / 16);
+      height: auto;
+      aspect-ratio: 9 / 16;
+    }
+
+    .player-page[data-shape='landscape'] .player-frame {
+      width: min(100cqw, 100cqh * 16 / 9);
+    }
+
+    .player-close {
+      top: max(12px, env(safe-area-inset-top));
+    }
+
+    .player-info.band-dark,
+    .player-page[data-shape='landscape'] .player-info.band-dark {
+      display: grid;
+      flex: none;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px 12px;
+      align-items: center;
+      padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+      border-radius: var(--r-inner) var(--r-inner) 0 0;
+      overflow: visible;
+    }
+
+    .player-head,
+    .player-page[data-shape='landscape'] .player-head {
+      grid-column: 1;
+      min-height: 30px;
+      padding-right: 0;
+    }
+
+    .player-title,
+    .player-page[data-shape='landscape'] .player-title {
+      grid-column: 1 / -1;
+      display: -webkit-box;
+      overflow: hidden;
+      font-size: 17px;
+      line-height: 22px;
+      letter-spacing: -0.012em;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+    }
+
+    .player-facts,
+    .player-page[data-shape='landscape'] .player-facts {
+      grid-column: 2;
+      grid-row: 1;
+      gap: 0;
+      justify-content: flex-end;
+    }
+
+    .player-facts > div:not(.player-views) {
+      display: none;
+    }
+
+    .player-views,
+    .player-page[data-shape='landscape'] .player-views {
+      display: flex;
+      flex-basis: auto;
+      flex-direction: row-reverse;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .player-views dt {
+      font-size: 13px;
+      text-transform: lowercase;
+    }
+
+    .player-views dd,
+    .player-page[data-shape='landscape'] .player-views dd {
+      margin: 0;
+      font-size: 15px;
+      line-height: 20px;
+      letter-spacing: -0.009em;
+    }
+
+    .player-actions,
+    .player-page[data-shape='landscape'] .player-actions {
+      grid-column: 1 / -1;
+      grid-row: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      padding-top: 0;
+    }
+
+    .player-ask {
+      display: none;
+    }
+
+    .player-cta,
+    .player-page[data-shape='landscape'] .player-cta {
+      flex: 1;
+      width: auto;
+      min-width: 0;
+      padding-inline: 16px;
+      font-size: 16px;
+    }
+  }
+
+  :root[data-still] .tile,
+  :root[data-still] .tile > img,
+  :root[data-still] .tile-empty,
+  :root[data-still] .tile-scrim,
+  :root[data-still] .tile-views,
+  :root[data-still] .tile-brand,
+  :root[data-still] .tile-play,
+  :root[data-still] .player::backdrop {
+    transition: none;
+  }
+}
+
+/* ======================================================================================================================================
+   v2: the frame family (visual §1.2). Every variant shares .vframe; the card is v1's .tile above.
+   ====================================================================================================================================== */
+@layer components {
+  .vframe {
+    position: relative;
+    display: block;
+    padding: 0;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button.vframe {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .vframe:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  /* The muted preview: on top of the poster, shown only once it is really playing, so the poster never blinks. */
+  .frame-preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 240ms ease;
+  }
+
+  .frame-preview[data-on] {
+    opacity: 1;
+  }
+
+  /* The card's brand row also carries the "Also on" marks. */
+  .tile-brand {
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .tile-sticker {
+    top: 12px;
+    left: 12px;
+  }
+
+  /* ---------- Posted-on marks ---------- */
+  .posted-on {
+    display: inline-flex;
+    flex: none;
+    gap: 4px;
+  }
+
+  .posted-on-mark {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--r-pill);
+    background: var(--chip-bg);
+    color: #fff;
+  }
+
+  .posted-on-mark > svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ---------- The views sticker (M8): white, an edge, tilted; pops once from scale .3 ---------- */
+  .vsticker {
+    position: absolute;
+    z-index: 5;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 6px 11px 7px;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #0e0e10;
+    box-shadow:
+      0 0 0 1px rgb(14 14 16 / 0.08),
+      0 6px 14px -6px rgb(24 20 40 / 0.35);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 16px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    pointer-events: none;
+    rotate: var(--tilt, -4deg);
+    transition:
+      transform var(--spring-bouncy) 200ms,
+      opacity 160ms ease 200ms;
+  }
+
+  .vsticker b {
+    font-size: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  :root[data-js]:not([data-still]) .vsticker[data-pop]:not([data-in]) {
+    opacity: 0;
+    transform: scale(0.3) rotate(-18deg);
+    transition: none;
+  }
+
+  /* ---------- Phone ---------- */
+  .vframe-phone {
+    --u: calc(var(--fw, 280px) / 280);
+    width: var(--fw, 280px);
+    aspect-ratio: 280 / 580;
+    padding: calc(7 * var(--u));
+    border-radius: calc(46 * var(--u));
+    background: #0e0e10;
+    box-shadow:
+      inset 0 0 0 1.5px rgb(255 255 255 / 0.16),
+      var(--shadow-5);
+    rotate: var(--tilt, 0deg);
+  }
+
+  .vframe-lean {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+  }
+
+  .vframe-screen {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: clip;
+    border-radius: calc(39 * var(--u));
+    background: #1a1a1f;
+    isolation: isolate;
+  }
+
+  .vframe-screen > img,
+  .vframe-screen > video:not(.frame-preview) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 400ms var(--ease-out);
+  }
+
+  .vframe-scrim {
+    position: absolute;
+    inset: auto 0 0;
+    height: 34%;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.32) 40%, transparent);
+    pointer-events: none;
+  }
+
+  .vframe-island {
+    position: absolute;
+    z-index: 3;
+    top: calc(20 * var(--u));
+    left: 50%;
+    width: calc(74 * var(--u));
+    height: calc(20 * var(--u));
+    translate: -50% 0;
+    border-radius: 99px;
+    background: #0e0e10;
+  }
+
+  .vframe-foot {
+    position: absolute;
+    z-index: 2;
+    inset: auto 12px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .vframe-phone > .vsticker,
+  .vframe-lean > .vsticker {
+    top: calc(64 * var(--u));
+    right: calc(-30 * var(--u));
+  }
+
+  /* ---------- Bubble: a 9:16 poster that is also a chat reply (A3's thread) ---------- */
+  .vframe-bubble {
+    width: var(--fw, 176px);
+    aspect-ratio: 9 / 16;
+    border-radius: 22px 22px 6px 22px;
+    overflow: clip;
+    background: #1a1a1f;
+    box-shadow:
+      0 0 0 1px var(--line),
+      var(--shadow-2);
+    transform-origin: 100% 100%;
+    transition:
+      transform var(--spring-smooth),
+      box-shadow var(--dur-hover) ease;
+  }
+
+  .vframe-bubble > img,
+  .vframe-bubble > .tile-empty {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--spring-smooth);
+  }
+
+  .vframe-bubble .vframe-foot {
+    inset: auto 8px 8px;
+  }
+
+  .vframe-chip {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    left: 8px;
+  }
+
+  .vframe-play {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
+    border-radius: 50%;
+    background: var(--glass-media-bg);
+    -webkit-backdrop-filter: var(--glass-media-fx);
+    backdrop-filter: var(--glass-media-fx);
+    color: #fff;
+    opacity: 0;
+    transform: scale(0.9);
+    transition:
+      opacity 160ms ease,
+      transform var(--spring-smooth);
+  }
+
+  /* ---------- Polaroid: white frame, a lip, no text on it ---------- */
+  .vframe-polaroid {
+    width: var(--fw, 200px);
+    padding: 10px 10px 28px;
+    border-radius: 6px;
+    background: #ffffff;
+    box-shadow: var(--shadow-3);
+    rotate: var(--tilt, 0deg);
+    transition: transform var(--spring-smooth);
+  }
+
+  .vframe-polaroid-media {
+    position: relative;
+    display: block;
+    aspect-ratio: 9 / 16;
+    overflow: clip;
+    border-radius: 2px;
+    background: #1a1a1f;
+  }
+
+  .vframe-polaroid-media > img,
+  .vframe-polaroid-media > .tile-empty {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 400ms var(--ease-out);
+  }
+
+  .vframe-polaroid .vsticker {
+    top: -10px;
+    right: -14px;
+  }
+
+  /* ---------- Ring: a poster in a story ring ---------- */
+  .vframe-ring {
+    width: var(--fw, 64px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+  }
+
+  .vframe-ring-art {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(var(--c-yellow), var(--c-green), var(--c-purple), var(--c-orange), var(--c-yellow));
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  }
+
+  .vframe-ring-media {
+    position: absolute;
+    inset: 5px;
+    overflow: clip;
+    border-radius: 50%;
+    background: #1a1a1f;
+  }
+
+  .vframe-ring-media > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The picture has left for the player: the frame waits, empty, until it comes home (as .tile[data-lifted]). */
+  .vframe-screen[data-lifted] > :not(.tile-anchor),
+  .vframe-polaroid-media[data-lifted] > :not(.tile-anchor),
+  .vframe-bubble[data-lifted] > :not(.tile-anchor) {
+    opacity: 0;
+    transition: none;
+  }
+
+  /* ---------- Hover: lift in fast, settle out slow; poster zoom stays inside the frame ---------- */
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) :is(.vframe-bubble, .vframe-polaroid):is(button):hover {
+      transform: translateY(-3px);
+      transition: transform var(--spring-release);
+    }
+
+    :root:not([data-still]) button.vframe:hover :is(.vframe-screen, .vframe-polaroid-media) > img,
+    :root:not([data-still]) .vframe-bubble:is(button):hover > img {
+      transform: scale(1.03);
+    }
+
+    .vframe-bubble:is(button):hover .vframe-play {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity 120ms ease,
+        transform var(--spring-bouncy);
+    }
+  }
+
+  /* ---------- The hero deck (M1) ---------- */
+  .vdeck-wrap {
+    --reel-h: clamp(440px, calc(100svh - 360px), 540px);
+    --fw: calc(var(--reel-h) * 280 / 580);
+    --u: calc(var(--fw) / 280);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+
+  @media (max-width: 734px) {
+    .vdeck-wrap {
+      --reel-h: 340px;
+    }
+  }
+
+  .vdeck {
+    position: relative;
+    width: var(--fw);
+    aspect-ratio: 280 / 580;
+  }
+
+  .vdeck-card {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 90%;
+    touch-action: pan-y;
+  }
+
+  .vdeck-card > .vframe-phone {
+    width: 100%;
+  }
+
+  /* Phones keep the right back card only, so the street shows on the left (visual §1.2). */
+  @media (max-width: 734px) {
+    .vdeck-card[data-slot='1'] {
+      visibility: hidden;
+    }
+  }
+
+  /* The back cards sit in shade: an overlay, not a filter. */
+  .vdeck-card:is([data-slot='1'], [data-slot='2'], [data-slot='3']) .vframe-screen::after {
+    content: '';
+    position: absolute;
+    z-index: 4;
+    inset: 0;
+    background: #0e0e10;
+    opacity: 0.18;
+    pointer-events: none;
+  }
+
+  /* Story progress across the top of the front card: one segment per card; the current one fills over the dwell. */
+  .vdeck-progress {
+    position: absolute;
+    z-index: 3;
+    inset: calc(12 * var(--u)) calc(16 * var(--u)) auto;
+    display: flex;
+    gap: 4px;
+    pointer-events: none;
+  }
+
+  .vdeck-progress > span {
+    flex: 1;
+    height: 3px;
+    overflow: clip;
+    border-radius: 2px;
+    background: rgb(255 255 255 / 0.35);
+  }
+
+  .vdeck-progress > span::after {
+    content: '';
+    display: block;
+    height: 100%;
+    background: #ffffff;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .vdeck-progress > [data-done]::after {
+    transform: scaleX(1);
+  }
+
+  .vdeck-progress > [data-now]::after {
+    animation: vdeck-fill 4500ms linear forwards;
+    animation-play-state: paused;
+  }
+
+  .vdeck[data-run] .vdeck-progress > [data-now]::after {
+    animation-play-state: running;
+  }
+
+  :root[data-still] .vdeck-progress > span::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+
+  @keyframes vdeck-fill {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* Say what a press on the front card does. Hover and focus only. */
+  .vdeck-watch {
+    position: absolute;
+    z-index: 3;
+    top: 50%;
+    left: 50%;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px 9px 12px;
+    border-radius: var(--r-pill);
+    color: #f5f3ee;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    letter-spacing: -0.006em;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    transition: opacity var(--dur-hover) ease;
+    pointer-events: none;
+  }
+
+  .vdeck-card .vframe:focus-visible .vdeck-watch {
+    opacity: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .vdeck-card .vframe:hover .vdeck-watch {
+      opacity: 1;
+    }
+  }
+
+  .vdeck-card .vframe:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+
+  .vdeck-sticker {
+    top: calc(104 * var(--u));
+    right: calc(-34 * var(--u));
+    z-index: 6;
+  }
+
+  .vdeck-pause {
+    position: absolute;
+    z-index: 12;
+    top: calc(36 * var(--u));
+    right: calc(16 * var(--u));
+  }
+
+  /* The views card: the front video's brand, its rolling count and the step buttons. Dark in both themes, so the white brand pill reads. */
+  .vdeck-views {
+    /* Clear of the back cards, which hang below the deck's box once rotated. */
+    margin-top: calc(34 * var(--u));
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 4px 4px 4px 6px;
+    border-radius: var(--r-pill);
+    background: #16131b;
+    color: #f5f3ee;
+    box-shadow: var(--shadow-3);
+  }
+
+  .vdeck-count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    white-space: nowrap;
+  }
+
+  .vdeck-count-n {
+    display: inline-block;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+  }
+
+  .vdeck-steps {
+    display: inline-flex;
+  }
+
+  .vdeck-steps .nav-icon {
+    color: inherit;
+  }
+
+  /* ---------- The pause control on a reel (moved with ReelPause from home.css). Over-video glass, 44 px. ---------- */
+  .reel-pause {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: var(--r-pill);
+    color: #f5f3ee;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform var(--spring-release);
+  }
+
+  .reel-pause:active {
+    transform: scale(0.92);
+    transition-duration: var(--dur-press);
+  }
+
+  :root[data-still] .reel-pause:active {
+    transform: none;
+  }
+
+  .reel-pause:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+  }
+
+  /* ---------- Deck cards (M8): three posters in a plate; the back two open on hover; words below, never tilted ---------- */
+  .deckcard {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+    padding: 24px 20px 20px;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .deckcard-link {
+    cursor: pointer;
+  }
+
+  .deckcard-stack {
+    position: relative;
+    display: block;
+    width: min(100%, 220px);
+    aspect-ratio: 11 / 14;
+    margin-inline: auto;
+  }
+
+  .deckcard-sheet {
+    position: absolute;
+    inset: 0 auto auto 50%;
+    display: block;
+    width: 64%;
+    aspect-ratio: 9 / 16;
+    margin-left: -32%;
+    overflow: clip;
+    border-radius: 16px;
+    background: #1a1a1f;
+    box-shadow: var(--shadow-3);
+    transform-origin: 50% 90%;
+    transition: transform var(--spring-smooth);
+  }
+
+  .deckcard-sheet > img,
+  .deckcard-sheet > .tile-empty {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--spring-smooth);
+  }
+
+  .deckcard-sheet[data-i='2'] {
+    transform: translateX(-10px) rotate(-6deg);
+  }
+
+  .deckcard-sheet[data-i='1'] {
+    transform: translateX(10px) rotate(6deg);
+  }
+
+  .deckcard-stack[data-frame='polaroid'] .deckcard-sheet {
+    padding: 6px 6px 18px;
+    border-radius: 4px;
+    background: #ffffff;
+  }
+
+  .deckcard-stack[data-frame='polaroid'] .deckcard-sheet > img {
+    inset: 6px 6px 18px;
+    width: calc(100% - 12px);
+    height: calc(100% - 24px);
+    border-radius: 2px;
+  }
+
+  .deckcard-stat {
+    position: absolute;
+    z-index: 4;
+    top: 6px;
+    left: 0;
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity 160ms ease,
+      transform var(--spring-smooth);
+  }
+
+  .deckcard-text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .deckcard-link:hover .deckcard-sheet[data-i='2'] {
+      transform: translateX(-24px) rotate(-11deg);
+      transition: transform var(--spring-bouncy);
+    }
+
+    :root:not([data-still]) .deckcard-link:hover .deckcard-sheet[data-i='1'] {
+      transform: translateX(24px) rotate(11deg);
+      transition: transform var(--spring-bouncy);
+    }
+
+    :root:not([data-still]) .deckcard-link:hover .deckcard-sheet[data-i='0'] > img {
+      transform: scale(1.05);
+    }
+
+    .deckcard-link:hover .deckcard-stat {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity 120ms ease,
+        transform var(--spring-bouncy);
+    }
+  }
+
+  /* Touch: the open state shows on press, nothing is hidden behind it. */
+  :root:not([data-still]) .deckcard-link:active .deckcard-sheet[data-i='2'] {
+    transform: translateX(-16px) rotate(-9deg);
+  }
+
+  :root:not([data-still]) .deckcard-link:active .deckcard-sheet[data-i='1'] {
+    transform: translateX(16px) rotate(9deg);
+  }
+
+  /* ---------- Story rings (M6) ---------- */
+  .story-ring {
+    --ring: 64px;
+    display: inline-flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: calc(var(--ring) + 20px);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    text-decoration: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  span.story-ring {
+    cursor: default;
+  }
+
+  .story-ring-circle {
+    position: relative;
+    display: block;
+    width: var(--ring);
+    height: var(--ring);
+    border-radius: 50%;
+    transition: transform var(--spring-release);
+  }
+
+  .story-ring-art {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(var(--c-yellow), var(--c-green), var(--c-purple), var(--c-orange), var(--c-yellow));
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+    transition: transform var(--spring-smooth);
+  }
+
+  .story-ring[data-selected] .story-ring-art {
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+  }
+
+  .story-ring[data-seen] .story-ring-art {
+    background: var(--line);
+  }
+
+  .story-ring[data-dashed] .story-ring-art {
+    background: none;
+    border: 2px dashed color-mix(in oklab, var(--ink) 35%, transparent);
+    -webkit-mask: none;
+    mask: none;
+  }
+
+  .story-ring-face {
+    position: absolute;
+    inset: 6px;
+    display: grid;
+    place-items: center;
+    overflow: clip;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 0 0 1px var(--line);
+    transition: transform var(--spring-smooth);
+  }
+
+  .story-ring-face > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .story-ring-letter {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    background: var(--g-sochu);
+    color: #16131b;
+    font-size: calc(var(--ring) * 0.34);
+    font-weight: 600;
+  }
+
+  .story-ring-letter[data-tone='bolu'] {
+    background: var(--g-bolu);
+  }
+
+  .story-ring-letter[data-tone='gola'] {
+    background: var(--g-gola);
+  }
+
+  .story-ring-letter[data-tone='tiko'] {
+    background: var(--g-tiko);
+    color: #fff;
+  }
+
+  .story-ring[data-dashed] .story-ring-face {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .story-ring-plus {
+    color: var(--ink);
+    font-size: calc(var(--ring) * 0.4);
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .story-ring-check {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: 0 0 0 2px var(--bg);
+    animation: story-ring-check var(--spring-bouncy) both;
+  }
+
+  @keyframes story-ring-check {
+    from {
+      transform: scale(0.4);
+      opacity: 0;
+    }
+  }
+
+  :root[data-still] .story-ring-check {
+    animation: none;
+  }
+
+  .story-ring-caption {
+    display: block;
+    max-width: 100%;
+    overflow: clip;
+    font-size: 12px;
+    line-height: 16px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .story-ring[data-selected] .story-ring-caption {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .story-ring:is(a, button):focus-visible {
+    outline: none;
+  }
+
+  .story-ring:is(a, button):focus-visible .story-ring-circle {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .story-ring:is(a, button):hover .story-ring-art {
+      transform: rotate(120deg);
+    }
+
+    :root:not([data-still]) .story-ring:is(a, button):hover .story-ring-face {
+      transform: scale(1.05);
+      transition: transform var(--spring-bouncy);
+    }
+
+    .story-ring:is(a, button):hover .story-ring-caption {
+      color: var(--ink);
+    }
+  }
+
+  :root:not([data-still]) .story-ring:is(a, button):active .story-ring-circle {
+    transform: scale(0.94);
+    transition-duration: var(--dur-press);
+  }
+
+  /* ---------- Coverflow (M14) ---------- */
+  .coverflow {
+    --cf-w: clamp(200px, 22vw, 260px);
+    position: relative;
+  }
+
+  .coverflow-track {
+    position: relative;
+    display: grid;
+    height: calc(var(--cf-w) * 16 / 9);
+    place-items: center;
+    touch-action: pan-y;
+  }
+
+  .coverflow-item {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--cf-w);
+    margin-left: calc(var(--cf-w) / -2);
+  }
+
+  .coverflow-veil {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r-tile);
+    background: #000000;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+  }
+
+  .coverflow-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .coverflow-count {
+    min-width: 5ch;
+    color: var(--muted);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  .coverflow[data-still] .coverflow-item[data-centre] .tile {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+  }
+
+  /* ---------- Player additions: the Watch links and the "can't play here" panel ---------- */
+  .watch-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .watch-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 6px 6px 6px 14px;
+    border-radius: var(--r-pill);
+    background: color-mix(in oklab, currentColor 10%, transparent);
+    color: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 19px;
+    text-decoration: none;
+    touch-action: manipulation;
+    transition:
+      background-color var(--dur-hover) ease,
+      transform var(--dur-press) var(--ease-out);
+  }
+
+  .watch-glyph {
+    flex: none;
+  }
+
+  .watch-link .arrow-disc {
+    --disc: 32px;
+    background: color-mix(in oklab, currentColor 14%, transparent);
+    color: inherit;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .watch-link:hover {
+      background: color-mix(in oklab, currentColor 16%, transparent);
+    }
+  }
+
+  :root:not([data-still]) .watch-link:active {
+    transform: scale(0.97);
+  }
+
+  .watch-link:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .player-watch {
+    margin-top: 4px;
+  }
+
+  .player-watch .watch-link {
+    min-height: 40px;
+    padding-block: 4px;
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  .player-watch .arrow-disc {
+    --disc: 28px;
+  }
+
+  /* The Watch links take room the up-next list had: on windows up to 1000 px tall, two rows of up next, so the action stays in the panel. */
+  @media (max-height: 1000px) {
+    .player-info:has(.player-watch) .player-next-row:nth-of-type(n + 3) {
+      display: none;
+    }
+  }
+
+  .player-failed {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    background: rgb(14 14 16 / 0.9);
+    color: #f5f3ee;
+    text-align: center;
+  }
+
+  .player-failed-text {
+    max-width: 24ch;
+    text-wrap: balance;
+    margin: 0;
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 24px;
+    letter-spacing: -0.01em;
+  }
+
+  .player-failed-links {
+    justify-content: center;
+  }
+
+  :root[data-still] :is(.vframe-bubble, .vframe-polaroid, .vframe-screen > img, .deckcard-sheet, .story-ring-art, .story-ring-face, .story-ring-circle, .vsticker) {
+    transition: none;
+  }
+}

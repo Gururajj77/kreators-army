@@ -1,5 +1,11 @@
 # Copy to apps/api/.dev.vars (gitignored). Every key is optional locally.
 # The site's own address. Locally http://localhost:5183. In production set it as a Worker variable.
 PUBLIC_URL=
-# Guards /api/admin/* (adding videos, reading enquiries). In production set a long random value: pnpm cf:secret ADMIN_KEY
+# The passkey that unlocks /admin (and the Bearer key for scripts/videos.mjs). In production set it with: pnpm cf:secret ADMIN_KEY
+# Pick something you can type: four or more random words. Under 16 characters the admin shows a "short passkey" note.
 ADMIN_KEY=dev-admin-key
+# Legacy (v1.5): MEGA links, one per line, read only for a library entry whose key has not been moved into the library yet
+# ("Move it into the library" in /admin). Delete the secret once that is done: wrangler secret delete MEGA_LINKS
+# MEGA_LINKS=
+# Tests only: a local MEGA mock (apps/api/test/mega/mock-mega.mjs). Honoured only as http://127.0.0.1:<port> or http://localhost:<port>.
+# MEGA_API=

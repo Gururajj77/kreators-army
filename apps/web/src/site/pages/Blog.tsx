@@ -31,9 +31,12 @@ export default function Blog() {
       <div className="ground" aria-hidden />
       <div className="wrap blog-in">
         <header className="blog-mast">
-          <h1 className="display">
-            Word from the <span className="g-word">street</span>
-          </h1>
+          <div className="blog-mast-title">
+            <span className="eyebrow">Blog</span>
+            <h1 className="display">
+              Word from the <span className="g-word">street</span>
+            </h1>
+          </div>
           <p className="lead">Notes on vox pop, street interviews and short-form video.</p>
         </header>
 

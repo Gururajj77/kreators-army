@@ -1,4 +1,5 @@
-/* The footer: the ending of every page. A dark stage in both themes, whatever the page around it is doing. */
+/* Owner: A3 Scene. The footer: the ending of every page. A dark stage in both themes, whatever the page around it is doing. v2 (content §1.3,
+   visual §2.9): the ask with its eyebrow and line, the reach block (email, WhatsApp, city, socials with the dock pop), the skyline behind the wordmark. */
 @layer components {
   .ft {
     --ft-link: #e4e1da;
@@ -41,8 +42,27 @@
     gap: 28px;
   }
 
+  .ft-ask {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ft-eyebrow {
+    margin: 0 0 12px;
+    color: var(--ft-soft);
+  }
+
   .ft-title {
     color: #ffffff;
+  }
+
+  .ft-copy {
+    max-width: 400px;
+    margin: 14px 0 0;
+    color: var(--ft-soft);
+    font-size: 17px;
+    line-height: 25px;
+    letter-spacing: -0.012em;
   }
 
   /* The two buttons run a little past the 420 column, into the gutter. Below 1180 the columns stack, so this never crowds them. */
@@ -67,22 +87,43 @@
 
   .ft-reach {
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .ft-contacts {
+    display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0 14px;
-  }
-
-  .ft-mail {
-    color: var(--ft-soft);
-  }
-
-  .ft-socials {
-    display: flex;
+    gap: 0 20px;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
+  .ft-mail {
+    color: var(--ft-link);
+  }
+
+  .ft-city {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--ft-soft);
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: -0.01em;
+  }
+
+  .ft-socials {
+    display: flex;
+    margin: 0 0 0 -12px;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Dock pop (M5g): in fast with a little bounce, out slow and clean. Neighbours do nothing. */
   .ft-social {
     display: grid;
     width: 44px;
@@ -93,7 +134,7 @@
     transition:
       color var(--dur-hover) ease,
       background-color var(--dur-hover) ease,
-      transform 220ms var(--ease-out);
+      transform var(--spring-smooth);
   }
 
   .ft-social[data-who='tiko'] {
@@ -116,7 +157,11 @@
     }
 
     :root:not([data-still]) .ft-social:hover {
-      transform: translateY(-2px);
+      transform: translateY(-4px) scale(1.08);
+      transition:
+        color var(--dur-hover) ease,
+        background-color var(--dur-hover) ease,
+        transform var(--spring-bouncy);
     }
   }
 
@@ -168,6 +213,14 @@
     text-decoration: none;
     white-space: nowrap;
     transition: color var(--dur-hover) ease;
+  }
+
+  /* The tap target is at least 44 wide as well, for short labels such as "FAQ" (A7), without moving or underlining anything. */
+  .ft-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    min-width: 44px;
   }
 
   /* R40: the underline is drawn with a transform. Footer links never wrap. */
@@ -307,6 +360,13 @@
   .ft-stage {
     position: relative;
     padding-top: calc(var(--ft-cast-h) + 28px);
+  }
+
+  /* The skyline (components/street, variant skyline) behind the wordmark and the cast, just above the ground band. */
+  .ft-stage > .street-host {
+    --street-h: clamp(150px, 19vw, 280px);
+    bottom: 8px;
+    opacity: 0.9;
   }
 
   .ft-word-box {
@@ -549,13 +609,18 @@
       gap: 8px;
     }
 
-    .ft-reach {
+    .ft-copy {
+      font-size: 15px;
+      line-height: 21px;
+    }
+
+    .ft-contacts {
       flex-direction: column;
       align-items: flex-start;
     }
 
-    .ft-socials {
-      margin-left: -12px;
+    .ft-city {
+      font-size: 15px;
     }
 
     .ft-nav {

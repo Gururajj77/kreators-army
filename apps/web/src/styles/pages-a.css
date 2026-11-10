@@ -509,98 +509,6 @@
     overflow-x: clip;
   }
 
-  .wk-line {
-    position: relative;
-    margin-top: 64px;
-  }
-
-  /* One rail across the whole page, not five boxes: it enters at the left edge of the screen and leaves at the right. */
-  .wk-rail {
-    position: absolute;
-    top: 70px;
-    right: calc(50% - 50vw);
-    left: calc(50% - 50vw);
-    height: 2px;
-    background: var(--line);
-  }
-
-  .wk-rail-fill {
-    position: absolute;
-    inset: 0;
-    background: var(--ink);
-    transform-origin: 0 50%;
-    transition: transform 1500ms var(--ease-in-out) 120ms;
-  }
-
-  :root[data-js]:not([data-still]) [data-reveal]:not([data-in]) .wk-rail-fill {
-    transform: scaleX(0);
-  }
-
-  :root[data-still] .wk-rail-fill {
-    transition: none;
-  }
-
-  .wk-steps {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: var(--gap);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .wk-step {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .wk-step-cast {
-    display: flex;
-    align-items: flex-end;
-    height: 70px;
-  }
-
-  .wk-step-dot {
-    width: 14px;
-    height: 14px;
-    margin: -6px 0 22px 21px;
-    border-radius: 50%;
-    background: var(--ink);
-    box-shadow: 0 0 0 4px var(--bg);
-    transition: transform 420ms var(--ease-out);
-    transition-delay: calc(240ms + var(--i, 0) * 260ms);
-  }
-
-  :root[data-js]:not([data-still]) [data-reveal]:not([data-in]) .wk-step-dot {
-    transform: scale(0);
-  }
-
-  :root[data-still] .wk-step-dot {
-    transition: none;
-  }
-
-  .wk-step-text {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .wk-step-text p {
-    margin: 0;
-  }
-
-  .wk-step-text .small {
-    font-size: 15px;
-    line-height: 22px;
-  }
-
-  .wk-step-no {
-    color: var(--muted);
-    font-weight: 600;
-  }
-
   .wk-team {
     display: flex;
     flex-wrap: wrap;
@@ -622,91 +530,10 @@
     font-weight: 600;
   }
 
-  /* Below desktop the rail stands up: same line, down the left side. */
-  @media (max-width: 1068px) {
-    .wk-line {
-      margin-top: 48px;
-    }
-
-    .wk-rail {
-      top: 0;
-      right: auto;
-      bottom: 0;
-      left: 27px;
-      width: 2px;
-      height: auto;
-    }
-
-    .wk-rail-fill {
-      transform-origin: 50% 0;
-    }
-
-    :root[data-js]:not([data-still]) [data-reveal]:not([data-in]) .wk-rail-fill {
-      transform: scaleY(0);
-    }
-
-    .wk-steps {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 36px;
-    }
-
-    .wk-step {
-      display: grid;
-      grid-template-columns: 56px minmax(0, 1fr);
-      gap: 20px;
-    }
-
-    /* Only as tall as the character, so the rail shows the rest of the way down. */
-    .wk-step-cast {
-      align-self: start;
-      align-items: flex-start;
-      justify-content: center;
-      height: auto;
-      padding-block: 6px;
-      background: var(--bg);
-    }
-
-    .wk-step-dot {
-      display: none;
-    }
-  }
-
   /* ---------- Included ---------- */
   .wk-inc {
     display: grid;
     gap: 40px;
-  }
-
-  .wk-inc-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .wk-inc-list > li {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding-block: 22px;
-    border-top: 1px solid var(--line);
-    font-size: 21px;
-    line-height: 27px;
-    letter-spacing: -0.012em;
-  }
-
-  .wk-inc-list > li:last-child {
-    border-bottom: 1px solid var(--line);
-  }
-
-  .wk-inc-mark {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--ink);
-    color: var(--bg);
   }
 
   @media (min-width: 1069px) {
@@ -719,14 +546,6 @@
       position: sticky;
       top: calc(var(--nav-offset) + 32px);
       align-self: start;
-    }
-  }
-
-  @media (max-width: 734px) {
-    .wk-inc-list > li {
-      padding-block: 18px;
-      font-size: 17px;
-      line-height: 23px;
     }
   }
 
@@ -750,10 +569,30 @@
     padding-bottom: 64px;
   }
 
-  .vp-host {
-    display: flex;
-    justify-content: flex-end;
-    margin-right: 24px;
+  /* The street in a 28-radius plate, Bolu on its footpath with the mic out (visual §2.8). */
+  .vp-street {
+    position: relative;
+    width: clamp(380px, 38vw, 520px);
+    height: 352px;
+    margin-bottom: 64px;
+    overflow: clip;
+    border-radius: var(--r-tile);
+    background: var(--surface);
+    box-shadow: var(--plate-edge);
+  }
+
+  .vp-street .street-stage > .k-char {
+    left: 54%;
+  }
+
+  @media (max-width: 1068px) and (min-width: 735px) {
+    .vp-cover-in {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .vp-street {
+      width: 100%;
+    }
   }
 
   @media (max-width: 734px) {
@@ -766,9 +605,16 @@
       padding-bottom: 24px;
     }
 
-    /* Bolu's mic reaches about 40 px past the box: keep it inside the gutter. */
-    .vp-host {
-      margin-right: 40px;
+    .vp-street {
+      width: 100%;
+      height: 284px;
+      margin-bottom: 40px;
+    }
+
+    /* The mic reaches about 40 px past Bolu's box: keep it inside the plate. */
+    .vp-street .street-stage > .k-char {
+      left: auto;
+      right: 48px;
     }
   }
 
@@ -848,7 +694,7 @@
     display: flex;
   }
 
-  .vp-thesis-text {
+  .vp-thesis-head h2.h2 {
     max-width: 22ch;
     margin: 0;
     color: var(--muted);
@@ -859,20 +705,20 @@
     letter-spacing: -0.016em;
   }
 
-  .vp-thesis-text > b {
+  .vp-thesis-head h2 b {
     color: var(--ink);
     font-weight: 600;
   }
 
   @media (max-width: 1068px) {
-    .vp-thesis-text {
+    .vp-thesis-head h2.h2 {
       font-size: 48px;
       line-height: 52px;
     }
   }
 
   @media (max-width: 734px) {
-    .vp-thesis-text {
+    .vp-thesis-head h2.h2 {
       font-size: 36px;
       line-height: 40px;
     }
@@ -1503,7 +1349,7 @@
 
   .nb-row {
     display: grid;
-    grid-template-columns: 40px 52px minmax(0, 1.4fr) minmax(0, 1fr) 72px 28px;
+    grid-template-columns: 40px 52px minmax(0, 1.4fr) minmax(0, 1fr) 132px 28px;
     align-items: center;
     gap: 20px;
     width: 100%;
@@ -1752,6 +1598,211 @@
     .nb-row[data-lead] .nb-views {
       font-size: 24px;
       line-height: 28px;
+    }
+  }
+
+  /* ================ v2 additions (V2-SPEC 5.8) ================ */
+
+  /* Why Kreators: the short results note beside the figures. */
+  .wk-note {
+    margin: -16px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  /* Why Kreators: the timeline (EditTimeline reveal, plate tone) with the five standing over their clips, still. */
+  .wk-timeline {
+    margin-top: 56px;
+  }
+
+  .wk-cast {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding-inline: 28px;
+  }
+
+  .wk-cast-slot {
+    display: flex;
+    justify-content: flex-start;
+    padding-left: 4px;
+  }
+
+  .wk-process .etl-scene {
+    margin-bottom: -6px;
+  }
+
+  @media (max-width: 734px) {
+    .wk-timeline {
+      margin-top: 36px;
+    }
+
+    .wk-cast {
+      display: flex;
+      justify-content: space-between;
+      padding-inline: 8px;
+    }
+
+    .wk-cast .k-char {
+      --k-size: 44px !important;
+    }
+  }
+
+  /* Why Kreators: what we've learned, on the Tiko tile. */
+  .wk-quote {
+    padding: 56px 64px;
+  }
+
+  .wk-quote-eyebrow {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .wk-quote-text {
+    margin: 20px 0 0;
+  }
+
+  .wk-quote-text > p {
+    max-width: 30ch;
+    margin: 0;
+    color: var(--ink);
+    font-size: 36px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 42px;
+    letter-spacing: -0.016em;
+    text-wrap: pretty;
+  }
+
+  .wk-quote-who {
+    margin: 24px 0 0;
+    color: var(--muted);
+  }
+
+  .wk-learned {
+    padding-bottom: 0;
+  }
+
+  @media (max-width: 734px) {
+    .wk-quote {
+      padding: 32px 24px;
+    }
+
+    .wk-quote-text > p {
+      font-size: 24px;
+      line-height: 30px;
+    }
+  }
+
+  .wk-inc-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 16px;
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .wk-inc-link:hover {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
+
+  /* Why vox pop: the [8.6] line in the spread, and the platform strip. */
+  /* The [8.6] line sits with the lead, closer than the column's 48 px gap. */
+  .vp-spread-line {
+    margin: -28px 0 0;
+    color: #f5f3ee;
+    font-size: 19px;
+    line-height: 27px;
+    letter-spacing: -0.012em;
+  }
+
+  /* Beside the sticky head: one column of row plates, glyph left, the words right. */
+  .vp-feeds .vp-platforms {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-top: 0;
+  }
+
+  .vp-feeds .vp-platforms .platform {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    column-gap: 18px;
+    padding: 22px 24px;
+  }
+
+  .vp-feeds .vp-platforms .platform-glyph {
+    grid-row: span 2;
+  }
+
+  .vp-feeds .vp-platforms .platform h4 {
+    margin: 0;
+    align-self: end;
+  }
+
+  /* Testimonials: the "Watch the videos" deck, and the results note under the wall. */
+  .tm-deck {
+    justify-content: center;
+    border-radius: var(--r-tile);
+  }
+
+  .tm-deck-title {
+    color: var(--ink);
+    text-align: center;
+  }
+
+  .tm-note {
+    max-width: 760px;
+    margin: 28px 0 0;
+  }
+
+  /* Numbers: the note under the bento; the ranking's frames tip in and carry real-number stickers. */
+  .nb-note-results {
+    max-width: 760px;
+    margin: 20px 0 0;
+  }
+
+  .nb-thumb > .tile-empty {
+    position: absolute;
+    inset: 0;
+  }
+
+  .nb-views {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .nb-views .vsticker {
+    position: relative;
+    z-index: 1;
+  }
+
+  .nb-row[data-lead] .nb-views .vsticker {
+    padding: 8px 14px 9px;
+    font-size: 15px;
+  }
+
+  .nb-row[data-lead] .nb-views .vsticker b {
+    font-size: 22px;
+  }
+
+  /* Narrow rows: a smaller sticker, so the title keeps its room. */
+  @media (max-width: 1068px) {
+    .nb-views .vsticker,
+    .nb-row[data-lead] .nb-views .vsticker {
+      gap: 3px;
+      padding: 4px 8px 5px;
+      font-size: 11px;
+      line-height: 14px;
+    }
+
+    .nb-views .vsticker b,
+    .nb-row[data-lead] .nb-views .vsticker b {
+      font-size: 13px;
     }
   }
 }

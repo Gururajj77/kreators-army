@@ -1,13 +1,20 @@
-import type { Video } from '@kreators/shared';
+import { formatViews, type Video } from '@kreators/shared';
 import { ArrowRight } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { Link } from 'react-router';
-import { Cta, PrimaryCta } from '../../components/ui';
+import { type CharacterHandle } from '../../cast';
+import { useCastLine } from '../../components/chat';
+import { MechanismChip, toneAt } from '../../components/demos';
+import { DeckCard, playLabel } from '../../components/frames';
+import { Cta, PrimaryCta, Reveal, whenSeen } from '../../components/ui';
 import { VideoTile, useVideoPlayer } from '../../components/video';
-import { formatVideos, type FormatPageContent } from '../../lib/content';
+import { IDEAS_CAPTION, formatVideos, type CastLineKey, type FormatPageContent, type FormatSlug } from '../../lib/content';
 import { useVideos } from '../../lib/queries';
 
 // What Founders, Events and Retail share. Only the small parts: each page owns its own layout.
+
+/** The format's slug, from its path. */
+export const formatSlug = (content: FormatPageContent) => content.path.replace('/', '') as FormatSlug;
 
 /** The format's own videos, and one player that steps through them. */
 export function useFormat(content: FormatPageContent) {
@@ -28,10 +35,11 @@ export function FormatTitle({ content }: { content: FormatPageContent }): ReactN
   );
 }
 
-export function FormatActions() {
+/** The hero's two actions. The primary carries the format, so the form opens knowing it (?format=founders). */
+export function FormatActions({ content }: { content: FormatPageContent }) {
   return (
     <>
-      <PrimaryCta size="lg" magnet />
+      <PrimaryCta size="lg" magnet intent={{ format: formatSlug(content) }} />
       <Cta to="/video-library" kind="ghost" size="lg" arrow>
         See the work
       </Cta>
@@ -44,7 +52,7 @@ export function Reel({ video, pending, onOpen, eager, className }: { video?: Vid
   return (
     <div className={`fmt-reel ${className ?? ''}`}>
       {video ? (
-        <VideoTile video={video} onOpen={onOpen} eager={eager} />
+        <VideoTile video={video} onOpen={onOpen} eager={eager} sticker />
       ) : pending ? (
         <div className="skeleton" aria-hidden />
       ) : (
@@ -55,3 +63,66 @@ export function Reel({ video, pending, onOpen, eager, className }: { video?: Vid
     </div>
   );
 }
+
+/**
+ * A video as a deck of three posters (M8): the video in front, two more of the format's behind it. The words sit under the stack, untilted. Pressing it
+ * opens the player on the front video.
+ */
+export function VideoDeck({ video, others, pending, onOpen }: { video?: Video; others: Video[]; pending: boolean; onOpen: (video: Video) => void }) {
+  if (!video) return <Reel pending={pending} onOpen={onOpen} />;
+  return (
+    <DeckCard videos={[video, ...others.filter((v) => v.id !== video.id)]} onClick={() => onOpen(video)} label={playLabel(video)} className="fmt-deck">
+      <span className="fmt-deck-title">{video.title}</span>
+      <span className="fmt-deck-meta">
+        {video.brand}
+        {video.views > 0 && ` · ${formatViews(video.views)} views`}
+      </span>
+    </DeckCard>
+  );
+}
+
+/** "Ideas that suit this format" (content §3.11): four mechanism chips whose demo plays on hover or focus, the caption and the link to How we work. */
+export function FormatIdeas({ content }: { content: FormatPageContent }) {
+  return (
+    <section className="section fmt-ideas-section">
+      <div className="wrap fmt-ideas">
+        <Reveal variant="rise">
+          <h2 className="h3">Ideas that suit this format</h2>
+        </Reveal>
+        <Reveal as="ul" className="fmt-ideas-list">
+          {content.ideas.map((name, i) => (
+            <MechanismChip key={name} as="li" name={name} tone={toneAt(i)} />
+          ))}
+        </Reveal>
+        <p className="fmt-ideas-caption">
+          {IDEAS_CAPTION}{' '}
+          <Link to="/how-we-work" className="fmt-ideas-link">
+            → How we work
+          </Link>
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/** A character's line, said once when `el` first comes into view (and after `delay`). */
+export function useLineOnView(key: CastLineKey, actor: RefObject<CharacterHandle | null>, el: RefObject<HTMLElement | null>, delay = 600) {
+  const cast = useCastLine();
+  const { say } = cast;
+  useEffect(() => {
+    const node = el.current;
+    if (!node) return;
+    let t = 0;
+    const stop = whenSeen(node, () => {
+      t = window.setTimeout(() => void say(key, { by: actor.current }), delay);
+    });
+    return () => {
+      stop();
+      window.clearTimeout(t);
+    };
+  }, [key, actor, el, delay, say]);
+  return cast;
+}
+
+/** A plain ref for useLineOnView's element, for pages that need one. */
+export const useNodeRef = <T extends HTMLElement>() => useRef<T>(null);

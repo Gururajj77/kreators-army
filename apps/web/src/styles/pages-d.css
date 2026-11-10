@@ -1,0 +1,1677 @@
+/* Owner: A6 Pages B. How we work, the trial and pricing (V2-SPEC 5.3 to 5.5, visual §2.2 to §2.4). Imported from app.css. Every class is in
+   @layer components, so a Tailwind utility on the same element wins. Transform and opacity only; everything that moves stops under :root[data-still]. */
+@layer components {
+  /* =============================== How we work =============================== */
+  .hww {
+    --hww-k: 96px;
+    --hww-k-sm: 88px;
+    --hww-k-xs: 72px;
+    position: relative;
+  }
+
+  .hww-hero {
+    padding-bottom: 40px;
+  }
+
+  .hww-hero .page-hero-copy {
+    max-width: 940px;
+    margin-inline: auto;
+  }
+
+  .hww-body-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hww-chapters {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .hww-chips {
+    position: sticky;
+    z-index: var(--z-ornament);
+    top: calc(var(--nav-offset) - 4px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 5px 5px 5px 14px;
+    border-radius: 26px;
+    background: var(--glass-bg);
+    box-shadow: var(--glass-edge);
+    -webkit-backdrop-filter: var(--glass-fx);
+    backdrop-filter: var(--glass-fx);
+  }
+
+  .hww-chapnum {
+    flex: none;
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 17px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .hww-chips > nav {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .hww-chips .chip-opt {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 14px;
+  }
+
+  .hww-chips .chip-opt:not([data-on]) {
+    box-shadow: none;
+  }
+
+  /* 44 px tap targets on phones (A7). */
+  @media (max-width: 734px) {
+    .hww-chips .chip-opt {
+      min-height: 44px;
+    }
+  }
+
+  /* The one sticky element: the chapter index on desktop, the chapter chips on phones and tablets. */
+  @media (min-width: 1069px) {
+    .hww-body-grid {
+      grid-template-columns: 220px minmax(0, 1fr);
+      column-gap: 56px;
+      align-items: start;
+    }
+
+    .hww-index {
+      position: sticky;
+      top: calc(var(--nav-offset) + 32px);
+      padding-top: 56px;
+    }
+
+    .hww-chips {
+      display: none;
+    }
+  }
+
+  @media (max-width: 1068px) {
+    .hww-index {
+      display: none;
+    }
+  }
+
+  /* ---------- Chapters ---------- */
+  .hww-ch {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding-block: 56px;
+    scroll-margin-top: calc(var(--nav-offset) + 24px);
+  }
+
+  .hww-ch-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .hww-ch-head .h2-sm {
+    max-width: 18ch;
+  }
+
+  /* Chapters 2 and 6 sit on the alternate plate, chapter 4 on the dark one: bands as calm stops beside the index. */
+  .hww-panel {
+    padding: 56px;
+    border-radius: var(--r-footer);
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  .hww-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .hww-sub > .h3 {
+    margin: 0;
+  }
+
+  .hww-body {
+    max-width: 40em;
+    margin: 0;
+    color: var(--ink);
+    font-size: 19px;
+    line-height: 30px;
+    letter-spacing: -0.014em;
+    text-wrap: pretty;
+  }
+
+  .hww-line {
+    max-width: 36em;
+    margin: 0;
+    color: var(--ink);
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 29px;
+    letter-spacing: -0.014em;
+    text-wrap: pretty;
+  }
+
+  .hww-small {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  /* Chapter 1: the chain on its plate, Tiko on the plate's top edge, and the four example cards with their demos. */
+  .hww-chain {
+    position: relative;
+    margin-top: calc(var(--hww-k-sm) * 0.8);
+    padding: 26px 28px;
+    border-radius: var(--r-tile);
+    background: var(--surface);
+    box-shadow: var(--plate-edge);
+  }
+
+  .hww-chain-tiko {
+    position: absolute;
+    right: 28px;
+    bottom: calc(100% - 4px);
+  }
+
+  .hww-examples {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+  }
+
+  .hww-example-text {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 23px;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+
+  /* Chapter 2: Sochu stands on the grid's top edge; eleven cards and the line in the twelfth cell. */
+  .hww-lede-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: -40px;
+  }
+
+  .hww-lede-row .hww-body {
+    padding-bottom: 40px;
+  }
+
+  .hww-mech-sochu {
+    flex: none;
+    margin-right: 24px;
+    margin-bottom: -2px;
+  }
+
+  .hww-mechs {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hww-mechs-note {
+    display: flex;
+    align-items: flex-end;
+    padding: 4px 4px 6px;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 24px;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  .hww-jobs {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hww-job {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    min-height: 72px;
+    padding: 14px 18px;
+    border-radius: var(--r-inner);
+  }
+
+  .hww-job-glyph {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--sunken);
+    color: var(--ink);
+  }
+
+  .hww-job-name {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 22px;
+    letter-spacing: -0.012em;
+  }
+
+  /* Chapter 3: five tiles, the first one wide, each with a small still street scene. */
+  .hww-street {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hww-tile {
+    overflow: visible;
+  }
+
+  .hww-tile-wide {
+    grid-column: span 2;
+  }
+
+  .hww-tile-in {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .hww-vignette {
+    position: relative;
+    aspect-ratio: 16 / 10;
+  }
+
+  .hww-vignette > .street-vignette-box {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: clip;
+    border-radius: var(--r-tile) var(--r-tile) 0 0;
+    background: var(--sunken);
+  }
+
+  .hww-vignette > .street-vignette-box > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hww-tile-who {
+    position: absolute;
+    right: 9%;
+    bottom: 5%;
+    z-index: 2;
+  }
+
+  .hww-tile-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 22px 24px 26px;
+  }
+
+  .hww-tile-copy > .h4 {
+    margin: 0;
+  }
+
+  .hww-tile-copy > p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 25px;
+    text-wrap: pretty;
+  }
+
+  @media (min-width: 1069px) {
+    .hww-tile-wide .hww-tile-in {
+      flex-direction: row;
+    }
+
+    .hww-tile-wide .hww-vignette {
+      flex: 0 0 52%;
+      aspect-ratio: auto;
+      min-height: 260px;
+    }
+
+    .hww-tile-wide .hww-vignette > .street-vignette-box {
+      border-radius: var(--r-tile) 0 0 var(--r-tile);
+    }
+
+    .hww-tile-wide .hww-tile-copy {
+      justify-content: center;
+      padding: 28px 32px;
+    }
+  }
+
+  /* Chapter 4: the edit timeline on the dark plate, with Gola standing on its top edge. */
+  .hww-edit-tl {
+    margin-top: calc(var(--hww-k-sm) * 0.7);
+  }
+
+  .hww-two {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hww-two-plate {
+    gap: 10px;
+    padding: 24px 26px;
+  }
+
+  .hww-two-title {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  .hww-two-plate > p {
+    margin: 0;
+    font-size: 17px;
+    line-height: 25px;
+    letter-spacing: -0.012em;
+  }
+
+  /* Chapter 5: the lock list. Checks pop in order on view (scale .4 to 1 on --spring-bouncy, 60 ms apart); all ticked with no JS or under still. */
+  .hww-lock {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 24px;
+    overflow: visible;
+    padding: 32px 32px 0;
+  }
+
+  .hww-lock-list {
+    display: grid;
+    gap: 14px 32px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    padding: 0 0 32px;
+    list-style: none;
+  }
+
+  .hww-lock-list > li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 17px;
+    line-height: 24px;
+    letter-spacing: -0.012em;
+  }
+
+  .hww-lock-check {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    overflow: visible;
+  }
+
+  .hww-lock-check circle {
+    fill: var(--c-yellow);
+  }
+
+  .hww-lock-check path {
+    fill: none;
+    stroke: #0e0e10;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .hww-lock[data-armed] .hww-lock-check {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  .hww-lock[data-armed][data-ticked] .hww-lock-check {
+    opacity: 1;
+    transform: none;
+    transition:
+      transform var(--spring-bouncy),
+      opacity 160ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 60ms);
+  }
+
+  .hww-lock-sochu {
+    align-self: end;
+    padding-right: 8px;
+  }
+
+  .hww-split-line {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 40em;
+  }
+
+  .hww-two-tone {
+    margin: 0;
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.016em;
+  }
+
+  /* Chapter 6: the plain ink callout (no motion), the loop, and the pull quote on Sochu's tile. */
+  .hww-callout {
+    padding: 32px 36px;
+  }
+
+  .hww-callout > p {
+    max-width: 30em;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 33px;
+    letter-spacing: -0.016em;
+    text-wrap: balance;
+  }
+
+  .hww-loop {
+    padding-top: 8px;
+  }
+
+  .hww-quote {
+    gap: 20px;
+    margin: 0;
+    padding: 40px 44px;
+  }
+
+  .hww-quote blockquote {
+    margin: 0;
+  }
+
+  .hww-quote blockquote p {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 34px;
+    letter-spacing: -0.016em;
+    text-wrap: pretty;
+  }
+
+  .hww-quote figcaption {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 21px;
+  }
+
+  /* Tablets: the chips take over; two columns where four were. */
+  @media (max-width: 1068px) {
+    .hww-ch {
+      padding-block: 48px;
+    }
+
+    .hww-panel {
+      padding: 44px 40px;
+    }
+
+    .hww-examples,
+    .hww-mechs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hww-jobs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hww-street {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* Phones: bands run to the edges, everything stacks, the cast steps down a size. */
+  @media (max-width: 734px) {
+    .hww {
+      --hww-k: 80px;
+      --hww-k-sm: 76px;
+      --hww-k-xs: 64px;
+    }
+
+    .hww-ch {
+      gap: 32px;
+      padding-block: 40px;
+    }
+
+    .hww-panel {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      padding: 48px calc(50vw - 50%);
+      border-radius: 0;
+    }
+
+    .hww-body {
+      font-size: 17px;
+      line-height: 27px;
+    }
+
+    .hww-line {
+      font-size: 19px;
+      line-height: 27px;
+    }
+
+    /* The chain needs the full width for three pills a row: no plate around it on phones. */
+    .hww-chain {
+      padding: 0;
+      background: none;
+      box-shadow: none;
+    }
+
+    .hww-chain-tiko {
+      right: 4px;
+    }
+
+    .hww-mechs {
+      gap: 12px;
+    }
+
+    .hww-mechs .mech-card {
+      padding: 18px 16px 20px;
+    }
+
+    .hww-mechs-note {
+      grid-column: 1 / -1;
+      padding: 8px 4px 0;
+    }
+
+    .hww-lede-row {
+      margin-bottom: -32px;
+    }
+
+    .hww-lede-row .hww-body {
+      padding-bottom: 32px;
+    }
+
+    .hww-mech-sochu {
+      margin-right: 4px;
+    }
+
+    .hww-jobs,
+    .hww-street,
+    .hww-two {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .hww-tile-wide {
+      grid-column: auto;
+    }
+
+    .hww-lock {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+      padding: 24px 20px 0;
+    }
+
+    .hww-lock-list {
+      grid-template-columns: minmax(0, 1fr);
+      padding-bottom: 8px;
+    }
+
+    .hww-lock-sochu {
+      justify-self: end;
+    }
+
+    .hww-two-tone {
+      font-size: 21px;
+      line-height: 28px;
+    }
+
+    .hww-callout {
+      padding: 26px 24px;
+    }
+
+    .hww-callout > p,
+    .hww-quote blockquote p {
+      font-size: 21px;
+      line-height: 28px;
+    }
+
+    .hww-quote {
+      padding: 28px 24px;
+    }
+  }
+
+  :root[data-still] .hww-lock-check {
+    transition: none !important;
+  }
+
+  /* =============================== The trial =============================== */
+  .tr {
+    --tr-bolu: 132px;
+    --tr-sochu: 96px;
+    --tr-gola: 96px;
+    --tr-tiko: 104px;
+    --tr-aside: 88px;
+    --tr-phone: 248px;
+    position: relative;
+  }
+
+  /* The hero: centred copy over the street, Bolu on the footpath right of centre. */
+  .tr-hero {
+    position: relative;
+    overflow: clip;
+    padding-top: calc(var(--nav-offset) + 64px);
+    padding-bottom: calc(300px + 40px);
+  }
+
+  .tr-hero-in {
+    position: relative;
+    z-index: 2;
+  }
+
+  .tr-hero .page-hero-copy {
+    align-items: center;
+    max-width: 920px;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .tr-hero .lead {
+    text-wrap: balance;
+  }
+
+  .tr-hero .page-hero-actions {
+    justify-content: center;
+  }
+
+  .tr-bolu {
+    left: calc(50% + 120px);
+  }
+
+  .tr-what {
+    padding-top: 72px;
+  }
+
+  .tr-what-h {
+    margin: 0 0 24px;
+  }
+
+  .tr-what-grid {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tr-what-tile {
+    gap: 12px;
+    padding: 28px 28px 30px;
+  }
+
+  .tr-what-tile > .h4 {
+    margin-top: 6px;
+  }
+
+  .tr-what-body {
+    margin: 0;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 25px;
+  }
+
+  .tr-glyph {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: var(--sunken);
+    color: var(--ink);
+  }
+
+  /* The brief: six cards in a 3 x 2 grid, Sochu standing on the grid's top edge. */
+  .tr-brief-stage {
+    position: relative;
+    margin-top: calc(var(--tr-sochu) * 0.92 + 24px);
+  }
+
+  .tr-sochu {
+    position: absolute;
+    right: 40px;
+    bottom: calc(100% - 2px);
+  }
+
+  .tr-brief-grid {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tr-card {
+    gap: 10px;
+    padding: 26px 26px 28px;
+  }
+
+  .tr-card-n {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tr-card-title {
+    margin-top: 4px;
+  }
+
+  .tr-card-q {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  /* Display-only chips: a plain list, no thumb, no selection, no hover. */
+  .tr-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tr-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 5px 12px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: -0.006em;
+  }
+
+  .tr-guide {
+    margin-top: 6px;
+  }
+
+  .tr-guide > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    border-top: 1px solid var(--line);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+    list-style: none;
+  }
+
+  .tr-guide > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .tr-guide > summary:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  .tr-guide-icon,
+  .bf-guide-icon {
+    position: relative;
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: transform var(--spring-smooth);
+  }
+
+  .tr-guide-icon::before,
+  .tr-guide-icon::after,
+  .bf-guide-icon::before,
+  .bf-guide-icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 1.6px;
+    margin: -0.8px 0 0 -5px;
+    border-radius: 2px;
+    background: var(--ink);
+  }
+
+  .tr-guide-icon::after,
+  .bf-guide-icon::after {
+    transform: rotate(90deg);
+  }
+
+  .tr-guide[open] .tr-guide-icon,
+  .bf-guide[open] .bf-guide-icon {
+    transform: rotate(45deg);
+    transition: transform var(--spring-bouncy);
+  }
+
+  .tr-guide-list,
+  .bf-guide-list {
+    display: grid;
+    gap: 8px;
+    margin: 4px 0 0;
+    padding: 0 0 0 18px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .tr-guide-list strong,
+  .bf-guide-list strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* The note tile on Gola's gradient, Gola standing at its foot. */
+  .tr-note-row {
+    margin-top: 32px;
+  }
+
+  .tr-note {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 24px;
+    overflow: visible;
+    padding: 36px 40px 0;
+  }
+
+  .tr-note-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 36px;
+  }
+
+  .tr-note-copy > .h3 {
+    margin: 0;
+  }
+
+  .tr-note-copy > p {
+    max-width: 40em;
+    margin: 0;
+    font-size: 19px;
+    line-height: 28px;
+    letter-spacing: -0.014em;
+  }
+
+  .tr-note-gola {
+    padding-right: 16px;
+  }
+
+  .tr-brief-cta {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+  }
+
+  /* Trial videos are for evaluation: the rules left, a decorative phone right with Tiko beside it. */
+  .tr-content-in {
+    display: grid;
+    gap: 56px;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    align-items: center;
+  }
+
+  .tr-content-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .tr-rules {
+    display: grid;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tr-rules > li {
+    position: relative;
+    padding-left: 26px;
+    font-size: 18px;
+    line-height: 28px;
+    letter-spacing: -0.014em;
+    text-wrap: pretty;
+  }
+
+  .tr-rules > li::before {
+    content: '';
+    position: absolute;
+    top: 11px;
+    left: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c-purple);
+  }
+
+  .tr-content-side {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 0 0 0 calc(var(--tr-tiko) * 0.75);
+  }
+
+  .tr-phone .vframe-foot {
+    display: none;
+  }
+
+  .tr-eval {
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    bottom: 9%;
+    translate: -50% 0;
+    padding: 6px 14px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .tr-tiko {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 2;
+  }
+
+  /* After the trial: the dark band, the seven steps on the timeline, Gola on its top edge. */
+  .tr-after-tl {
+    margin-top: calc(var(--tr-aside) * 0.92 + 32px);
+  }
+
+  .tr-footnote {
+    max-width: 44em;
+    margin: 24px 0 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .tr-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin: 24px 0 0;
+  }
+
+  .tr-link,
+  .contact-after,
+  .read-onward-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .tr-link > svg,
+  .contact-after > svg,
+  .read-onward-link > svg {
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) :is(.tr-link, .contact-after, .read-onward-link):hover > svg {
+      transform: translateX(3px);
+    }
+  }
+
+  @media (max-width: 1068px) {
+    .tr-what-grid,
+    .tr-brief-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tr-content-in {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 48px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .tr {
+      --tr-bolu: 104px;
+      --tr-sochu: 80px;
+      --tr-gola: 80px;
+      --tr-tiko: 84px;
+      --tr-aside: 72px;
+      --tr-phone: 200px;
+    }
+
+    .tr-hero {
+      padding-top: calc(var(--nav-offset) + 40px);
+      padding-bottom: calc(230px + 24px);
+    }
+
+    .tr-bolu {
+      left: auto;
+      right: 40px;
+    }
+
+    .tr-what-grid,
+    .tr-brief-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .tr-sochu {
+      right: 16px;
+    }
+
+    .tr-note {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+      padding: 26px 24px 0;
+    }
+
+    .tr-note-copy {
+      padding-bottom: 8px;
+    }
+
+    .tr-note-copy > p {
+      font-size: 17px;
+      line-height: 26px;
+    }
+
+    /* Room above Gola for the bubble, so it never sits on the note's words. */
+    .tr-note-gola {
+      justify-self: end;
+      margin-top: 64px;
+    }
+
+    .tr-rules > li {
+      font-size: 17px;
+      line-height: 26px;
+    }
+  }
+
+  /* =============================== Pricing =============================== */
+  .pr-calc-in,
+  .pr-packages-in,
+  .pr-includes-in,
+  .pr-rules-in,
+  .pr-questions-in {
+    margin-top: 48px;
+  }
+
+  .pr-packages-in {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+  }
+
+  .pr-fine {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+  }
+
+  .pr-includes-in {
+    max-width: 960px;
+    margin-inline: auto;
+  }
+
+  .pr-questions-in {
+    display: flex;
+    justify-content: center;
+  }
+
+  .pr-questions-in .chip-rail {
+    justify-content: center;
+  }
+
+  .pr-questions-in .chip-opt {
+    background: var(--surface);
+    color: var(--ink);
+    white-space: normal;
+    text-align: left;
+  }
+
+  /* ---------- The calculator: inputs left, the result and the batch strip right ---------- */
+  .calc {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    overflow: visible;
+  }
+
+  .calc-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 40px;
+  }
+
+  .calc-input {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .calc-label {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 22px;
+    letter-spacing: -0.012em;
+  }
+
+  .calc-stepper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .calc-step {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--sunken);
+    color: var(--ink);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition:
+      background-color var(--dur-hover) ease,
+      transform var(--spring-smooth);
+  }
+
+  :root:not([data-still]) .calc-step:active:not(:disabled) {
+    transform: scale(0.94);
+    transition-duration: var(--dur-hover), var(--dur-press);
+  }
+
+  .calc-step:disabled {
+    cursor: default;
+    opacity: 0.35;
+  }
+
+  .calc-step:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .calc-step:hover:not(:disabled) {
+      background: color-mix(in oklab, var(--ink) 12%, var(--sunken));
+    }
+  }
+
+  .calc-field {
+    width: 96px;
+    min-height: 48px;
+    padding: 8px 10px;
+    border: 1.5px solid var(--field-line);
+    border-radius: var(--r-field);
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 24px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  .calc-field:focus-visible {
+    border-color: var(--focus);
+    outline: 2px solid var(--focus);
+    outline-offset: 0;
+  }
+
+  .calc-range-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* A native range with the action-free ink thumb; the track fills to the value. */
+  .calc-range {
+    width: 100%;
+    height: 32px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .calc-range::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--ink) calc(var(--fill, 0) * 100%), var(--sunken) 0);
+  }
+
+  .calc-range::-moz-range-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--sunken);
+  }
+
+  .calc-range::-moz-range-progress {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--ink);
+  }
+
+  .calc-range::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    margin-top: -9px;
+    border: 3px solid var(--surface);
+    border-radius: 50%;
+    background: var(--ink);
+    box-shadow: 0 1px 4px rgb(24 20 40 / 0.3);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .calc-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: 3px solid var(--surface);
+    border-radius: 50%;
+    background: var(--ink);
+    box-shadow: 0 1px 4px rgb(24 20 40 / 0.3);
+  }
+
+  .calc-range:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+    border-radius: 8px;
+  }
+
+  .calc-range-ends {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .calc-picks .chip-opt {
+    min-width: 56px;
+    justify-content: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .calc-brands {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+
+  .calc-help {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 21px;
+  }
+
+  .calc-out {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 32px;
+    border-left: 1px solid var(--line);
+  }
+
+  .calc-result {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 30px 30px 28px;
+    border-radius: var(--r-inner);
+    background: var(--sunken);
+  }
+
+  .calc-live {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 132px;
+  }
+
+  .calc-big {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 64px;
+    font-weight: 600;
+    line-height: 68px;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .calc-big .roll-pop {
+    display: inline-block;
+  }
+
+  .calc-big-words {
+    font-size: 44px;
+    line-height: 50px;
+    letter-spacing: -0.012em;
+  }
+
+  .calc-each {
+    margin-top: -4px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .calc-line {
+    margin: 0;
+    font-size: 17px;
+    line-height: 25px;
+    letter-spacing: -0.012em;
+  }
+
+  .calc-small {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 21px;
+  }
+
+  .calc-snaps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .calc-snap {
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--ink);
+    cursor: pointer;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    touch-action: manipulation;
+    transition:
+      box-shadow var(--dur-hover) ease,
+      transform var(--spring-smooth);
+  }
+
+  :root:not([data-still]) .calc-snap:active {
+    transform: scale(0.97);
+    transition-duration: var(--dur-hover), var(--dur-press);
+  }
+
+  .calc-snap:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .calc-snap:hover {
+      box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 40%, transparent);
+    }
+  }
+
+  .calc-terms {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .calc-cta {
+    align-self: flex-start;
+  }
+
+  .calc-strip {
+    padding: 0 4px;
+  }
+
+  /* ---------- How payment works ---------- */
+  /* The rules and the payment are both on the page colour: one section's worth of space between them, not two. */
+  .pr-pay {
+    padding-top: 24px;
+  }
+
+  .pr-track {
+    position: relative;
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 48px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* The rule the numbers sit on. No playhead: nothing moves along it. */
+  .pr-track::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    right: calc(25% - 35px);
+    left: 20px;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .pr-track-step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .pr-track-n {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 16px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pr-track-text {
+    margin: 0;
+    font-size: 17px;
+    line-height: 25px;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  .pr-pay-foot {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    margin-top: 48px;
+  }
+
+  .pr-late {
+    gap: 12px;
+    padding: 28px 32px 30px;
+  }
+
+  .pr-late-title {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 24px;
+  }
+
+  .pr-late-list {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pr-late-list > li {
+    position: relative;
+    padding-left: 22px;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 24px;
+  }
+
+  .pr-late-list > li::before {
+    content: '';
+    position: absolute;
+    top: 11px;
+    left: 2px;
+    width: 10px;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+  }
+
+  .pr-pay-lines {
+    display: grid;
+    gap: 12px;
+    padding: 8px 4px;
+  }
+
+  .pr-pay-lines > p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 25px;
+  }
+
+  @media (max-width: 1068px) {
+    .calc {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .calc-out {
+      border-top: 1px solid var(--line);
+      border-left: 0;
+    }
+
+    .pr-track {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 32px;
+    }
+
+    .pr-track::before {
+      display: none;
+    }
+
+    .pr-pay-foot {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 734px) {
+    .calc-inputs,
+    .calc-out {
+      padding: 24px 20px;
+    }
+
+    .calc-result {
+      padding: 22px 20px;
+    }
+
+    .calc-big {
+      font-size: 48px;
+      line-height: 52px;
+    }
+
+    .calc-big-words {
+      font-size: 34px;
+      line-height: 40px;
+    }
+
+    .calc-live {
+      min-height: 112px;
+    }
+
+    .calc-cta {
+      align-self: stretch;
+    }
+
+    .pr-track {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    .pr-track-step {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    .pr-track-n {
+      flex: none;
+      width: 32px;
+      height: 32px;
+      font-size: 14px;
+    }
+
+    .pr-late {
+      padding: 24px;
+    }
+
+    .pr-questions-in .chip-rail {
+      justify-content: flex-start;
+    }
+  }
+}

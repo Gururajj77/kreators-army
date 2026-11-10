@@ -12,3 +12,9 @@ dist
 *.pem
 *.key
 *.tsbuildinfo
+
+# Working notes, specs and test tools for the build agents (not part of the site)
+.work/
+
+# MEGA test fixtures built by apps/api/test/mega/fixtures/build.mjs (vitest globalSetup)
+apps/api/test/mega/.out/

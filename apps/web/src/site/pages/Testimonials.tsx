@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
-import { HeroCopy, Reveal, Seo, Tile, TileBody, TileMedia, type TileTone } from '../../components/ui';
+import { DeckCard } from '../../components/frames';
+import { HeroCopy, Reveal, ResultsNote, Seo, Tile, TileBody, type TileTone } from '../../components/ui';
 import { FOUNDER_QUOTE, TESTIMONIALS } from '../../lib/content';
+import { useVideos } from '../../lib/queries';
 
 // A wall, not a row of cards: three sizes on one tight grid, the number first and the words after it. No characters here: a mascot beside a client's words undercuts them (R42).
 
@@ -23,6 +25,9 @@ function Cell({ slot, i, children }: { slot: string; i: number; children: ReactN
 }
 
 export default function Testimonials() {
+  // The "Watch the videos" tile is a deck of real posters from the library (M8): the most viewed first.
+  const { data } = useVideos();
+  const posters = [...(data ?? [])].filter((v) => v.posterUrl).sort((a, b) => b.views - a.views).slice(0, 3);
   return (
     <>
       <Seo title="Testimonials" description="What clients say about working with Kreators.Army on vox pop street interviews." />
@@ -73,15 +78,13 @@ export default function Testimonials() {
           </Cell>
 
           <Cell slot="tm-v" i={7}>
-            <Tile to="/video-library" tone="media" className="h-full" label="Watch the videos in the library">
-              <TileMedia scrim>
-                <img src="/media/circlestore-2.jpg" alt="" loading="lazy" style={{ objectPosition: '50% 18%' }} />
-              </TileMedia>
-              <TileBody className="justify-end">
-                <p className="h4 text-white">Watch the videos</p>
-              </TileBody>
-            </Tile>
+            <DeckCard videos={posters} frame="polaroid" to="/video-library" label="Watch the videos in the library" className="tm-deck h-full">
+              <span className="h4 tm-deck-title">Watch the videos</span>
+            </DeckCard>
           </Cell>
+        </div>
+        <div className="wrap">
+          <ResultsNote className="tm-note" />
         </div>
       </section>
     </>

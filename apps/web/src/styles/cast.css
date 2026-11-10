@@ -1,2 +1,66 @@
 /* Imports the cast's own stylesheet, which lives next to its components in src/cast/. */
 @import '../cast/cast.css';
+
+/* Owner: A3 Scene. Where the cast stands: the street's host and its stage (visual §1.3). In the first download, so the box is reserved and anything
+   standing on the footpath is in place before the street's art (a lazy chunk) arrives, and with no JavaScript at all. */
+@layer components {
+  /* The street's box: absolutely positioned at the bottom of its section, behind the content. The section needs position: relative and overflow: clip. */
+  .street-host {
+    --street-h: clamp(280px, 40vh, 380px);
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 0;
+    height: var(--street-h);
+    container-type: inline-size;
+    pointer-events: none;
+  }
+
+  .street-host[data-variant='band'] {
+    --street-h: 300px;
+  }
+
+  .street-host[data-variant='skyline'] {
+    --street-h: 260px;
+  }
+
+  @media (max-width: 734px) {
+    .street-host[data-variant='band'] {
+      --street-h: 230px;
+    }
+  }
+
+  /*
+   * The footpath's front and back edges, in px from the bottom, from the drawing's own scale: max((W + 48) / 2400, H / 400) units to the pixel.
+   * Container units resolve where they are used, so these live on the stage (or on any .street-floor element under a container as wide as the street),
+   * never on the host itself. Front edge: Bolu and Tiko. Back edge: shopfronts, the deck, Sochu and Gola.
+   */
+  .street-stage,
+  .street-floor {
+    --floor-front: max(calc((100cqw + 48px) * 30 / 2400), calc(var(--street-h) * 30 / 400));
+    --floor-back: max(calc((100cqw + 48px) * 52 / 2400), calc(var(--street-h) * 52 / 400));
+  }
+
+  .street-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Things that stand on the street, by default on the front edge. */
+  .street-stage > .k-char,
+  .street-stage > .street-stand {
+    position: absolute;
+    bottom: var(--floor-front);
+  }
+
+  .street-stage > [data-floor='back'] {
+    bottom: var(--floor-back);
+  }
+
+  .street-stage a,
+  .street-stage button,
+  .street-stage .k-char[data-interactive] {
+    pointer-events: auto;
+  }
+}

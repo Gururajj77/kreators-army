@@ -7,6 +7,11 @@
   "observability": { "enabled": true },
   // Smart placement runs the Worker near the database.
   "placement": { "mode": "smart" },
+  "routes": [
+    { "pattern": "kreators.army", "custom_domain": true },
+    { "pattern": "www.kreators.army", "custom_domain": true }
+  ],
+  "vars": { "PUBLIC_URL": "https://kreators.army" },
   // The built web app is served as static assets by the same Worker.
   // Any /api/* request runs the Worker; everything else is a file or the SPA shell.
   "assets": {
@@ -17,7 +22,11 @@
     // instead of the app shell (see blockedPath in src/headers.ts, the real rule; keep the two in step). /.well-known/ is left alone.
     "run_worker_first": [
       "/api/*",
-      // Static assets ignore Range requests and Safari needs them to play video, so the Worker answers these (src/media.ts).
+      // The admin shell is answered by the Worker with X-Robots-Tag noindex and Cache-Control no-store (src/index.ts).
+      "/admin",
+      "/admin/*",
+      // Static assets ignore Range requests and Safari needs them to play video, so the Worker answers these (src/media.ts),
+      // and /media/v/, /media/mega-<handle>.mp4 and /media/p/ are the MEGA streams and stored posters (src/mega, src/posters.ts).
       "/media/*",
       "!/.well-known/*",
       "/.*", "/*/.*", "/*.map", "/*.sql", "/*.bak", "/*.zip", "/*.tar", "/*.tar.gz", "/*.tgz", "/*.php", "/*.log", "/*.pem", "/*.key", "/*.env",
@@ -27,12 +36,14 @@
       "/src/*", "/logs/*", "/tmp/*", "/temp/*"
     ]
   },
+  // The optional R2 mirror of MEGA chunks (V2-SPEC D10: off). To turn it on, create the bucket, uncomment this and set the
+  // Worker variable MEGA_MIRROR=on.
+  // "r2_buckets": [{ "binding": "MEDIA_MIRROR", "bucket_name": "kreators-media" }],
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "kreators-army",
-      // Replace with the id printed by: pnpm db:create
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "80158ee8-4cae-4f66-865f-7387abad31ec",
       "migrations_dir": "migrations"
     }
   ]

@@ -3,6 +3,10 @@ import { spring as S, type SpringToken } from '../lib/spring';
 import { PROP_PIVOT, HAND, type PropKind } from './props';
 import { EYE_R, PUPIL_R, GLOSS, REST, lineD, mouthD, type CastId, type RestEye } from './rest';
 import { poseOf, talkMouth, type EyePose, type Expression, type InternalExpression, type Lod, type Pose } from './rig';
+import { bubbleToken, onPointer } from './stage';
+
+// The pointer and the one-speaker token live in ./stage, outside this lazy chunk, so speech bubbles and the street share them from the first download.
+export { bubbleToken, onPointer };
 
 // One director for the whole cast: one passive pointermove, one frame loop, one blink schedule, one performer at a time, and a quiet mode 5 s after the last input.
 // Nothing here touches React. Every value is a spring or a smoothed number stepped in the same frame, written with setAttribute or a transform.
@@ -1139,7 +1143,9 @@ let lastDialogCheck = 0;
 let started = false;
 
 type Queued = { actor: Actor; action: CastAction; opts: PlayOptions; at: number };
-let performer: Actor | 'group' | null = null;
+/** Actors mid-performance. The token itself is shared with speech bubbles (./stage): an actor holds it under its root element, a group under GROUP. */
+const playing = new Set<Actor>();
+const GROUP = { group: true };
 let queued: Queued | null = null;
 
 const root = document.documentElement;
@@ -1216,7 +1222,14 @@ function onDown(e: PointerEvent) {
 function startDirector() {
   if (started) return;
   started = true;
-  window.addEventListener('pointermove', onMove, { passive: true });
+  // The site's one passive pointermove (R10), shared with the street through ./stage.
+  onPointer((_x, _y, e) => onMove(e));
+  // A bubble or another performer has finished: the request that lost waits once and then runs.
+  bubbleToken.onFree(() => {
+    const next = queued;
+    queued = null;
+    if (next && actors.has(next.actor) && performance.now() - next.at < 1500) perform(next.actor, next.action, next.opts);
+  });
   window.addEventListener('pointerdown', onDown, { passive: true });
   window.addEventListener('keydown', noteInput, { passive: true });
   window.addEventListener('scroll', noteInput, { passive: true, capture: true });
@@ -1284,15 +1297,8 @@ export function removeActor(actor: Actor) {
   sized.unobserve(actor.root);
   delete actor.root.dataset.run;
   actor.destroy();
-  if (performer === actor) release();
+  if (playing.delete(actor)) bubbleToken.drop(actor.root);
   if (queued?.actor === actor) queued = null;
-}
-
-function release() {
-  performer = null;
-  const next = queued;
-  queued = null;
-  if (next && performance.now() - next.at < 1500) perform(next.actor, next.action, next.opts);
 }
 
 /** One performer at a time. A request that loses waits once, then gives up. */
@@ -1303,17 +1309,26 @@ export function perform(actor: Actor, action: CastAction, opts: PlayOptions = {}
   if (!opts.force && !actor.canPlay(source, t)) return false;
   // Already performing: a click that follows the hover's run would start the move again over its own scheduled steps, and the first run's release would
   // hand the token on halfway through the second.
-  if (performer === actor && !opts.force) return false;
-  if (performer && performer !== actor && !opts.force) {
+  if (playing.has(actor) && !opts.force) return false;
+  // The token is shared with speech bubbles. The actor's own bubble holds it under the same root, so a character can speak and move together.
+  const took = bubbleToken.take(actor.root);
+  if (!took && !opts.force) {
     queued ??= { actor, action, opts, at: t };
     return false;
   }
   actor.noteCooldown(source, t);
-  performer = actor;
+  playing.add(actor);
   const ms = actor.run(action, opts);
   if (action === 'signature') glanceAt(actor);
-  if (ms === 0) release();
-  else setTimeout(() => performer === actor && release(), ms);
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    playing.delete(actor);
+    if (took) bubbleToken.release(actor.root);
+  };
+  if (ms === 0) finish();
+  else setTimeout(finish, ms);
   return true;
 }
 
@@ -1326,8 +1341,8 @@ function glanceAt(actor: Actor) {
 
 /** One group moment. The token is held for the group, so nothing interrupts it. */
 export function ensemble(list: Actor[], action: CastAction, staggerMs: number, opts: PlayOptions = {}) {
-  if (performer && !opts.force) return false;
-  performer = 'group';
+  const took = bubbleToken.take(GROUP);
+  if (!took && !opts.force) return false;
   let longest = 0;
   list.forEach((a, i) => {
     if (!a.visible) return;
@@ -1338,8 +1353,10 @@ export function ensemble(list: Actor[], action: CastAction, staggerMs: number, o
     if (delay === 0) a.run(action, opts);
     else setTimeout(() => a.run(action, opts), delay);
   });
-  if (longest === 0) release();
-  else setTimeout(() => performer === 'group' && release(), longest);
+  if (took) {
+    if (longest === 0) bubbleToken.release(GROUP);
+    else setTimeout(() => bubbleToken.release(GROUP), longest);
+  }
   return true;
 }
 

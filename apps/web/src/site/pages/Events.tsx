@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import { Character, type CharacterHandle } from '../../cast';
+import { CastBubble } from '../../components/chat';
 import { HeroCopy, SectionHead, Seo, Tile, TileBody } from '../../components/ui';
-import { FORMATS, STEPS } from '../../lib/content';
-import { FormatActions, FormatTitle, Reel, useFormat } from './FormatPage';
+import { FORMATS, LOCK_LIST } from '../../lib/content';
+import { FormatActions, FormatIdeas, FormatTitle, VideoDeck, useFormat, useLineOnView } from './FormatPage';
 
-// A run of show: three beats down one spine. The spine fills as you scroll, from CSS alone, and just sits lit when animations are paused.
+// A run of show: three beats down one spine. The spine fills as you scroll, from CSS alone, and just sits lit when animations are paused. Each beat's
+// video is a deck of posters (M8); Tiko hosts with the tally light on.
 
 const content = FORMATS.events;
 
@@ -43,10 +45,11 @@ export default function Events() {
   const ansh = picks.find((v) => v.id === 'seed-ansh-mehra') ?? picks[0];
   const rode = picks.find((v) => v.id === 'seed-rode') ?? picks.find((v) => v !== ansh);
   const [launches, meetups, shows] = content.cards as [(typeof content.cards)[number], (typeof content.cards)[number], (typeof content.cards)[number]];
-  const [strategy, questions, shoots, editing, delivery] = STEPS as [(typeof STEPS)[number], (typeof STEPS)[number], (typeof STEPS)[number], (typeof STEPS)[number], (typeof STEPS)[number]];
 
-  // Camera up, tally light on, once, when the host arrives.
+  // Camera up, tally light on, once, when the host arrives; then its line.
   const tiko = useRef<CharacterHandle>(null);
+  const sheet = useRef<HTMLDivElement>(null);
+  const cast = useLineOnView('events.hero', tiko, sheet, 1100);
   useEffect(() => {
     tiko.current?.play('signature');
   }, []);
@@ -59,10 +62,12 @@ export default function Events() {
         <div className="ground" aria-hidden />
         <div className="wrap ev-hero-in">
           <HeroCopy eyebrow={content.eyebrow} title={<FormatTitle content={content} />} lead={content.lead} titleClass="display-xl">
-            <FormatActions />
+            <FormatActions content={content} />
           </HeroCopy>
-          <div className="ev-callsheet">
-            <Character ref={tiko} who="tiko" size="clamp(112px, 30vw, 150px)" prop className="ev-tiko" />
+          <div ref={sheet} className="ev-callsheet" data-bubble-bounds="">
+            <Character ref={tiko} who="tiko" size="clamp(112px, 30vw, 150px)" prop className="ev-tiko">
+              <CastBubble {...cast.bubble('events.hero')} side="start" />
+            </Character>
             <nav className="plate ev-cues" aria-label="Run of show">
               {CUES.map((cue) => (
                 <a key={cue.id} href={`#${cue.id}`} className="ev-cue">
@@ -83,12 +88,10 @@ export default function Events() {
             <Beat id="before-the-doors" name="Before the doors" lead="We plan the questions before the doors open.">
               <Tile tone="tiko" className="ev-sheet">
                 <TileBody>
-                  <ul>
-                    {[strategy, questions].map((step) => (
-                      <li key={step.name}>
-                        <h4 className="h4">{step.name}</h4>
-                        <p>{step.body}</p>
-                      </li>
+                  <h4 className="h4">What we lock before each shoot</h4>
+                  <ul className="ev-lock">
+                    {LOCK_LIST.map((item) => (
+                      <li key={item}>{item}</li>
                     ))}
                   </ul>
                 </TileBody>
@@ -98,7 +101,7 @@ export default function Events() {
             <Beat
               id="on-the-floor"
               name="On the floor"
-              lead={shoots.body}
+              lead="We interview people on the floor."
               notes={
                 <>
                   <p className="eyebrow ev-notes-title">{content.cardsTitle}</p>
@@ -107,24 +110,22 @@ export default function Events() {
                 </>
               }
             >
-              <Reel video={ansh} pending={pending} onOpen={player.open} />
+              <VideoDeck video={ansh} others={picks} pending={pending} onOpen={player.open} />
             </Beat>
 
             <Beat
               id="the-recap"
               name="The recap"
-              lead={
-                <>
-                  {editing.body} {delivery.body}
-                </>
-              }
+              lead="We edit the best reactions for your feeds."
               notes={<Note name={shows.name} body={shows.body} />}
             >
-              <Reel video={rode} pending={pending} onOpen={player.open} />
+              <VideoDeck video={rode} others={picks} pending={pending} onOpen={player.open} />
             </Beat>
           </ol>
         </div>
       </section>
+
+      <FormatIdeas content={content} />
 
       {player.dialog}
     </>

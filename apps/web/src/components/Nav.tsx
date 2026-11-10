@@ -1,11 +1,12 @@
-import { ChevronDown, Menu, X } from 'lucide-react';
-import { AnimatePresence, m, useMotionValueEvent, useSpring } from 'motion/react';
-import { useCallback, useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { AnimatePresence, m } from 'motion/react';
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link, useLocation } from 'react-router';
 import { NAV_GROUPS, NAV_TOP, OWN_ACTION_ROUTES, SITE } from '../lib/content';
-import { motionOk, useMotionOk } from '../lib/motionOk';
+import { useMotionOk } from '../lib/motionOk';
 import { spring } from '../lib/spring';
 import { useTheme } from '../lib/store';
+import { LabelRoll, useThumb } from './tabs';
 import { PrimaryCta, useActionInView } from './ui';
 import { WORDMARK } from './wordmark';
 
@@ -21,10 +22,12 @@ export function ThemeToggle() {
   const mask = `gola-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const initial = useRef(dark);
   const [naps, setNaps] = useState(0);
+  const [flips, setFlips] = useState(0);
 
   useEffect(() => {
     if (dark === initial.current) return;
     initial.current = dark;
+    if (moves) setFlips((n) => n + 1);
     if (dark && moves) setNaps((n) => n + 1);
   }, [dark, moves]);
 
@@ -36,6 +39,8 @@ export function ThemeToggle() {
           <m.circle cx="23.2" cy="6.7" r="11" fill="#000" initial={false} animate={{ x: dark ? 0 : 22, y: dark ? 0 : -22 }} transition={transition} />
         </mask>
         <g mask={`url(#${mask})`}>
+          {/* M5f: the knob squashes at mid-travel, 1 → 1.12 → 1, once per flip. */}
+          <m.g key={flips} initial={false} animate={flips > 0 ? { scaleX: [1, 1.12, 1] } : undefined} transition={{ duration: 0.36, ease: 'easeOut' }} style={{ transformOrigin: '14px 14px' }}>
           <m.g initial={false} animate={{ rotate: dark ? -12 : 0 }} transition={transition} style={{ transformOrigin: '14px 14px' }}>
             <circle cx="14" cy="14" r="12" fill="#ff8d3a" />
             <m.g initial={false} animate={{ x: dark ? -3.4 : 0, y: dark ? 2.9 : 0 }} transition={transition}>
@@ -52,6 +57,7 @@ export function ThemeToggle() {
               />
               <path d="M9 17.4c2.4 3.4 7.6 3.4 10 0" fill="none" stroke="#111" strokeWidth="1.5" strokeLinecap="round" />
             </m.g>
+          </m.g>
           </m.g>
         </g>
         {naps > 0 && (
@@ -83,62 +89,10 @@ function itemActive(item: (typeof NAV_TOP)[number], pathname: string, hash: stri
   return (to !== undefined && linkActive(to, pathname, hash)) || Boolean(group?.links.some(([, href]) => linkActive(href, pathname, hash)));
 }
 
-const INDICATOR_RADIUS = 12;
-
-/**
- * One highlight that slides between the links, matching the width and position of whatever it lands on. Two physics springs, so it keeps its speed
- * when you change your mind. It moves by transform only; the radius is written back so scaling does not stretch the corners.
- */
-function useIndicator(container: RefObject<HTMLElement | null>) {
-  const bar = useRef<HTMLLIElement>(null);
-  const x = useSpring(0, spring.snappy);
-  const width = useSpring(100, spring.snappy);
-  const showing = useRef(false);
-
-  const draw = useCallback(() => {
-    const el = bar.current;
-    if (!el) return;
-    const scale = Math.max(width.get(), 1) / 100;
-    el.style.transform = `translateX(${x.get()}px) scaleX(${scale})`;
-    el.style.borderRadius = `${INDICATOR_RADIUS / scale}px / ${INDICATOR_RADIUS}px`;
-  }, [x, width]);
-
-  useMotionValueEvent(x, 'change', draw);
-  useMotionValueEvent(width, 'change', draw);
-
-  const go = useCallback(
-    (target: HTMLElement | null | undefined) => {
-      const el = bar.current;
-      const box = container.current;
-      if (!el || !box) return;
-      if (!target) {
-        delete el.dataset.show;
-        showing.current = false;
-        return;
-      }
-      const rect = target.getBoundingClientRect();
-      const left = rect.left - box.getBoundingClientRect().left;
-      if (showing.current && motionOk()) {
-        x.set(left);
-        width.set(rect.width);
-      } else {
-        x.jump(left);
-        width.jump(rect.width);
-        draw();
-      }
-      el.dataset.show = '';
-      showing.current = true;
-    },
-    [container, x, width, draw],
-  );
-
-  return { bar, go };
-}
-
 const OPEN_DELAY = 300; // NN/g: feedback at once, open after a pause
 const CLOSE_DELAY = 500; // and stay open until the pointer has been gone that long
 
-/** Work, Why us, Formats, Pricing, Company, from 1024 px. */
+/** Work, How we work, Formats, Pricing, Company, from 1024 px. */
 function DesktopLinks() {
   const { pathname, hash } = useLocation();
   const list = useRef<HTMLUListElement>(null);
@@ -150,10 +104,11 @@ function DesktopLinks() {
   const openTimer = useRef(0);
   const closeTimer = useRef(0);
   const focusFirst = useRef(false);
-  const { bar, go } = useIndicator(list);
-
-  const restIndex = NAV_TOP.findIndex((item) => itemActive(item, pathname, hash));
-  const settle = useCallback(() => go(restIndex >= 0 ? items.current[restIndex] : null), [go, restIndex]);
+  // Where the highlight rests: the top item whose own link is this page (Pricing on /pricing), else the item whose menu holds it.
+  const direct = NAV_TOP.findIndex((item) => 'to' in item && linkActive(item.to, pathname, hash));
+  const restIndex = direct >= 0 ? direct : NAV_TOP.findIndex((item) => itemActive(item, pathname, hash));
+  // The highlight rests on where you are and follows the pointer across the items (the tab kit's engine, visual §1.4).
+  const { thumb: bar, go, settle } = useThumb<HTMLLIElement>(list, restIndex >= 0 ? restIndex : null);
 
   const show = useCallback((index: number | null) => {
     window.clearTimeout(openTimer.current);
@@ -172,16 +127,6 @@ function DesktopLinks() {
     show(null);
     settle();
   }, [pathname, hash, show, settle]);
-
-  // Keep the highlight measured: fonts arriving and the pill condensing both move the links.
-  useEffect(() => {
-    const el = list.current;
-    if (!el) return;
-    const observer = new ResizeObserver(settle);
-    observer.observe(el);
-    void document.fonts?.ready.then(settle);
-    return () => observer.disconnect();
-  }, [settle]);
 
   useEffect(() => () => {
     window.clearTimeout(openTimer.current);
@@ -291,32 +236,35 @@ function DesktopLinks() {
   return (
     <>
       <ul ref={list} className="nav-links" onPointerLeave={onListLeave} onKeyDown={onListKey}>
-        <li ref={bar} className="nav-indicator" role="presentation" aria-hidden />
+        <li ref={bar} className="tab-thumb nav-indicator" role="presentation" aria-hidden />
         {NAV_TOP.map((item, i) => {
           const group = groupOf(item);
           const to = 'to' in item ? item.to : undefined;
-          const active = itemActive(item, pathname, hash);
+          const active = i === restIndex;
+          // aria-current only on a link to this very page; an item whose menu holds the page shows it by the highlight alone.
+          const current = to !== undefined && linkActive(to, pathname, hash);
           return (
             <li
               key={item.label}
               className="nav-item"
+              data-thumb-item
               ref={(el) => {
                 items.current[i] = el;
               }}
               onPointerEnter={(e) => onItemEnter(i, e)}
             >
               {to ? (
-                <Link to={to} className="nav-top" aria-current={active ? 'page' : undefined}>
-                  {item.label}
+                <Link to={to} className="nav-top" aria-current={current ? 'page' : undefined} data-active={active || undefined}>
+                  <LabelRoll>{item.label}</LabelRoll>
                 </Link>
               ) : (
                 <button type="button" className="nav-top" aria-expanded={open === i} aria-controls="nav-dropdown" data-active={active || undefined} onClick={(e) => onTriggerClick(i, e)}>
-                  {item.label}
+                  <LabelRoll>{item.label}</LabelRoll>
                   <ChevronDown aria-hidden />
                 </button>
               )}
               {to && group && (
-                <button type="button" className="nav-top nav-caret" aria-label={`More in ${item.label}`} aria-expanded={open === i} aria-controls="nav-dropdown" onClick={(e) => onTriggerClick(i, e)}>
+                <button type="button" className="nav-top nav-caret" aria-label={`More in ${group.label}`} aria-expanded={open === i} aria-controls="nav-dropdown" onClick={(e) => onTriggerClick(i, e)}>
                   <ChevronDown aria-hidden />
                 </button>
               )}
@@ -340,8 +288,8 @@ function DesktopLinks() {
           >
             <m.div key={openGroup.label} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.12 }}>
               <p className="nav-drop-title">{openGroup.label}</p>
-              {openGroup.links.map(([label, to]) => (
-                <Link key={to} to={to} className="nav-drop-link" aria-current={to === pathname ? 'page' : undefined} onClick={() => show(null)}>
+              {openGroup.links.map(([label, to], i) => (
+                <Link key={to} to={to} className="nav-drop-link" style={{ '--i': i } as CSSProperties} aria-current={to === pathname ? 'page' : undefined} onClick={() => show(null)}>
                   {label}
                 </Link>
               ))}
@@ -353,7 +301,19 @@ function DesktopLinks() {
   );
 }
 
-const MENU_CLOSED = { opacity: 0, scale: 0.97, y: -6 };
+// M5d: the sheet grows from the menu button's corner; closing runs at about 1.5 times the speed, with no stagger.
+const MENU_CLOSED = { opacity: 0, scale: 0.94, y: -6 };
+const MENU_EXIT = { opacity: 0, scale: 0.94, y: -6, transition: { duration: 0.2, ease: 'easeIn' } } as const;
+
+/** Two bars that rotate ±45° and meet into a cross. */
+function MenuGlyph() {
+  return (
+    <svg className="nav-menu-glyph" viewBox="0 0 16 16" width="16" height="16" aria-hidden focusable="false">
+      <path className="nav-menu-bar nav-menu-bar-a" d="M2.5 5.5h11" />
+      <path className="nav-menu-bar nav-menu-bar-b" d="M2.5 10.5h11" />
+    </svg>
+  );
+}
 
 export function Nav() {
   const [open, setOpen] = useState(false);
@@ -420,17 +380,17 @@ export function Nav() {
             <ThemeToggle />
             <PrimaryCta size="sm" className="nav-cta" chrome />
             <button ref={menuBtn} type="button" className="nav-menu-btn" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="site-menu">
-              {open ? <X className="size-4" aria-hidden /> : <Menu className="size-4" aria-hidden />}
+              <MenuGlyph />
               Menu
             </button>
           </div>
         </nav>
         <AnimatePresence>
           {open && (
-            <m.nav id="site-menu" className="nav-panel" aria-label="Site" initial={MENU_CLOSED} animate={{ opacity: 1, scale: 1, y: 0 }} exit={MENU_CLOSED} transition={spring.snappy}>
+            <m.nav id="site-menu" className="nav-panel" aria-label="Site" initial={MENU_CLOSED} animate={{ opacity: 1, scale: 1, y: 0 }} exit={MENU_EXIT} transition={spring.smooth}>
               <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
-                {NAV_GROUPS.map((group) => (
-                  <div key={group.label}>
+                {NAV_GROUPS.map((group, g) => (
+                  <div key={group.label} className="nav-panel-col" style={{ '--i': Math.min(g, 7) } as CSSProperties}>
                     <p className="nav-panel-group">{group.label}</p>
                     {group.links.map(([label, to]) => (
                       <Link key={to} to={to} className="nav-link" aria-current={linkActive(to, pathname, hash) ? 'page' : undefined}>
@@ -440,7 +400,7 @@ export function Nav() {
                   </div>
                 ))}
               </div>
-              <PrimaryCta className="mt-5 w-full sm:hidden" chrome />
+              <PrimaryCta className="nav-panel-cta mt-5 w-full sm:hidden" chrome />
             </m.nav>
           )}
         </AnimatePresence>

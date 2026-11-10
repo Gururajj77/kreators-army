@@ -1,8 +1,10 @@
 import type { Video } from '@kreators/shared';
-import { Character } from '../../cast';
+import { useRef } from 'react';
+import { Character, type CharacterHandle } from '../../cast';
+import { CastBubble } from '../../components/chat';
 import { HeroCopy, Reveal, Seo } from '../../components/ui';
 import { FORMATS } from '../../lib/content';
-import { FormatActions, FormatTitle, Reel, useFormat } from './FormatPage';
+import { FormatActions, FormatIdeas, FormatTitle, Reel, useFormat, useLineOnView } from './FormatPage';
 
 // A real shelf: three bays, with reels of different heights standing on one plank, and a label hanging off the edge of each bay.
 
@@ -27,6 +29,10 @@ function stockBays(picks: Video[]): Video[][] {
 export default function Retail() {
   const { picks, player, pending } = useFormat(content);
   const bays = stockBays(picks);
+  // Gola, at the shelf with the parcel, says its line once the shelf is in view.
+  const gola = useRef<CharacterHandle>(null);
+  const shelf = useRef<HTMLDivElement>(null);
+  const cast = useLineOnView('retail.shelf', gola, shelf, 700);
 
   return (
     <>
@@ -36,14 +42,14 @@ export default function Retail() {
         <div className="ground" aria-hidden />
         <div className="wrap">
           <HeroCopy eyebrow={content.eyebrow} title={<FormatTitle content={content} />} lead={content.lead} titleClass="display">
-            <FormatActions />
+            <FormatActions content={content} />
           </HeroCopy>
         </div>
       </section>
 
       <section className="rt-shelf-section">
         <div className="wrap">
-          <div className="rt-shelf">
+          <div ref={shelf} className="rt-shelf" data-bubble-bounds="">
             <h2 className="rt-shelf-title h4">{content.cardsTitle}</h2>
             <div className="rt-bays">
               {content.cards.map((card, i) => {
@@ -59,7 +65,9 @@ export default function Retail() {
                       ))}
                       {i === 2 && (
                         <div className="rt-gola">
-                          <Character who="gola" size="var(--rt-gola)" prop="parcel" expression="wink" />
+                          <Character ref={gola} who="gola" size="var(--rt-gola)" prop="parcel" expression="wink">
+                            <CastBubble {...cast.bubble('retail.shelf')} side="end" />
+                          </Character>
                         </div>
                       )}
                     </div>
@@ -86,6 +94,8 @@ export default function Retail() {
           </Reveal>
         </div>
       </section>
+
+      <FormatIdeas content={content} />
 
       {player.dialog}
     </>

@@ -1,0 +1,73 @@
+/* Owner: A3 Scene. The 404 (visual §2.9): a dark 28-radius card, always night, with the street along its bottom and the cast standing on its footpath.
+   Every class is in @layer components. */
+@layer components {
+  .nf {
+    padding-top: calc(var(--nav-offset) + 32px);
+  }
+
+  .nf-card {
+    --street-h: 300px;
+    position: relative;
+    overflow: clip;
+    padding: 104px 24px calc(var(--street-h) + 32px);
+    border-radius: var(--r-tile);
+    background: #121216;
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.08),
+      inset 0 1px 0 rgb(255 255 255 / 0.06);
+    text-align: center;
+  }
+
+  .nf-card > .street-host {
+    --street-h: inherit;
+  }
+
+  .nf-copy {
+    position: relative;
+    z-index: 2;
+  }
+
+  .nf-title {
+    max-width: 18ch;
+    margin: 0 auto;
+    text-wrap: balance;
+  }
+
+  .nf-action {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+  }
+
+  /* The line-up on the footpath's front edge: Sochu 96, Bolu 132, Tiko 120, Gola 104 (72 each on phones). */
+  .nf-cast {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--floor-front);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: clamp(8px, 4vw, 56px);
+  }
+
+  .nf-cast > .k-char {
+    --nf-size: var(--nf-size-d);
+    position: relative;
+  }
+
+  @media (max-width: 734px) {
+    .nf-card {
+      --street-h: 240px;
+      padding: 64px 16px calc(var(--street-h) + 24px);
+    }
+
+    .nf-cast {
+      gap: 10px;
+    }
+
+    .nf-cast > .k-char {
+      --nf-size: 72px;
+    }
+  }
+}

@@ -16,6 +16,15 @@ export const motionOk = (): boolean => typeof document === 'undefined' || !('sti
 /** A real mouse or trackpad: the only place pointer-following effects (magnet, hover tracking) run. */
 export const finePointer = (): boolean => typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
 
+/** The visitor's browser asked to save data (Chrome's Lite mode, Android Data Saver). */
+export const saveData = (): boolean => typeof navigator !== 'undefined' && Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
+
+/**
+ * May a video play by itself here: a muted preview, the hero's front card, the thread's newest reply? Only with a fine pointer (so never on phones or
+ * touch), motion allowed and no Save-Data (V2-SPEC 3.4, C13). The player dialog is user-initiated and does not ask.
+ */
+export const canAutoplay = (): boolean => finePointer() && motionOk() && !saveData();
+
 /**
  * True only while the element is on screen and the tab is visible: the condition every endless animation runs under.
  * Publish it as `data-run` and pause in CSS, or test it in a loop.

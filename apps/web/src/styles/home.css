@@ -1,34 +1,45 @@
-/* Home. Every rule is inside @layer components, so a Tailwind utility on the same element always wins. */
+/* Home (V2-SPEC 5.2). Every rule is inside @layer components, so a Tailwind utility on the same element always wins. Owner: A5. */
 @layer components {
-  /* ---------- Hero: two columns, the whole reel in the first screen, the cast around it, proof in view at every width. ---------- */
+  /* ---------- Hero: the copy on the left; on the right the deck and the four stand on the street (visual §1.3). ---------- */
   .hero {
-    --reel-h: clamp(480px, calc(100svh - 140px), 640px);
-    --reel-w: calc(var(--reel-h) * 0.4828);
-    /* One design pixel at the 280 x 580 reel the staging was drawn at. */
-    --u: calc(var(--reel-h) / 580);
-    --c-bolu: calc(150 * var(--u));
-    --c-tiko: calc(160 * var(--u));
-    --c-sochu: calc(96 * var(--u));
-    --c-gola: calc(104 * var(--u));
+    --street-h: clamp(280px, 40vh, 380px);
+    /* The deck's height, as frames.css sizes it, so the cast can stand at the right distances from it. */
+    --hero-reel: clamp(440px, calc(100svh - 360px), 540px);
+    --fw: calc(var(--hero-reel) * 280 / 580);
+    /* One design pixel at the 280 x 580 phone the staging was drawn at. */
+    --u: calc(var(--hero-reel) / 580);
+    --k: calc(var(--hero-reel) / 540);
+    --c-bolu: calc(150 * var(--k));
+    --c-tiko: calc(160 * var(--k));
+    --c-sochu: calc(96 * var(--k));
+    --c-gola: calc(104 * var(--k));
     position: relative;
-    padding-top: calc(var(--nav-offset) + 12px);
-    padding-bottom: 72px;
-    /* The characters' stage boxes are wider than they look, and the reel's shadow must not spill onto the next band. clip, never hidden: nothing sticky is affected. */
+    /* The footpath's edges (--floor-*) are measured against the hero's width: the street is as wide as the hero. */
+    container-type: inline-size;
+    min-height: clamp(720px, 100svh, 960px);
+    /* clip, never hidden: nothing sticky is affected, and the deck's shadow and the cast's boxes stay inside. */
     overflow: clip;
+  }
+
+  .hero > .street-host {
+    --street-h: inherit;
   }
 
   .hero-in {
     position: relative;
+    z-index: 2;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     column-gap: 32px;
-    align-items: center;
+    min-height: inherit;
   }
 
   .hero-copy {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    padding-top: calc(var(--nav-offset) + 48px);
+    padding-bottom: 32px;
   }
 
   .hero-copy h1 {
@@ -38,7 +49,7 @@
 
   .hero-lead {
     margin-top: 20px;
-    max-width: 540px;
+    max-width: 520px;
   }
 
   .hero-actions {
@@ -110,229 +121,103 @@
     fill: currentColor;
   }
 
-  .proof-logos {
+  /* The brands as story rings (M6), overlapping, each with a halo of the page so the rings read one by one. */
+  .proof-rings {
     display: flex;
     align-items: center;
-    height: 32px;
+    height: 34px;
   }
 
-  .proof-logos > * {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 32px;
-    height: 32px;
+  .proof-rings > .story-ring {
+    --ring: 34px;
+    width: var(--ring);
     margin-left: -9px;
-    border-radius: var(--r-pill);
-    background: #0e0e10;
-    box-shadow: 0 0 0 2px var(--bg);
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    object-fit: cover;
   }
 
-  .proof-logos > :first-child {
+  .proof-rings > .story-ring:first-child {
     margin-left: 0;
   }
 
-  .proof-logos > .proof-wordmark {
-    position: relative;
-    z-index: 1;
+  .proof-rings .story-ring-circle {
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: 0 0 0 2px var(--bg);
   }
 
-  [data-theme='dark'] .proof-logos > span {
-    background: #2d2d36;
+  .proof-rings .story-ring-art {
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
   }
 
-  /* The reel and the four around it. Everything measures from the reel, so the group scales as one with the window's height. */
-  .reel-stage {
-    position: relative;
-    justify-self: center;
-    display: grid;
-    place-items: center;
-    width: 100%;
-    max-width: calc(var(--reel-w) + 300 * var(--u));
-    height: var(--reel-h);
+  .proof-rings .story-ring-face {
+    inset: 4px;
   }
 
-  .reel {
+  .proof-rings .story-ring-letter {
+    font-size: 12px;
+  }
+
+  /* The stage: the right column, as tall as the hero, so its bottom is the street's bottom. Everything in it stands on a footpath edge. */
+  .hero-stage {
     position: relative;
+  }
+
+  .hero-deck {
+    --reel-h: var(--hero-reel);
+    position: absolute;
     z-index: 2;
-    width: var(--reel-w);
-    height: var(--reel-h);
-    padding: calc(7 * var(--u));
-    border-radius: calc(46 * var(--u));
-    background: #0e0e10;
-    box-shadow:
-      inset 0 0 0 1.5px rgb(255 255 255 / 0.16),
-      var(--shadow-5);
-  }
-
-  .reel-screen {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    border-radius: calc(39 * var(--u));
-    background: #1a1a1f;
-  }
-
-  .reel-screen > img,
-  .reel-screen > video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .reel-screen > video {
-    opacity: 0;
-    transition: opacity 420ms ease;
-  }
-
-  .reel-screen > video[data-shown] {
-    opacity: 1;
-  }
-
-  .reel-scrim {
-    --scrim-a: 0.6;
-    top: 60%;
-  }
-
-  .reel-open {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    padding: 0;
-    border: 0;
-    border-radius: inherit;
-    background: transparent;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-
-  .reel-open:focus-visible {
-    outline-offset: -4px;
-    outline: 2px solid #ffffff;
-  }
-
-  /* Say what a press on the picture does. Hover and focus only: the pause button is the only control a touch visitor needs to see. */
-  .reel-watch {
-    position: absolute;
-    top: 50%;
     left: 50%;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 16px 9px 12px;
-    border-radius: var(--r-pill);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.006em;
-    white-space: nowrap;
-    opacity: 0;
-    transform: translate(-50%, -50%);
-    transition: opacity var(--dur-hover) ease;
-    pointer-events: none;
+    bottom: var(--floor-back);
+    translate: -50% 0;
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .reel-open:hover .reel-watch,
-    .reel-open:focus-visible .reel-watch {
-      opacity: 1;
-    }
-  }
-
-  .reel-bar {
+  /* The views card floats above the deck, so the deck itself stands on the footpath. */
+  .hero-deck .vdeck-views {
     position: absolute;
-    right: 12px;
-    bottom: 12px;
-    left: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    pointer-events: none;
-  }
-
-  /* Over-video glass, one tier, only ever over a poster or a playing clip. */
-  .reel-pause {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border: 0;
-    border-radius: var(--r-pill);
-    color: #f5f3ee;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: transform var(--spring-release);
-  }
-
-  .reel-pause:active {
-    transform: scale(0.92);
-    transition-duration: var(--dur-press);
-  }
-
-  :root[data-still] .reel-pause:active {
-    transform: none;
-  }
-
-  .reel-pause:focus-visible {
-    outline: 2px solid #ffffff;
-    outline-offset: 2px;
-  }
-
-  .reel-pause-corner {
-    position: absolute;
-    top: 12px;
-    right: 12px;
+    bottom: calc(100% + 22px);
+    left: 50%;
+    margin: 0;
+    translate: -50% 0;
   }
 
   .hero-char {
     position: absolute;
+    z-index: 3;
   }
 
   .hero-bolu {
-    z-index: 3;
-    right: calc(50% + var(--reel-w) / 2 - 14 * var(--u));
-    bottom: calc(30 * var(--u));
+    right: calc(50% + var(--fw) / 2 - 24 * var(--u));
+    bottom: var(--floor-front);
   }
 
   .hero-tiko {
-    z-index: 3;
-    left: calc(50% + var(--reel-w) / 2 - 22 * var(--u));
-    bottom: calc(26 * var(--u));
+    left: calc(50% + var(--fw) / 2 - 22 * var(--u));
+    bottom: var(--floor-front);
   }
 
   .hero-sochu {
     z-index: 1;
-    right: calc(50% + var(--reel-w) / 2 + 8 * var(--u));
-    top: 40%;
-  }
-
-  /* Sochu sits under the reel's layer, so its chip would be centred behind the phone. Anchored to Sochu's right edge, it ends before the reel. */
-  .hero-sochu .k-chip {
-    right: 0;
-    left: auto;
-    translate: none;
+    right: calc(50% + var(--fw) / 2 + 136 * var(--u));
+    bottom: var(--floor-back);
   }
 
   .hero-gola {
     z-index: 1;
-    left: calc(50% + var(--reel-w) / 2 + 12 * var(--u));
-    top: 18%;
+    left: calc(50% + var(--fw) / 2 + 150 * var(--u));
+    bottom: var(--floor-back);
   }
 
-  /* First visit in a session: the words and the reel settle in, then the cast pops up behind them (70 ms apart, via their intro prop). Transforms only, so the poster and H1 count as painted at once. */
+  .hero-bolu .cast-bubble {
+    max-width: 236px;
+  }
+
+  /* First visit in a session: the words and the deck settle in, then the cast pops up behind them (70 ms apart, via their intro prop). Transforms only,
+     so the poster and H1 count as painted at once. */
   :root:not([data-still]) .hero[data-intro] .hero-copy > * {
     animation: hero-rise 520ms var(--ease-out) calc(var(--n, 0) * 50ms) backwards;
   }
 
-  :root:not([data-still]) .hero[data-intro] .reel {
+  :root:not([data-still]) .hero[data-intro] .hero-deck .vdeck {
     animation: hero-reel var(--spring-smooth) 100ms backwards;
   }
 
@@ -348,16 +233,13 @@
     }
   }
 
-  /* Small laptops and iPads. The headline steps down so it stays three lines and the proof row tightens so it clears Bolu. */
-  @media (max-width: 1240px) and (min-width: 1069px) {
+  /* Small laptops and iPads in landscape: the headline steps down so it stays three lines, and the proof row tightens. */
+  @media (max-width: 1240px) and (min-width: 1068px) {
     .hero-copy h1 {
-      font-size: 56px;
-      line-height: 60px;
-      letter-spacing: -0.012em;
+      font-size: 52px;
+      line-height: 56px;
     }
-  }
 
-  @media (max-width: 1240px) and (min-width: 900px) {
     .proof-item {
       padding-inline: 16px;
     }
@@ -366,118 +248,38 @@
       font-size: 24px;
       line-height: 28px;
     }
-
-    .proof-star {
-      width: 19px;
-      height: 19px;
-    }
-
-    .proof-logos > :nth-child(n + 6) {
-      display: none;
-    }
   }
 
-  @media (max-width: 1068px) and (min-width: 900px) {
+  /* Below 1068 the hero stacks: the copy, then a stage where the street runs full-bleed behind the deck and the cast. */
+  @media (max-width: 1067px) {
     .hero {
-      --c-bolu: calc(118 * var(--u));
-      --c-tiko: calc(126 * var(--u));
+      min-height: 0;
     }
 
     .hero-in {
-      grid-template-columns: minmax(0, 1fr) auto;
-      column-gap: 24px;
+      display: block;
     }
 
-    .reel-stage {
-      width: calc(var(--reel-w) + 150 * var(--u));
+    .hero-copy {
+      padding-bottom: 0;
     }
 
-    .hero-bolu {
-      right: calc(50% + var(--reel-w) / 2 - 46 * var(--u));
-      bottom: calc(14 * var(--u));
-    }
-
-    .hero-tiko {
-      left: calc(50% + var(--reel-w) / 2 - 50 * var(--u));
-      bottom: calc(10 * var(--u));
-    }
-
-    .hero-sochu,
-    .hero-gola {
-      display: none;
-    }
-
-    /* Bolu and Tiko dock over the reel's corners here, so its bar moves up out of their way, as on phones. */
-    .reel-bar {
-      top: 12px;
-      right: auto;
-      bottom: auto;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 6px;
-    }
-
-    .reel-scrim {
-      top: 0;
-      bottom: 64%;
-      --scrim-to: to bottom;
-    }
-  }
-
-  /* Below 900 the reel moves under the words. Proof stays above the actions so it is in the first screen on every phone. */
-  @media (max-width: 899px) {
-    .hero {
-      --reel-h: clamp(420px, 60svh, 560px);
-      --c-bolu: 112px;
-      --c-tiko: 118px;
-      padding-bottom: 64px;
-    }
-
-    .hero-in {
-      grid-template-columns: minmax(0, 1fr);
-      row-gap: 36px;
-    }
-
-    .hero-sochu,
-    .hero-gola {
-      display: none;
-    }
-
-    .reel-stage {
-      max-width: none;
-    }
-
-    .hero-bolu {
-      right: calc(50% + var(--reel-w) / 2 - 46px);
-      bottom: 14px;
-    }
-
-    .hero-tiko {
-      left: calc(50% + var(--reel-w) / 2 - 50px);
-      bottom: 10px;
-    }
-
-    .reel-bar {
-      top: 12px;
-      right: auto;
-      bottom: auto;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 6px;
-    }
-
-    /* The bar is at the top on phones, clear of the two characters, so the scrim flips with it. */
-    .reel-scrim {
-      top: 0;
-      bottom: 64%;
-      --scrim-to: to bottom;
+    .hero-stage {
+      height: calc(var(--hero-reel) + 160px);
+      margin-top: 32px;
     }
   }
 
   @media (max-width: 734px) {
     .hero {
+      --street-h: 300px;
+      --hero-reel: 340px;
+      --c-bolu: 100px;
+      --c-tiko: 92px;
+    }
+
+    .hero-copy {
       padding-top: calc(var(--nav-offset) + 20px);
-      padding-bottom: 56px;
     }
 
     .hero-copy h1 {
@@ -537,19 +339,60 @@
       height: 17px;
     }
 
-    .proof-logos {
-      height: 26px;
+    .proof-rings {
+      height: 28px;
     }
 
-    .proof-logos > * {
-      width: 26px;
-      height: 26px;
+    .proof-rings > .story-ring {
+      --ring: 28px;
       margin-left: -8px;
-      font-size: 11px;
     }
 
-    .proof-logos > :nth-child(n + 6) {
+    .proof-rings .story-ring-face {
+      inset: 3px;
+    }
+
+    .proof-rings .story-ring-letter {
+      font-size: 10px;
+    }
+
+    .proof-rings > :nth-child(n + 5) {
       display: none;
+    }
+
+    .hero-stage {
+      height: calc(var(--hero-reel) + 150px);
+      margin-top: 24px;
+    }
+
+    /* Phones: the deck sits right of centre so the street shows on the left; Bolu on the left and Tiko on the right, the back two step off. */
+    .hero-deck {
+      left: 64%;
+    }
+
+    .hero-deck .vdeck-views {
+      left: auto;
+      right: 0;
+      translate: none;
+    }
+
+    .hero-sochu,
+    .hero-gola {
+      display: none;
+    }
+
+    .hero-bolu {
+      right: auto;
+      left: 2px;
+    }
+
+    .hero-tiko {
+      left: auto;
+      right: -6px;
+    }
+
+    .hero-bolu .cast-bubble {
+      max-width: 176px;
     }
   }
 
@@ -560,18 +403,7 @@
     }
   }
 
-  @media (max-height: 480px) {
-    .hero {
-      padding-top: calc(var(--nav-offset) + 8px);
-    }
-
-    .hero-proof,
-    .hero-actions {
-      margin-top: 14px;
-    }
-  }
-
-  /* Under a 375 wide phone the three columns would touch: "Trusted by" and the logos are enough. */
+  /* Under a 375 wide phone the three columns would touch: "Trusted by" and the rings are enough. */
   @media (max-width: 374px) {
     .proof-word {
       display: none;
@@ -583,7 +415,7 @@
       padding-inline: 10px;
     }
 
-    .proof-logos > :nth-child(n + 5) {
+    .proof-rings > :nth-child(n + 4) {
       display: none;
     }
   }
@@ -623,60 +455,6 @@
 
   .work-reel.skeleton {
     background: var(--sunken);
-  }
-
-  /* The looped clip sits under the tile, so the tile's own text, hover and press all stay on top of it, and the morph to the player is untouched. */
-  .work-reel-lead > video {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: inherit;
-    object-fit: cover;
-    opacity: 0;
-    transition:
-      opacity 420ms ease,
-      transform 300ms var(--ease-card);
-  }
-
-  .work-reel-lead > .tile {
-    z-index: 1;
-  }
-
-  .work-reel-lead[data-playing] > video {
-    opacity: 1;
-  }
-
-  .work-reel-lead[data-playing] > .tile {
-    background: transparent;
-  }
-
-  .work-reel-lead[data-playing] > .tile > img,
-  .work-reel-lead[data-playing] > .tile > .tile-empty {
-    opacity: 0;
-  }
-
-  /* While the loop runs the tile's own preview and play glyph have nothing to add. */
-  .work-reel-lead[data-playing] > .tile > .tile-preview,
-  .work-reel-lead[data-playing] > .tile > .tile-play {
-    display: none;
-  }
-
-  /* The clip travels with the tile: it grows and presses by the same amount, and leaves with the poster when the player opens. */
-  :root:not([data-still]) .work-reel-lead:has(> .tile:active) > video {
-    transform: scale(0.985);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    :root:not([data-still]) .work-reel-lead:has(> .tile:hover) > video {
-      transform: scale(calc(1 + 6 / 620));
-    }
-  }
-
-  .work-reel-lead:has(> .tile[data-lifted]) > video {
-    opacity: 0;
-    transition: none;
   }
 
   .work-pause {
@@ -750,12 +528,6 @@
     flex: none;
     width: var(--rail-w);
     scroll-snap-align: start;
-  }
-
-  .rail-end {
-    aspect-ratio: 9 / 16;
-    justify-content: space-between;
-    padding: 24px;
   }
 
   .rail-controls {
@@ -910,6 +682,7 @@
       --rail-w: 58vw;
     }
   }
+
 
   /* ---------- Why us: the second bento, with the cast inside it. ---------- */
   .why-lede {
@@ -1137,45 +910,204 @@
     }
   }
 
-  /* ---------- How it works: a sticky stage, the steps on a rail, the platforms as one strip. Dark in both themes. ---------- */
-  .how-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    column-gap: 80px;
+
+  /* ---------- Work: the extras on top of the v1 bento (above). ---------- */
+  .work-stat-note {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 17px;
   }
 
-  .how-side {
-    position: sticky;
-    top: calc(var(--nav-offset) + 32px);
-    align-self: start;
+  .work-reel-lead > .tile {
+    height: 100%;
+  }
+
+  /* The rail ends on a deck of posters: as tall as the cards beside it. */
+  .rail-end {
     display: flex;
-    flex-direction: column;
-    gap: 28px;
+    aspect-ratio: 9 / 16;
+  }
+
+  .rail-end > .deckcard {
+    flex: 1;
+    justify-content: center;
+    border-radius: var(--r-tile);
+  }
+
+  .rail-end-title {
+    color: var(--ink);
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 25px;
+    letter-spacing: -0.012em;
+    text-align: center;
+  }
+
+  @media (max-width: 734px) {
+    .work-stat-note {
+      font-size: 11px;
+      line-height: 14px;
+    }
+  }
+
+  /* ---------- Why us: the statement, the Army sentence, then the bento (v1, above). ---------- */
+  .why-head h2 {
+    max-width: 1080px;
+    color: var(--muted);
+    font-size: 40px;
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 46px;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  .why-head h2 b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  @media (max-width: 1068px) {
+    .why-head h2 {
+      font-size: 32px;
+      line-height: 38px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .why-head h2 {
+      font-size: 24px;
+      line-height: 30px;
+      letter-spacing: -0.006em;
+    }
+  }
+
+  /* The Army sentence (M2). Without JavaScript, under Pause animations and as the default markup: a centred sentence with the four sitting in their
+     slots, nothing pinned. Armed: a 220 vh stage (150 on phones) whose box stays in the viewport while the four fly in. */
+  .army {
+    position: relative;
+    margin-top: 56px;
+  }
+
+  .army-sticky {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding: 24px var(--page-pad, 6.25%);
+  }
+
+  .army[data-armed] {
+    height: 220vh;
+    margin-top: 0;
+  }
+
+  .army[data-armed] .army-sticky {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    padding-block: calc(var(--nav-offset) + 8px) 0;
+    overflow: clip;
+  }
+
+  .army-sentence {
+    max-width: 17em;
+    margin: 0;
+    color: var(--ink);
+    font-size: clamp(30px, 3.6vw, 48px);
+    font-weight: 600;
+    font-variation-settings: 'opsz' 32;
+    line-height: 1.32;
+    letter-spacing: -0.016em;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .army[data-armed] .army-sentence {
+    margin-bottom: 18vh;
+  }
+
+  .army-phrase {
+    display: inline;
+  }
+
+  .army-lead {
+    white-space: nowrap;
+  }
+
+  /* 1.15 em wide: 56 px at 48 px type, 34 px on phones. The character inside is 13:12, feet on the slot's floor. */
+  .army-slot {
+    position: relative;
+    display: inline-block;
+    width: 1.15em;
+    height: calc(1.15em * 12 / 13);
+    margin-inline: 0.06em 0.16em;
+    vertical-align: -0.24em;
+  }
+
+  .army-slot > .k-char {
+    position: absolute;
+    inset: 0;
+  }
+
+  .army[data-armed] .army-slot > .k-char {
+    visibility: hidden;
+  }
+
+  .army-flyers {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .army-flyer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+
+  @media (max-width: 734px) {
+    .army {
+      margin-top: 40px;
+    }
+
+    .army[data-armed] {
+      height: 150vh;
+    }
+
+    .army-sentence {
+      font-size: 29px;
+      line-height: 1.34;
+    }
+
+    .army[data-armed] .army-sentence {
+      margin-bottom: 22vh;
+    }
+  }
+
+  /* ---------- How it works: the editing timeline in its stage, v1's cast scenes on the plate's top edge, then the platforms. Dark in both themes. ---------- */
+  .how-section .how-timeline {
+    margin-top: 48px;
   }
 
   .how-stage {
-    --how-size: min(26vh, 240px);
+    --how-size: min(17vh, 160px);
     display: flex;
     align-items: flex-end;
-    gap: 16px;
-    height: min(29vh, 268px);
-    padding-bottom: 16px;
+    gap: 14px;
+    height: calc(min(17vh, 160px) + 84px);
+    padding-left: 12px;
   }
 
   .how-stage[data-size='md'] {
-    --how-size: min(22vh, 200px);
+    --how-size: min(15vh, 140px);
   }
 
   .how-stage[data-size='sm'] {
-    --how-size: min(13vh, 116px);
-    gap: 12px;
-  }
-
-  @media (max-width: 1240px) {
-    .how-stage[data-size='sm'] {
-      --how-size: min(13vh, 92px);
-      gap: 10px;
-    }
+    --how-size: min(10vh, 96px);
+    gap: 10px;
   }
 
   .how-actor {
@@ -1198,81 +1130,34 @@
     }
   }
 
-  .how-track {
-    position: relative;
+  .how-section .etl-scene {
+    margin-bottom: 0;
   }
 
-  .how-track::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 1px;
-    width: 1px;
-    background: var(--line);
+  .how-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin: 28px 0 0;
   }
 
-  .how-steps {
-    margin: 0;
-    padding: 0 0 0 40px;
-    list-style: none;
-  }
-
-  .how-thumb {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 3px;
-    height: 148px;
-    border-radius: var(--r-pill);
-    background: var(--step-c);
-    transition: background-color var(--spring-smooth);
-    will-change: transform;
-  }
-
-  .how-step {
-    display: grid;
-    align-content: start;
-    gap: 8px;
-    min-height: 212px;
-    padding-bottom: 44px;
-  }
-
-  .how-step:last-child {
-    min-height: 0;
-    padding-bottom: 0;
-  }
-
-  .how-num {
-    color: var(--muted);
-    font-size: 14px;
+  .how-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: #f5f3ee;
+    font-size: 17px;
     font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    line-height: 18px;
-    transition: color var(--dur-hover) ease;
+    line-height: 22px;
+    letter-spacing: -0.01em;
+    text-decoration: none;
   }
 
-  .how-step .h3 {
-    color: var(--muted);
-    transition: color var(--dur-hover) ease;
-  }
-
-  .how-step p {
-    margin: 0;
-    max-width: 480px;
-    color: var(--muted);
-  }
-
-  .how-step[data-active] .h3 {
-    color: var(--ink);
-  }
-
-  .how-step[data-active] .how-num {
-    color: var(--step-c);
-  }
-
-  :root[data-still] .how-thumb {
-    transition: none;
+  @media (hover: hover) and (pointer: fine) {
+    .how-link:hover {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
   }
 
   .how-strip-block {
@@ -1280,139 +1165,213 @@
   }
 
   .how-strip-title {
-    margin: 0;
     max-width: 820px;
-    font-size: 28px;
-    font-variation-settings: 'opsz' 32;
-    line-height: 34px;
-    letter-spacing: -0.008em;
+    margin: 0;
+    color: #a8a59f;
+    font-size: 32px;
+    line-height: 38px;
+    letter-spacing: -0.012em;
   }
 
-  .how-strip {
-    margin-top: 28px;
+  .how-strip-title b {
+    color: #f5f3ee;
   }
 
-  .how-strip ul {
+  /* The five feeds, each on a plate with a glyph that pops on hover (the footer's dock pop). */
+  .platforms {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    margin: 0;
+    gap: var(--gap);
+    margin: 40px 0 0;
     padding: 0;
-    overflow: hidden;
-    border-radius: var(--r-tile);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
     list-style: none;
   }
 
-  .how-strip li {
-    display: grid;
-    align-content: start;
-    gap: 6px;
-    padding: 28px 24px;
-    border-left: 1px solid var(--line);
+  .platform {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 24px;
+    border-radius: var(--r-tile);
+    background: var(--surface);
+    box-shadow: var(--plate-edge);
   }
 
-  .how-strip li:first-child {
-    border-left: 0;
-  }
-
-  .how-strip h4 {
-    margin: 0;
+  .platform h4 {
+    margin: 8px 0 0;
     color: var(--ink);
   }
 
-  .how-strip p {
+  .platform p {
     margin: 0;
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: -0.006em;
+    font-size: 15px;
+    line-height: 21px;
+    letter-spacing: -0.009em;
   }
 
-  /* Below the sticky layout nothing dims: a step on a phone is just being read. */
+  .band-dark .platform {
+    background: rgb(255 255 255 / 0.05);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  }
+
+  .band-dark .platform h4 {
+    color: #f5f3ee;
+  }
+
+  .band-dark .platform p {
+    color: #a8a59f;
+  }
+
+  .platform-glyph {
+    --tint: var(--ink);
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--r-pill);
+    background: color-mix(in oklab, var(--tint) 16%, transparent);
+    color: var(--tint);
+    transition: transform var(--spring-smooth);
+  }
+
+  .platform-glyph[data-who='tiko'] {
+    --tint: #8e84ff;
+  }
+  .platform-glyph[data-who='sochu'] {
+    --tint: #d9a800;
+  }
+  .platform-glyph[data-who='bolu'] {
+    --tint: #2f9d33;
+  }
+  .platform-glyph[data-who='gola'] {
+    --tint: #e8701c;
+  }
+
+  .band-dark .platform-glyph[data-who='tiko'],
+  [data-theme='dark'] .platform-glyph[data-who='tiko'] {
+    --tint: #a69dff;
+  }
+  .band-dark .platform-glyph[data-who='sochu'],
+  [data-theme='dark'] .platform-glyph[data-who='sochu'] {
+    --tint: var(--c-yellow);
+  }
+  .band-dark .platform-glyph[data-who='bolu'],
+  [data-theme='dark'] .platform-glyph[data-who='bolu'] {
+    --tint: #6fdd70;
+  }
+  .band-dark .platform-glyph[data-who='gola'],
+  [data-theme='dark'] .platform-glyph[data-who='gola'] {
+    --tint: #ff9d54;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .platform:hover .platform-glyph {
+      transform: translateY(-4px) scale(1.08);
+      transition: transform var(--spring-bouncy);
+    }
+  }
+
   @media (max-width: 1068px) {
-    .how-grid {
-      grid-template-columns: minmax(0, 1fr);
-      row-gap: 44px;
-    }
-
-    .how-side {
-      position: static;
-    }
-
-    .how-stage,
-    .how-thumb {
-      display: none;
-    }
-
-    .how-steps {
-      padding-left: 0;
-    }
-
-    .how-track::before {
-      display: none;
-    }
-
-    .how-step {
-      min-height: 0;
-      padding-bottom: 36px;
-    }
-
-    .how-step .h3,
-    .how-step[data-active] .h3 {
-      color: var(--ink);
-    }
-
-    .how-num,
-    .how-step[data-active] .how-num {
-      color: var(--muted);
-    }
-
-    .how-strip ul {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .how-strip li,
-    .how-strip li:first-child {
-      border-top: 1px solid var(--line);
-      border-left: 0;
-    }
-
-    .how-strip li:nth-child(-n + 2) {
-      border-top: 0;
-    }
-
-    .how-strip li:nth-child(even) {
-      border-left: 1px solid var(--line);
-    }
-
-    .how-strip li:last-child:nth-child(odd) {
-      grid-column: 1 / -1;
+    .platforms {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 734px) {
+    .how-section .how-timeline {
+      margin-top: 32px;
+    }
+
+    /* Phones read the timeline as a list; the scene would scroll away from it, so it steps off. */
+    .how-section .etl-scene {
+      display: none;
+    }
+
     .how-strip-block {
       margin-top: 64px;
     }
 
     .how-strip-title {
-      font-size: 23px;
-      line-height: 29px;
+      font-size: 24px;
+      line-height: 30px;
     }
 
-    .how-strip ul {
+    .platforms {
       grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+      margin-top: 28px;
     }
 
-    .how-strip li,
-    .how-strip li:nth-child(even) {
-      padding: 20px 24px;
-      border-left: 0;
+    .platform {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      column-gap: 14px;
+      padding: 18px;
     }
 
-    .how-strip li:nth-child(2) {
-      border-top: 1px solid var(--line);
+    .platform-glyph {
+      grid-row: span 2;
+    }
+
+    .platform h4 {
+      margin: 0;
+      align-self: end;
+    }
+  }
+
+  /* ---------- #interaction: the chain, the thread, the caption. ---------- */
+  .ix-chain {
+    margin-top: 40px;
+  }
+
+  .ix-thread {
+    margin-top: 40px;
+  }
+
+  /* While the library loads, the thread's place is held so nothing below moves. */
+  .ix-thread-wait {
+    min-height: 560px;
+  }
+
+  .ix-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-top: 32px;
+  }
+
+  .ix-caption {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .ix-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ix-link:hover {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .ix-chain,
+    .ix-thread {
+      margin-top: 28px;
+    }
+
+    .ix-thread-wait {
+      min-height: 1200px;
     }
   }
 
@@ -1520,128 +1479,72 @@
     }
   }
 
-  /* ---------- Pricing: two plans, then the founder and the doubts answered. ---------- */
-  .price-plans {
+
+  /* ---------- Testimonials: the note under the row. ---------- */
+  .t-note {
+    margin-top: 24px;
+  }
+
+  /* ---------- Pricing: the three packages, the row in view of every price, what every package includes, the founder and the doubts. ---------- */
+  .price-cards {
     margin-top: 48px;
   }
 
-  .plans {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--gap);
-  }
-
-  .plan {
-    min-width: 0;
-  }
-
-  .plan-in {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 40px;
-    border-radius: var(--r-tile);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
-    color: var(--ink);
-  }
-
-  .plan-in[data-hot] {
-    background: var(--c-ground);
-    --ink: #f5f3ee;
-    --muted: #c8c5bf;
-    --line: rgb(255 255 255 / 0.16);
-  }
-
-  [data-theme='dark'] .plan-in[data-hot] {
-    background: var(--surface-4);
-  }
-
-  .plan-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .plan-badge {
-    display: inline-flex;
-    flex: none;
-    padding: 4px 12px;
-    border-radius: var(--r-pill);
-    background: var(--c-yellow);
-    color: #0e0e10;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 17px;
-  }
-
-  .plan-body {
-    margin: 12px 0 0;
-    color: var(--muted);
-    text-wrap: pretty;
-  }
-
-  .plan-price {
+  .price-row {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    column-gap: 6px;
-    margin: 28px 0;
-    font-size: 64px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    font-variant-numeric: tabular-nums;
-    line-height: 68px;
-    letter-spacing: -0.016em;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 32px;
+    margin-top: 24px;
+    padding: 18px 24px;
+    border-radius: var(--r-tile);
+    background: var(--sunken);
   }
 
-  .plan-price span {
-    color: var(--muted);
-    font-size: 17px;
-    font-weight: 400;
-    font-variation-settings: normal;
-    letter-spacing: -0.012em;
-  }
-
-  .plan-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  .price-row > p {
     margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .plan-list li {
-    display: flex;
-    gap: 12px;
-  }
-
-  .plan-tick {
-    flex: none;
-    width: 20px;
-    height: 20px;
-    margin-top: 2.5px;
     color: var(--ink);
-    stroke-width: 2.25;
+    font-size: 17px;
+    line-height: 22px;
   }
 
-  .plan-foot {
-    margin-top: auto;
-    padding-top: 32px;
+  .price-row > .price-gst {
+    color: var(--muted);
   }
 
-  .plan-foot .btn {
-    white-space: normal;
+  .price-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .price-link:hover {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
   }
 
   .price-more {
     display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    gap: 48px 64px;
-    align-items: start;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 48px 80px;
     margin-top: 72px;
+  }
+
+  .price-includes .eyebrow {
+    display: block;
+    margin: 0 0 16px;
+  }
+
+  .price-side {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
   }
 
   .price-quote figure {
@@ -1653,257 +1556,91 @@
     color: var(--ink);
     font-size: 28px;
     font-weight: 600;
-    font-variation-settings: 'opsz' 32;
     line-height: 34px;
-    letter-spacing: -0.008em;
+    letter-spacing: -0.014em;
     text-wrap: pretty;
   }
 
   .price-quote figcaption {
-    margin-top: 16px;
+    margin-top: 14px;
     color: var(--muted);
   }
 
   .price-answers {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 32px 40px;
     margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
   }
 
-  .price-answers dt {
-    color: var(--ink);
-    font-weight: 600;
+  .price-answers > li {
+    border-bottom: 1px solid var(--line);
   }
 
-  .price-answers dd {
-    margin: 6px 0 0;
-    color: var(--muted);
-    text-wrap: pretty;
-  }
-
-  @media (max-width: 899px) {
-    .plans {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .price-more {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 40px;
-    }
-  }
-
-  @media (max-width: 734px) {
-    .price-plans {
-      margin-top: 32px;
-    }
-
-    .plan-in {
-      padding: 28px 24px;
-    }
-
-    .plan-price {
-      margin: 20px 0;
-      font-size: 56px;
-      line-height: 60px;
-    }
-
-    .price-more {
-      margin-top: 48px;
-    }
-
-    .price-quote blockquote {
-      font-size: 23px;
-      line-height: 29px;
-    }
-
-    .price-answers {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 24px;
-    }
-  }
-
-  /* ---------- FAQ: a panel with Sochu rising from its floor, one list of questions. ---------- */
-  .faq-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    gap: var(--gap);
-  }
-
-  .faq-side {
-    display: flex;
-  }
-
-  .faq-panel {
-    --faq-sochu: 188px;
-    flex: 1;
-    min-height: 520px;
-    overflow: clip;
-  }
-
-  .faq-panel-copy {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 32px;
-  }
-
-  .faq-panel-lead {
-    margin: 0 0 8px;
-    color: var(--muted);
-    text-wrap: pretty;
-  }
-
-  .faq-sochu {
-    position: absolute;
-    right: 32px;
-    bottom: 0;
-  }
-
-  .faq-list {
-    padding: 8px;
-    border-radius: var(--r-tile);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
-  }
-
-  .faq-item {
-    color: var(--ink);
-  }
-
-  .faq-item + .faq-item {
-    position: relative;
-  }
-
-  .faq-item + .faq-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 20px;
-    left: 20px;
-    height: 1px;
-    background: var(--line);
-  }
-
-  .faq-item summary {
+  .price-answer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    min-height: 64px;
-    padding: 18px 20px;
-    border-radius: var(--r-inner);
+    min-height: 56px;
+    padding-block: 8px;
+    color: var(--ink);
+    font-size: 17px;
     font-weight: 600;
-    list-style: none;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: background-color var(--dur-hover) ease;
+    line-height: 22px;
+    letter-spacing: -0.01em;
+    text-decoration: none;
   }
 
-  .faq-item summary::-webkit-details-marker {
-    display: none;
+  .price-answer > svg {
+    flex: none;
+    color: var(--muted);
+    transition: transform var(--spring-smooth);
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .faq-item summary:hover {
-      background: var(--sunken);
+    :root:not([data-still]) .price-answer:hover > svg {
+      transform: translateX(4px);
+      transition: transform var(--spring-bouncy);
     }
-
   }
 
-  /* Plus to minus, the upright bar lies down, as on /faq, so the accordion feels the same on both pages. */
-  .faq-icon {
-    position: relative;
-    flex: none;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--r-pill);
-    background: var(--sunken);
-    color: var(--ink);
-    transition:
-      background-color var(--dur-hover) ease,
-      color var(--dur-hover) ease;
-  }
-
-  .faq-icon::before,
-  .faq-icon::after {
-    content: '';
-    position: absolute;
-    top: 15px;
-    left: 9px;
-    width: 14px;
-    height: 2px;
-    border-radius: 1px;
-    background: currentColor;
-    transition: transform var(--spring-snappy);
-  }
-
-  .faq-icon::after {
-    transform: rotate(90deg);
-  }
-
-  .faq-item[open] .faq-icon {
-    background: var(--ink);
-    color: var(--bg);
-  }
-
-  .faq-item[open] .faq-icon::before,
-  .faq-item[open] .faq-icon::after {
-    transform: rotate(180deg);
-  }
-
-  /* The one accepted layout animation (microinteractions 28). Without ::details-content it simply opens. */
-  .faq-item::details-content {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition:
-      grid-template-rows 280ms var(--ease-out),
-      content-visibility 280ms allow-discrete;
-  }
-
-  .faq-item[open]::details-content {
-    grid-template-rows: 1fr;
-  }
-
-  .faq-a {
-    overflow: hidden;
-    min-height: 0;
-  }
-
-  .faq-a > p {
-    margin: 0;
-    padding: 0 20px 22px;
-    color: var(--muted);
-    text-wrap: pretty;
-  }
-
-  :root[data-still] .faq-item::details-content,
-  :root[data-still] .faq-icon::before,
-  :root[data-still] .faq-icon::after {
-    transition: none;
-  }
-
-  @media (max-width: 899px) {
-    .faq-grid {
+  @media (max-width: 1068px) {
+    .price-more {
       grid-template-columns: minmax(0, 1fr);
-    }
-
-    .faq-panel {
-      --faq-sochu: 128px;
-      min-height: 320px;
     }
   }
 
   @media (max-width: 734px) {
-    .faq-panel-copy {
-      padding: 24px;
+    .price-cards {
+      margin-top: 32px;
     }
 
-    .faq-sochu {
-      right: 24px;
+    .price-row {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 16px 18px;
+    }
+
+    .price-more {
+      margin-top: 48px;
+      gap: 40px;
+    }
+
+    .price-quote blockquote {
+      font-size: 22px;
+      line-height: 28px;
+    }
+  }
+
+  /* ---------- #faq: the chat (chat.css) under the head. ---------- */
+  .home-faqchat {
+    margin-top: 40px;
+  }
+
+  @media (max-width: 734px) {
+    .home-faqchat {
+      margin-top: 28px;
     }
   }
 }

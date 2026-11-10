@@ -1,11 +1,15 @@
-import { m, useSpring } from 'motion/react';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
+import { Link } from 'react-router';
 import { Character, type CastId, type CharacterHandle, type Expression } from '../../cast';
+import { CastBubble, useCastLine } from '../../components/chat';
 import { Reveal, SectionHead } from '../../components/ui';
-import { SERVICES, STEPS } from '../../lib/content';
-import { useMotionOk } from '../../lib/motionOk';
-import { spring } from '../../lib/spring';
-import { useVisible } from './shared';
+import { EditTimeline, type TimelineStep } from '../../components/visuals';
+import { JOURNEY, PLATFORMS_HEAD, type CastLineKey } from '../../lib/content';
+import { PlatformStrip } from './Platforms';
+
+// #how-it-works and #services (V2-SPEC 5.2 row 4), dark in both themes. The journey is an editing timeline in a 160 vh stage (M9): the playhead follows
+// the scroll, the clip under it lights, and v1's cast scenes stand on the plate's top edge, re-mapped to the v2 steps (content §2.4). Each step's
+// speaker says its line once as the playhead lands. Phones get the timeline's vertical list without the scene.
 
 interface Part {
   expression?: Expression;
@@ -13,48 +17,51 @@ interface Part {
 }
 
 interface Scene {
-  tint: string;
   size: 'lg' | 'md' | 'sm';
   parts: Partial<Record<CastId, Part>>;
+  /** Plays its signature move as the scene arrives. */
   signature?: CastId;
+  /** Says the step's line. */
+  speaker: CastId;
 }
 
-/** Who is on stage for each step (characters 7.3). */
+/** content §2.4: 1 Sochu with the clipboard, 2 the shoot (Bolu talking with Tiko), 3 Sochu thinking, 4 Sochu ticks the lock list, 5 Gola, then all four. */
 const SCENES: Scene[] = [
-  { tint: 'var(--c-yellow)', size: 'lg', parts: { sochu: { prop: true } }, signature: 'sochu' },
-  { tint: 'var(--c-yellow)', size: 'lg', parts: { sochu: { expression: 'thinking', prop: true } } },
-  { tint: 'var(--c-green)', size: 'md', parts: { bolu: { expression: 'talking', prop: true }, tiko: { prop: true } } },
-  { tint: 'var(--c-orange)', size: 'lg', parts: { gola: { prop: true } }, signature: 'gola' },
+  { size: 'lg', parts: { sochu: { prop: true } }, signature: 'sochu', speaker: 'sochu' },
+  { size: 'md', parts: { bolu: { expression: 'talking', prop: true }, tiko: { prop: true } }, speaker: 'bolu' },
+  { size: 'lg', parts: { sochu: { expression: 'thinking', prop: true } }, speaker: 'sochu' },
+  { size: 'lg', parts: { sochu: { prop: true } }, signature: 'sochu', speaker: 'sochu' },
   {
-    tint: 'var(--c-purple)',
     size: 'sm',
-    parts: { tiko: { expression: 'celebrating' }, sochu: { expression: 'celebrating' }, bolu: { expression: 'celebrating' }, gola: { expression: 'celebrating' } },
+    parts: { gola: { expression: 'celebrating', prop: true }, bolu: { expression: 'celebrating' }, tiko: { expression: 'celebrating' }, sochu: { expression: 'celebrating' } },
+    signature: 'gola',
+    speaker: 'gola',
   },
 ];
 
-const ORDER: CastId[] = ['bolu', 'tiko', 'sochu', 'gola'];
+const ORDER: CastId[] = ['gola', 'bolu', 'tiko', 'sochu'];
+
+const STEPS: TimelineStep[] = JOURNEY.map((s, i) => ({ ...s, who: SCENES[i]?.speaker }));
+
+const lineOf = (k: number) => `home.how.${k + 1}` as CastLineKey;
 
 /**
  * All four stand in the wings the whole time and step on stage when it is their turn: a performer who stays for the next step just changes expression,
- * and the rig is never torn down in the middle of a scroll. Hidden ones are display:none, which the director treats as off screen and pays nothing for.
+ * and the rig is never torn down mid-scroll. Hidden ones are display: none, which the director treats as off screen.
  */
-function Stage({ step }: { step: number }) {
-  const scene = SCENES[step] ?? SCENES[0]!;
-  const box = useRef<HTMLDivElement>(null);
-  const visible = useVisible(box, 0.2);
-  const actors = useRef<Partial<Record<CastId, CharacterHandle | null>>>({});
-
-  useEffect(() => {
-    if (!visible || !scene.signature) return;
-    const who = scene.signature;
-    const cue = setTimeout(() => actors.current[who]?.play('signature'), 220);
-    return () => clearTimeout(cue);
-  }, [step, visible, scene.signature]);
-
+function Stage({ step, actors, cast }: { step: number; actors: RefObject<Partial<Record<CastId, CharacterHandle | null>>>; cast: ReturnType<typeof useCastLine> }) {
+  const scene = SCENES[Math.max(0, step)] ?? SCENES[0]!;
   const onStage = ORDER.filter((who) => scene.parts[who]);
 
+  useEffect(() => {
+    if (!scene.signature) return;
+    const who = scene.signature;
+    const cue = window.setTimeout(() => actors.current[who]?.play('signature'), 220);
+    return () => window.clearTimeout(cue);
+  }, [step, scene.signature, actors]);
+
   return (
-    <div ref={box} className="how-stage" data-size={scene.size} aria-hidden>
+    <div className="how-stage" data-size={scene.size}>
       {ORDER.map((who) => {
         const part = scene.parts[who];
         return (
@@ -67,7 +74,9 @@ function Stage({ step }: { step: number }) {
               size="var(--how-size)"
               expression={part?.expression ?? 'idle'}
               prop={part?.prop ?? false}
-            />
+            >
+              {SCENES.map((s, k) => (s.speaker === who ? <CastBubble key={k} {...cast.bubble(lineOf(k))} side={who === 'gola' && s.size === 'sm' ? 'start' : 'center'} /> : null))}
+            </Character>
           </div>
         );
       })}
@@ -76,91 +85,44 @@ function Stage({ step }: { step: number }) {
 }
 
 export function Process() {
-  const [active, setActive] = useState(0);
-  const items = useRef<(HTMLLIElement | null)[]>([]);
-  const list = useRef<HTMLOListElement>(null);
-  const ok = useMotionOk();
-  const thumb = useSpring(0, spring.snappy);
+  const cast = useCastLine();
+  const { say } = cast;
+  const actors = useRef<Partial<Record<CastId, CharacterHandle | null>>>({});
+  // The step whose line is due. Said after the render that put its speaker on stage, so the speaker is on screen when it speaks.
+  const [due, setDue] = useState<number | null>(null);
+  const onStep = useCallback((k: number) => setDue(k), []);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const i = items.current.indexOf(entry.target as HTMLLIElement);
-          if (i >= 0) setActive(i);
-        }
-      },
-      { rootMargin: '-45% 0px -45% 0px' },
-    );
-    items.current.forEach((el) => {
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  // The marker's position comes from the layout rather than from a fixed step height, so it survives any wrap. Physics spring: a fast scroll past several steps keeps its speed.
-  useEffect(() => {
-    const place = (animated: boolean) => {
-      const y = items.current[active]?.offsetTop ?? 0;
-      if (animated && ok) thumb.set(y);
-      else thumb.jump(y);
-    };
-    place(true);
-    const onResize = () => place(false);
-    const ro = new ResizeObserver(onResize);
-    if (list.current) ro.observe(list.current);
-    return () => ro.disconnect();
-  }, [active, ok, thumb]);
+    if (due === null) return;
+    const who = SCENES[due]?.speaker;
+    if (!who) return;
+    const t = window.setTimeout(() => void say(lineOf(due), { by: actors.current[who], expression: null }), 160);
+    return () => window.clearTimeout(t);
+  }, [due, say]);
 
   return (
-    <section id="how-it-works" className="band-dark">
+    <section id="how-it-works" className="band-dark how-section" data-bubble-bounds="">
       <div className="wrap section">
-        <div className="how-grid">
-          <div className="how-side">
-            <SectionHead center={false} eyebrow="How it works" title="Vox pop production made simple" lead="We work step by step to turn raw street interviews into polished, professional and viral videos effortlessly." />
-            <Stage step={active} />
-          </div>
+        <SectionHead center={false} eyebrow="How it works" title="From trial to batch" lead="Start with a trial on your own brand. If you want to continue, this is how it runs." />
 
-          <div className="how-track" style={{ '--step-c': SCENES[active]?.tint } as CSSProperties}>
-            <m.span className="how-thumb" style={{ y: thumb }} aria-hidden />
-            <ol ref={list} className="how-steps">
-            {STEPS.map((s, i) => (
-              <li
-                key={s.name}
-                className="how-step"
-                data-active={i === active ? '' : undefined}
-                ref={(el) => {
-                  items.current[i] = el;
-                }}
-              >
-                <span className="how-num" aria-hidden>
-                  {i + 1}
-                </span>
-                <h3 className="h3">{s.name}</h3>
-                <p>{s.body}</p>
-              </li>
-            ))}
-            </ol>
-          </div>
-        </div>
+        <EditTimeline className="how-timeline" steps={STEPS} mode="stage" onStep={onStep} label="From trial to batch, in five steps" scene={(active) => <Stage step={active} actors={actors} cast={cast} />} />
+
+        <p className="how-links">
+          <Link to="/trial#after" className="how-link">
+            Every step after the trial →
+          </Link>
+          <Link to="/how-we-work" className="how-link">
+            How we work →
+          </Link>
+        </p>
 
         <div id="services" className="how-strip-block">
           <Reveal variant="rise">
             <h3 className="how-strip-title two-tone">
-              <b>Vox pop as a service for brands.</b> One shoot, cut for every short-form feed your customers already watch.
+              <b>{PLATFORMS_HEAD.strong}</b> {PLATFORMS_HEAD.rest}
             </h3>
           </Reveal>
-          <Reveal className="how-strip">
-            <ul>
-              {SERVICES.map((s) => (
-                <li key={s.name}>
-                  <h4 className="label">{s.name}</h4>
-                  <p>{s.body}</p>
-                </li>
-              ))}
-            </ul>
-          </Reveal>
+          <PlatformStrip className="how-platforms" />
         </div>
       </div>
     </section>
