@@ -18,18 +18,34 @@
     /* The band's glass grain. The footer is dark in both themes, so it always takes the light speckle. */
     --ft-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -.92'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
+    /* Round 9, the seam: no edge, no corners. The sheet's top --ft-blend is a dusk: the page (and, in dark, its flutes) shows through and is
+       covered on an eased curve, through a faint indigo, until the sheet is the glass's own base (#07080f). Nothing of the footer's sits in it,
+       so the last section never looks cut. The band's glass rises out of the same zone (.ft-glass), on the page's flute pitch and phase. */
+    --ft-blend: clamp(240px, 25vw, 360px);
+    --ft-dusk: linear-gradient(
+      180deg,
+      rgb(36 42 88 / 0) 0,
+      rgb(34 40 84 / 0.03) calc(var(--ft-blend) * 0.1),
+      rgb(31 36 77 / 0.1) calc(var(--ft-blend) * 0.2),
+      rgb(27 31 67 / 0.22) calc(var(--ft-blend) * 0.3),
+      rgb(23 27 57 / 0.35) calc(var(--ft-blend) * 0.4),
+      rgb(19 22 47 / 0.5) calc(var(--ft-blend) * 0.5),
+      rgb(16 18 38 / 0.65) calc(var(--ft-blend) * 0.6),
+      rgb(12 14 30 / 0.78) calc(var(--ft-blend) * 0.7),
+      rgb(10 11 22 / 0.9) calc(var(--ft-blend) * 0.8),
+      rgb(8 9 17 / 0.97) calc(var(--ft-blend) * 0.9),
+      #07080f var(--ft-blend)
+    );
+
     position: relative;
-    margin-top: var(--end-y);
+    margin-top: calc(var(--end-y) / 2);
+    padding-top: var(--ft-blend);
     overflow: clip;
-    border-radius: var(--r-footer) var(--r-footer) 0 0;
-    /* The glass's own base, so the band's glass fades into the sheet without a seam. The sheet stays opaque. A stacking context, so the glass
-       (z-index -1) paints over the sheet and under all of the footer's content; it does not flatten the ring's preserve-3d. */
-    background-color: #07080f;
-    background-image: var(--g-stage);
+    /* A stacking context, so the glass (z-index -1) paints over the sheet and under all of the footer's content; it does not flatten the
+       ring's preserve-3d. The sheet is opaque below the dusk. */
+    background-color: transparent;
+    background-image: var(--g-stage), var(--ft-dusk);
     isolation: isolate;
-    box-shadow:
-      0 0 0 1px rgb(255 255 255 / 0.12),
-      inset 0 1px 0 rgb(255 255 255 / 0.14);
     color: var(--ft-link);
   }
 
@@ -53,7 +69,8 @@
     /* Positioned for the glass, never a stacking context (no z-index, transform or opacity here): the glass sits at -1 in the sheet's context
        and nothing in the band needs lifting, so the ring's 3D parents get nothing new. */
     position: relative;
-    padding-top: 80px;
+    /* The dusk above (.ft padding) is the band's lead-in; the copy starts just under it, where the sheet is fully dark. */
+    padding-top: 40px;
     text-align: center;
   }
 
@@ -64,7 +81,26 @@
      drift on the compositor while the band is on screen, plus a lean toward a fine pointer. The glass runs 160 px past the band and fades into
      the sheet before the links. White and --ft-soft keep AA over it (scrim under the copy). Same dark glass in both themes. */
   .ft-glass {
-    --rib: 18px;
+    /* The page's flute pitch (backdrop.css .bd --rib), so where both show in the dusk the ribs line up; both start at the viewport's left edge. */
+    --rib: 24px;
+    /* The glass starts inside the dusk and rises out of it: transparent at its top, whole where the dusk ends (the band's top). */
+    --ft-up: calc(var(--ft-blend) * 0.6);
+    --ft-rise-in: linear-gradient(
+      180deg,
+      transparent 0,
+      rgb(0 0 0 / 0.03) calc(var(--ft-up) * 0.1),
+      rgb(0 0 0 / 0.1) calc(var(--ft-up) * 0.2),
+      rgb(0 0 0 / 0.22) calc(var(--ft-up) * 0.3),
+      rgb(0 0 0 / 0.35) calc(var(--ft-up) * 0.4),
+      rgb(0 0 0 / 0.5) calc(var(--ft-up) * 0.5),
+      rgb(0 0 0 / 0.65) calc(var(--ft-up) * 0.6),
+      rgb(0 0 0 / 0.78) calc(var(--ft-up) * 0.7),
+      rgb(0 0 0 / 0.9) calc(var(--ft-up) * 0.8),
+      rgb(0 0 0 / 0.97) calc(var(--ft-up) * 0.9),
+      #000 var(--ft-up),
+      #000 calc(100% - 320px),
+      transparent
+    );
     --fg-base: #07080f;
     --fg-blue: #2b3fc9;
     --fg-deep: #1d2a8a;
@@ -73,14 +109,20 @@
     --fg-green: #1a7a4a;
     --fg-core: #e8e2ff;
     position: absolute;
-    inset: 0 0 -160px 0;
+    inset: calc(-1 * var(--ft-up)) 0 -160px 0;
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
     isolation: isolate;
     background: var(--fg-base);
-    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 320px), transparent);
-    mask-image: linear-gradient(180deg, #000 calc(100% - 320px), transparent);
+    -webkit-mask-image: var(--ft-rise-in);
+    mask-image: var(--ft-rise-in);
+  }
+
+  @media (max-width: 1068px) {
+    .ft-glass {
+      --rib: 20px;
+    }
   }
 
   .ft-glass-lean,
@@ -151,13 +193,13 @@
       transparent calc(var(--rib) * 0.8),
       transparent var(--rib)
     );
-    -webkit-mask-image: radial-gradient(40% 50% at 82% 8%, #000, transparent 75%);
-    mask-image: radial-gradient(40% 50% at 82% 8%, #000, transparent 75%);
+    -webkit-mask-image: radial-gradient(40% 50% at 82% calc(var(--ft-up) - 40px + 8%), #000, transparent 75%);
+    mask-image: radial-gradient(40% 50% at 82% calc(var(--ft-up) - 40px + 8%), #000, transparent 75%);
   }
 
   /* The words are centred, so the scrim is a centred pool at the top of the band. The copy must stay inside it. */
   .ft-glass-scrim {
-    background: radial-gradient(46% 34% at 50% 14%, rgb(7 8 15 / 0.86) 0%, rgb(7 8 15 / 0.62) 55%, transparent 100%);
+    background: radial-gradient(46% 34% at 50% calc(var(--ft-up) - 40px + 14%), rgb(7 8 15 / 0.86) 0%, rgb(7 8 15 / 0.62) 55%, transparent 100%);
   }
 
   .ft-glass::after {
@@ -170,12 +212,17 @@
 
   @media (max-width: 734px) {
     .ft-glass {
-      --rib: 14px;
-      inset: 0 0 -96px 0;
+      --rib: 16px;
+      inset: calc(-1 * var(--ft-up)) 0 -96px 0;
     }
 
     .ft-glass-scrim {
-      background: linear-gradient(180deg, rgb(7 8 15 / 0.8) 0%, rgb(7 8 15 / 0.55) 34%, transparent 60%);
+      background: linear-gradient(
+        180deg,
+        rgb(7 8 15 / 0.8) calc(var(--ft-up) - 40px),
+        rgb(7 8 15 / 0.55) calc(var(--ft-up) - 40px + 34%),
+        transparent calc(var(--ft-up) - 40px + 60%)
+      );
     }
 
     /* The phone's own field: the glow comes on screen and sits low, in the ring and button zone, where there is no small text. */
@@ -310,6 +357,11 @@
   }
 
   /* Below the band, a hairline, then the reach block and the links. */
+  /* No band (legal pages, a 404, pages with their own action): the dusk is the lead-in, so the links start a little sooner. */
+  .ft > .ft-body:first-child > .ft-top {
+    padding-top: 48px;
+  }
+
   .ft-band-cta + .ft-body > .ft-top {
     margin-top: 72px;
     border-top: 1px solid rgb(255 255 255 / 0.1);

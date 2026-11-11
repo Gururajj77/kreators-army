@@ -310,13 +310,21 @@ export const LOCK_LIST = [
 /** The creative loop; the last step arrows back to the first. */
 export const LOOP = ['Hypothesis', 'Interaction', 'Production', 'Edit', 'Learn', 'Improve'];
 
-/** Home #interaction: Bolu's real filmed questions, each answered by its real video. Each pair finds its video by id first, then by the live re-imported ids (alsoIds), then by brand and a
- * title phrase (so a re-import under a new id, e.g. from the admin CSV, still answers it). A pair with no live video is dropped. */
-export const INTERACTION_THREAD: { q: string; videoId: string; alsoIds?: string[]; brand: string; titles: string[] }[] = [
+/**
+ * Home #interaction: real filmed questions, each answered by its real video, as an ordered list of candidates. The thread shows the first four that
+ * match a live video (lib/thread.ts), asked in display order by Bolu, Tiko, Sochu and Gola; a candidate with no live video is skipped, and no video
+ * answers twice. Each finds its video by id first, then by the live re-imported ids (alsoIds), then by brand and a title phrase, in the order listed
+ * (so a re-import under a new id, e.g. from the admin CSV, still answers it). Brands match loosely: "Ansh" finds "Ansh Mehra". The `fallback` ones
+ * are phrased straight from a live "X Vs Y" title and fill in only when the first four are not all live; the Founders page shows the others only.
+ */
+export const INTERACTION_THREAD: { q: string; videoId?: string; alsoIds?: string[]; brand: string; titles: string[]; fallback?: true }[] = [
   { q: 'New phone or a Goa trip?', videoId: 'seed-circlestore-2', alsoIds: ['70eee17b-a646-4e82-996e-1826a076544b'], brand: 'CircleStore', titles: ['goa'] },
   { q: "Hot take on Valentine's Day?", videoId: 'seed-brandingbum', brand: 'BrandingBum', titles: ['valentine'] },
   { q: 'Worst thing you ever bought second-hand?', videoId: 'seed-circlestore-1', alsoIds: ['6c83cda2-0905-466b-b504-b3779374263d'], brand: 'CircleStore', titles: ['bad second hand', 'bad second-hand', 'worst'] },
-  { q: 'What does AI change about design?', videoId: 'seed-ansh-mehra', brand: 'Ansh Mehra', titles: ['ai and design', 'ai & design'] },
+  { q: 'What does AI change about design?', videoId: 'seed-ansh-mehra', brand: 'Ansh Mehra', titles: ['ai and design', 'ai & design', 'design'] },
+  { q: 'Salt or sweet?', brand: 'BreadBerry', titles: ['salt vs sweet'], fallback: true },
+  { q: 'Plant protein or whey?', brand: 'Orgaheal', titles: ['plant vs whey'], fallback: true },
+  { q: 'Branded or unbranded?', brand: 'CircleStore', titles: ['branded vs unbranded'], fallback: true },
 ];
 
 // ---------- Testimonials ----------

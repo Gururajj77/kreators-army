@@ -159,6 +159,20 @@ async function serve(port: MessagePort, token: string, rangeHeader: string | nul
   }
 }
 
+/** (admin10) The decrypted MEGA chunks this page holds in memory for open sources, in bytes. */
+export function bridgeMemory(): number {
+  let n = 0;
+  for (const f of sources.values()) n += f.keptBytes();
+  return n;
+}
+
+/** (admin10) "Clear unused cache": drops those chunks (a file being read right now keeps its own); answers the bytes dropped. */
+export function dropBridgeChunks(): number {
+  let n = 0;
+  for (const f of sources.values()) n += f.dropChunks();
+  return n;
+}
+
 // ---------------------------------------------------------------- opening a source
 
 /** The file's address and key from the admin API (passkey session; never cached, never logged). */

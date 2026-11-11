@@ -26,6 +26,7 @@ import { Seo } from '../components/ui';
 import { motionOk } from '../lib/motionOk';
 import { AdminApiError, adminApi, keys } from './api';
 import { ConfirmDialog, Modal, Switch, type CloseReason } from './bits';
+import { RegenSection, useRegenerate } from './mediaGen/Regenerate';
 import { attachQueryClient, canMake, enqueue as makeMedia, sourceKey } from './mediaGen/runner';
 import { useMegaPreview } from './mediaGen/useMegaPreview';
 import { MegaField, type MegaCheck } from './MegaField';
@@ -158,6 +159,9 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
   const lastWrite = useRef<{ kind: SaveKind; write: VideoWrite } | null>(null);
   const leaving = useRef(false);
   const preview = useRef<HTMLVideoElement>(null);
+  // (admin10) "Regenerate thumbnail & preview": the new ones replace only the media fields of this copy (never the form or its updatedAt guard).
+  const regen = useRegenerate();
+  const onMade = useCallback((v: AdminVideo) => setBase((b) => (b && b.id === v.id ? { ...b, poster: v.poster, preview: v.preview } : b)), []);
   const doneTimer = useRef(0);
 
   const list = qc.getQueryData<AdminVideoList>(keys.videos(false));
@@ -611,6 +615,8 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
               onPicked={onPicked}
               onRemove={() => void removePoster()}
             />
+            {base && !megaChanged && <RegenSection video={base} onMade={onMade} request={regen.request} />}
+            {regen.dialog}
             <p className="adm-section-label">How the tile looks</p>
             <div className="adm-tile-preview" style={{ width: form.aspect === 'landscape' ? 240 : 150 }}>
               <VideoFrame video={tile} variant="card" still width={form.aspect === 'landscape' ? 240 : 150} />

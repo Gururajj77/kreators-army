@@ -5,6 +5,10 @@
 // while the tab is visible (a hidden tab stops presenting frames, so the current video goes back in the queue and starts again on return), MEGA's
 // transfer limit (stop, wait an hour, persisted, then go on by itself) and one tab at a time (a Web Lock; a localStorage heartbeat where there is none).
 // Every upload goes through the admin API (cookie session, Origin checked); the answers update the list's cache in place.
+// (admin10) One video's "Regenerate thumbnail & preview" (the drawer, the row's menu, the bulk bar): regenerateNow() puts it at the front of the
+// queue as a `manual` job, which runs even while the run is paused (Pause itself still stops it) and after the video being made now; MEGA's
+// transfer limit still holds it back (shown where it was asked for). The answers update the list's cache, so the drawer and the row show the new
+// thumbnail and clip without a reload; their addresses carry the sha, so no cache serves the old ones.
 // (admin8) A MEGA video is read by this browser from MEGA itself (megaSource.ts), never through the Worker: MEGA's errors arrive here directly
 // (transfer limit: wait an hour; busy: retried inside mega.ts with backoff; gone, removed, blocked or a wrong key: this video fails).
 import type { AdminPoster, AdminPreview, AdminVideo } from '@kreators/shared';
@@ -33,6 +37,10 @@ export interface Job {
   regenerate: boolean;
   /** Replace a poster set by hand ("Regenerate", with the box ticked). */
   replaceHandPoster: boolean;
+  /** (admin10) Asked for this one video by hand: it goes first, and runs while the run is paused. Pause clears it. */
+  manual?: boolean;
+  /** (admin10) Asked for by hand (kept after a Pause): the row shows its state. */
+  asked?: boolean;
   error?: string;
   /** What was made: clip KB and seconds taken, and whether the poster was made or kept. */
   result?: { clipKb?: number; clipMime?: string; posterKept?: boolean; posterMade?: boolean; ms: number; timing?: unknown };
@@ -168,6 +176,48 @@ export function enqueue(videos: AdminVideo[], { mode = 'missing', replaceHandPos
   return add.length;
 }
 
+/**
+ * (admin10) "Regenerate thumbnail & preview" for these videos, now: each goes to the front of the queue (in the order given) as a manual job,
+ * replacing a finished, failed or waiting job for it. A video being made right now is left to finish (it is making them already). The poster is
+ * remade where it was made here or is missing, and a hand-set one only with `replaceHandPoster`. Answers how many were queued.
+ */
+export function regenerateNow(videos: AdminVideo[], { replaceHandPoster = false }: { replaceHandPoster?: boolean } = {}): number {
+  const running = new Set(useMediaGen.getState().jobs.filter((j) => j.status === 'running').map((j) => j.id));
+  const add: Job[] = [];
+  for (const v of videos) {
+    if (!canMake(v) || running.has(v.id)) continue;
+    add.push({
+      id: v.id,
+      video: v,
+      title: v.title || 'Untitled video',
+      status: 'queued',
+      step: 'Waiting',
+      progress: 0,
+      wantClip: true,
+      wantThumb: !v.poster || !!v.poster.auto || replaceHandPoster,
+      regenerate: true,
+      replaceHandPoster,
+      manual: true,
+      asked: true,
+    });
+  }
+  if (!add.length) return 0;
+  const ids = new Set(add.map((j) => j.id));
+  useMediaGen.setState((s) => ({ jobs: [...add, ...s.jobs.filter((j) => !ids.has(j.id))] }));
+  start();
+  return add.length;
+}
+
+/** A poster the admin set by hand (picked or uploaded, or a v1 address): "Regenerate" asks before replacing it. */
+export const handPoster = (v: AdminVideo) => !!v.poster && !v.poster.auto;
+
+/** The next job: a manual one first; while paused, only a manual one. */
+function nextJob(): Job | undefined {
+  const s = useMediaGen.getState();
+  const queued = s.jobs.filter((j) => j.status === 'queued');
+  return queued.find((j) => j.manual) ?? (s.paused ? undefined : queued[0]);
+}
+
 export function stop() {
   if (loop) reason = 'stop';
   abort?.abort();
@@ -176,7 +226,7 @@ export function stop() {
 
 /** Pause: the video being made goes back in the queue; nothing starts again, here or on the next visit, until resume(). */
 export function pause(persist = true) {
-  useMediaGen.setState({ paused: true });
+  useMediaGen.setState((s) => ({ paused: true, jobs: s.jobs.map((j) => (j.manual && (j.status === 'queued' || j.status === 'running') ? { ...j, manual: false } : j)) }));
   if (persist) writePrefs({ paused: true });
   if (loop) {
     reason = 'pause';
@@ -224,7 +274,7 @@ function start() {
     return;
   }
   const s = useMediaGen.getState();
-  if (s.paused || s.quotaUntil > Date.now() || !s.jobs.some((j) => j.status === 'queued')) return;
+  if (s.quotaUntil > Date.now() || !nextJob()) return;
   // A hidden tab waits; the visibility listener starts it when the admin comes back.
   if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
   abort = new AbortController();
@@ -236,7 +286,7 @@ function start() {
     try {
       for (;;) {
         if (signal.aborted) break;
-        const job = useMediaGen.getState().jobs.find((j) => j.status === 'queued');
+        const job = nextJob();
         if (!job) break;
         if (!release) {
           const got = await takeLock(signal);

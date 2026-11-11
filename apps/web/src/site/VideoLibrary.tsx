@@ -1,7 +1,7 @@
 import type { Video } from '@kreators/shared';
-import { Check, ChevronDown, Search, X } from 'lucide-react';
+import { Check, ChevronDown, Search, Shuffle, X } from 'lucide-react';
 import { AnimatePresence, LayoutGroup, m } from 'motion/react';
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import { Character, type CharacterHandle } from '../cast';
 import { CastBubble, useCastLine } from '../components/chat';
@@ -15,12 +15,14 @@ import { motionOk } from '../lib/motionOk';
 import { useVideos } from '../lib/queries';
 import { spring } from '../lib/spring';
 import { FIRST_ROWS, LibraryIntro, guessCols } from './LibraryShell';
-import { chipLabel, facetDefs, facets as facetsOf, passes, sortVideos, sortsFor, suggest, tokens, withoutWordsOf, type Facet, type SortDef, type Suggestion } from '../lib/videoFind';
+import { chipLabel, facetDefs, facets as facetsOf, newShuffleSeed, passes, sortVideos, sortsFor, suggest, tokens, withoutWordsOf, type Facet, type SortDef, type Suggestion } from '../lib/videoFind';
 
 // The video library (V2-SPEC 5.7, content §3.6, visual §2.6). The brands are story rings (M6): a ring is a filter, set in the address, and turns grey
-// once a video of that brand has been opened. The glass bar holds the count, the search (with suggestions) and the sort on top, and below them the chip
-// rails. The grid shows two full rows first, then four more as the visitor nears the end (or presses "View more"); featured videos lead under "Our
-// picks". The finding rules (facets, sorts, search) live in lib/videoFind.ts.
+// once a video of that brand has been opened. The glass bar's top row is one line: the Uploaded menu (and the count) on the left, the search (with
+// suggestions) truly centred, the sort and Shuffle on the right; on phones the search takes its own line first. Below it, the chip rails. The grid shows
+// two full rows first, then four more as the visitor nears the end (or presses "View more"). The default order is Shuffled: a fresh random order per
+// visit (the seed is made once per mount and kept in the history entry, so Back returns to the same order; it is not written to the address). "Our
+// picks" (featured first, then the library's order) is ?sort=featured. The finding rules (facets, sorts, search) live in lib/videoFind.ts.
 //
 // Everything lives in the address, set with `replace` and no scroll jump:
 //   brand     brand names, comma separated (the rings)
@@ -32,7 +34,9 @@ import { chipLabel, facetDefs, facets as facetsOf, passes, sortVideos, sortsFor,
 //   posted    instagram, youtube (a Watch link exists)
 //   q         the search: every word must match the title, brand, category, platform or upload month and year; one slip allowed in words of 5
 //             letters or more; shorthands ig/insta, yt/shorts, 1m/100k, a year, vertical/landscape
-//   sort      new, old, views, least, brand, short, long (none: our picks; new and old only with dates, short and long only with lengths)
+//   sort      featured (our picks), new, old, views, least, brand, short, long, shuffle (none: this visit's shuffle; new and old only with dates,
+//             short and long only with lengths)
+//   seed      the shuffle's seed with sort=shuffle (the Shuffle button writes both, so a shuffled order can be shared)
 //   v         the open video (the player)
 // Within a key the values are OR'd, across keys AND'd. Every count in the bar is the number a chip would leave, given the other filters.
 
@@ -47,6 +51,18 @@ const MORE_ROWS = 4;
 const MORE_MARGIN = '0px 0px 600px 0px';
 /** The revealed rows, kept in the history entry, so Back and Forward return to as many tiles as were showing (for the same filters). */
 const HISTORY_ROWS = 'kreatorsLibRows';
+/** This visit's shuffle seed, kept in the history entry too: Back and a reload return to the same order; a new visit deals a new one. */
+const HISTORY_SEED = 'kreatorsLibSeed';
+
+function visitSeed(): string {
+  try {
+    const saved = (window.history.state as Record<string, unknown> | null)?.[HISTORY_SEED];
+    if (typeof saved === 'string' && /^[a-z0-9]{1,12}$/.test(saved)) return saved;
+  } catch {
+    // No history state: a new order.
+  }
+  return newShuffleSeed();
+}
 
 const PHONE = '(max-width: 734px)';
 const subscribePhone = (fn: () => void) => {
@@ -185,14 +201,21 @@ function BrandRing({ brands, counts, videos, selected, onToggle, paused }: { bra
   );
 }
 
-// ---------- The sort menu: a button and an opaque popover of radios, the current one checked ----------
+// ---------- The bar's menus: a button and an opaque popover. The sort: radios, the current one checked. Uploaded: checkboxes (OR'd), open while picking ----------
 
-function SortMenu({ sorts, value, onChange }: { sorts: SortDef[]; value: string; onChange: (next: string) => void }) {
+interface MenuItem {
+  value: string;
+  label: string;
+  count?: number;
+}
+
+function BarMenu({ name, kind, items, selected, onPick, className, align = 'right', children }: { name: string; kind: 'radio' | 'checkbox'; items: MenuItem[]; selected: string[]; onPick: (value: string) => void; className: string; align?: 'left' | 'right'; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const pop = useRef<HTMLDivElement>(null);
   const viaKeys = useRef(false);
+  const role = kind === 'radio' ? 'menuitemradio' : 'menuitemcheckbox';
 
   useEffect(() => {
     if (!open) return;
@@ -217,17 +240,16 @@ function SortMenu({ sorts, value, onChange }: { sorts: SortDef[]; value: string;
     };
   }, [open]);
 
-  // Opened from the keyboard, focus goes to the checked option.
+  // Opened from the keyboard, focus goes to the (first) checked option.
   useLayoutEffect(() => {
     if (!open || !viaKeys.current) return;
     viaKeys.current = false;
-    pop.current?.querySelector<HTMLElement>('[aria-checked="true"], [role="menuitemradio"]')?.focus();
-  }, [open]);
+    pop.current?.querySelector<HTMLElement>(`[aria-checked="true"], [role="${role}"]`)?.focus();
+  }, [open, role]);
 
-  const label = sorts.find((s) => s.value === value)?.label ?? sorts[0]?.label;
-  const items = () => [...(pop.current?.querySelectorAll<HTMLElement>('[role="menuitemradio"]') ?? [])];
+  const options = () => [...(pop.current?.querySelectorAll<HTMLElement>(`[role="${role}"]`) ?? [])];
   const onMenuKey = (e: ReactKeyboardEvent) => {
-    const list = items();
+    const list = options();
     const at = list.indexOf(document.activeElement as HTMLElement);
     const go = (i: number) => list[(i + list.length) % list.length]?.focus();
     if (e.key === 'ArrowDown') go(at + 1);
@@ -240,11 +262,11 @@ function SortMenu({ sorts, value, onChange }: { sorts: SortDef[]; value: string;
   };
 
   return (
-    <div ref={root} className="lib-sort-wrap">
+    <div ref={root} className={`lib-menu-wrap ${className}-wrap`}>
       <button
         ref={button}
         type="button"
-        className="lib-btn lib-sort"
+        className={`lib-btn ${className}`}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={(e) => {
@@ -252,30 +274,35 @@ function SortMenu({ sorts, value, onChange }: { sorts: SortDef[]; value: string;
           setOpen((o) => !o);
         }}
       >
-        <span className="lib-sort-label">
-          <span className="sr-only">Sort: </span>
-          {label}
-        </span>
+        {children}
         <ChevronDown className="lib-chev size-4" aria-hidden />
       </button>
       {open && (
-        <div ref={pop} className="lib-pop lib-sort-pop" role="menu" aria-label="Sort" onKeyDown={onMenuKey}>
-          {sorts.map((s) => {
-            const on = s.value === value;
+        <div ref={pop} className={`lib-pop ${className}-pop`} data-align={align} role="menu" aria-label={name} onKeyDown={onMenuKey}>
+          {items.map((s) => {
+            const on = selected.includes(s.value);
             return (
               <button
                 key={s.value}
                 type="button"
-                role="menuitemradio"
+                role={role}
                 aria-checked={on}
                 className="lib-opt"
                 onClick={() => {
-                  onChange(s.value);
+                  onPick(s.value);
+                  if (kind === 'checkbox') return;
                   setOpen(false);
                   button.current?.focus();
                 }}
               >
                 <span className="lib-opt-label">{s.label}</span>
+                {s.count !== undefined && (
+                  <span className="lib-opt-count">
+                    <span className="sr-only">, </span>
+                    {s.count}
+                    <span className="sr-only"> {videoWord(s.count)}</span>
+                  </span>
+                )}
                 <Check className="lib-opt-check size-4" aria-hidden />
               </button>
             );
@@ -283,6 +310,43 @@ function SortMenu({ sorts, value, onChange }: { sorts: SortDef[]; value: string;
         </div>
       )}
     </div>
+  );
+}
+
+function SortMenu({ sorts, value, onChange }: { sorts: SortDef[]; value: string; onChange: (next: string) => void }) {
+  const label = sorts.find((s) => s.value === value)?.label ?? sorts[0]?.label;
+  return (
+    <BarMenu name="Sort" kind="radio" items={sorts} selected={[value]} onPick={onChange} className="lib-sort">
+      <span className="lib-sort-label">
+        <span className="sr-only">Sort: </span>
+        {label}
+      </span>
+    </BarMenu>
+  );
+}
+
+/** The Uploaded facet as a compact menu (it sits on the bar's one line): its options with the videos each would leave, OR'd; the button shows how many are chosen. */
+function DateMenu({ facet, onChange }: { facet: Facet; onChange: (next: string[]) => void }) {
+  const n = facet.selected.length;
+  return (
+    <BarMenu
+      name={facet.def.label}
+      kind="checkbox"
+      align="left"
+      items={facet.options.map((o) => ({ value: o.value, label: o.label, count: o.count }))}
+      selected={facet.selected}
+      onPick={(value) => onChange(facet.selected.includes(value) ? facet.selected.filter((x) => x !== value) : [...facet.selected, value])}
+      className="lib-date"
+    >
+      <span className="lib-date-label">{facet.def.label}</span>
+      {n > 0 && (
+        <span className="lib-date-n">
+          <span className="sr-only">, </span>
+          {n}
+          <span className="sr-only"> chosen</span>
+        </span>
+      )}
+    </BarMenu>
   );
 }
 
@@ -410,7 +474,7 @@ function SearchBox({ q, onSearch, suggestions, onPick }: { q: string; onSearch: 
   );
 }
 
-// ---------- The bar: glass over the tiles; the count, the search and the sort, then the chip rails as one sideways strip ----------
+// ---------- The bar: glass over the tiles; one line of Uploaded (and the count), the centred search, the sort and Shuffle; then the chip rails ----------
 
 interface BarProps {
   facets: Facet[];
@@ -418,6 +482,8 @@ interface BarProps {
   sorts: SortDef[];
   sort: string;
   onSort: (next: string) => void;
+  /** Deal the whole library into a new random order (each press a new one). */
+  onShuffle: () => void;
   q: string;
   onSearch: (next: string) => void;
   suggestions: Suggestion[];
@@ -426,27 +492,60 @@ interface BarProps {
   ready: boolean;
 }
 
-function FilterBar({ facets, onFacet, sorts, sort, onSort, q, onSearch, suggestions, onPick, count, ready }: BarProps) {
+/** The Shuffle button: a new random order of every video on each press. The die turns once per press (not under reduced motion or still). */
+function ShuffleButton({ onShuffle, active }: { onShuffle: () => void; active: boolean }) {
+  const [turns, setTurns] = useState(0);
+  return (
+    <button
+      type="button"
+      className="lib-btn lib-shuffle"
+      data-active={active || undefined}
+      aria-label="Shuffle all videos"
+      title="Shuffle all videos"
+      onClick={() => {
+        setTurns((t) => t + 1);
+        onShuffle();
+      }}
+    >
+      <Shuffle key={turns} className="size-4 lib-shuffle-icon" data-turn={turns > 0 || undefined} aria-hidden />
+      <span className="lib-shuffle-label">Shuffle</span>
+    </button>
+  );
+}
+
+function FilterBar({ facets, onFacet, sorts, sort, onSort, onShuffle, q, onSearch, suggestions, onPick, count, ready }: BarProps) {
   const phone = useIsPhone();
+  const date = facets.find((f) => f.def.key === 'date');
+  const rails = facets.filter((f) => f.def.key !== 'date');
+  // The DOM follows what is seen, left to right and top to bottom (the keyboard's order): on phones the search is a line of its own above the rest.
+  const left = (
+    <div key="left" className="lib-bar-left">
+      {date && <DateMenu facet={date} onChange={(next) => onFacet('date', next)} />}
+      <p className="lib-count" aria-hidden>
+        {ready ? (
+          <>
+            <RollNumber value={count} countUp={false} /> <span>{videoWord(count)}</span>
+          </>
+        ) : (
+          ' '
+        )}
+      </p>
+    </div>
+  );
+  const search = <SearchBox key="search" q={q} onSearch={onSearch} suggestions={suggestions} onPick={onPick} />;
+  const right = (
+    <div key="right" className="lib-bar-right">
+      <SortMenu sorts={sorts} value={sort} onChange={onSort} />
+      <ShuffleButton onShuffle={onShuffle} active={sort === 'shuffle'} />
+    </div>
+  );
   return (
     <div className="lib-bar glass">
-      <div className="lib-bar-top">
-        <p className="lib-count" aria-hidden>
-          {ready ? (
-            <>
-              <RollNumber value={count} countUp={false} /> <span>{videoWord(count)}</span>
-            </>
-          ) : (
-            ' '
-          )}
-        </p>
-        <SearchBox q={q} onSearch={onSearch} suggestions={suggestions} onPick={onPick} />
-        <SortMenu sorts={sorts} value={sort} onChange={onSort} />
-      </div>
+      <div className="lib-bar-top">{phone ? [search, left, right] : [left, search, right]}</div>
 
-      {facets.length > 0 && (
+      {rails.length > 0 && (
         <div className="lib-facets">
-          {facets.map((f) => (
+          {rails.map((f) => (
             <div key={f.def.key} className="lib-facet">
               <span className="lib-facet-label" aria-hidden>
                 {f.def.label}
@@ -693,11 +792,17 @@ export function VideoLibrary() {
   const selection = useMemo(() => Object.fromEntries(defs.map((d) => [d.key, list(d.key)])), [defs, paramsKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const toks = useMemo(() => tokens(q), [q]);
   const sorts = useMemo(() => sortsFor(videos), [videos]);
-  const sortParam = params.get('sort') ?? 'featured';
-  const sort = sorts.some((s) => s.value === sortParam) ? sortParam : 'featured';
+  // No sort in the address: this visit's shuffle (made once per mount, so filtering, searching and "View more" never reshuffle the grid).
+  const [ownSeed] = useState(visitSeed);
+  const sortParam = params.get('sort') ?? 'shuffle';
+  const sort = sorts.some((s) => s.value === sortParam) ? sortParam : 'shuffle';
+  const seed = (sort === 'shuffle' && params.get('seed')) || ownSeed;
 
   const facets = useMemo(() => facetsOf(videos, defs, selection, toks), [videos, defs, selection, toks]);
-  const filtered = useMemo(() => sortVideos(videos.filter((v) => passes(v, defs, selection, toks)), sort), [videos, defs, selection, toks, sort]);
+  // The whole library is ordered first, then filtered: a shuffle keeps each video's place under any filter or search (every other sort is stable,
+  // so ordering first changes nothing there).
+  const ordered = useMemo(() => sortVideos(videos, sort, seed), [videos, sort, seed]);
+  const filtered = useMemo(() => ordered.filter((v) => passes(v, defs, selection, toks)), [ordered, defs, selection, toks]);
   const suggestions = useMemo(() => (q.trim() ? suggest(videos, facets, selection, q) : []), [videos, facets, selection, q]);
 
   const brandFacet = facets.find((f) => f.def.key === 'brand');
@@ -796,12 +901,12 @@ export function VideoLibrary() {
     try {
       const state = (window.history.state ?? {}) as Record<string, unknown>;
       const had = state[HISTORY_ROWS] as Partial<Reveal> | undefined;
-      if (had?.key === viewKey && had.rows === rows) return;
-      window.history.replaceState({ ...state, [HISTORY_ROWS]: { key: viewKey, rows } }, '');
+      if (had?.key === viewKey && had.rows === rows && state[HISTORY_SEED] === ownSeed) return;
+      window.history.replaceState({ ...state, [HISTORY_ROWS]: { key: viewKey, rows }, [HISTORY_SEED]: ownSeed }, '');
     } catch {
-      // No history state: Back simply shows two rows.
+      // No history state: Back simply shows two rows (in a new order).
     }
-  }, [viewKey, rows, paramsKey]);
+  }, [viewKey, rows, paramsKey, ownSeed]);
 
   const moreRef = useRef<HTMLDivElement>(null);
   const focusFrom = useRef<number | null>(null);
@@ -901,7 +1006,9 @@ export function VideoLibrary() {
           onFacet={(key, values) => setList(key)(values)}
           sorts={sorts}
           sort={sort}
-          onSort={(value) => update({ sort: value === 'featured' ? null : value })}
+          // Shuffled from the menu goes back to this visit's order (the default, a clean address); the Shuffle button deals a new, shareable one.
+          onSort={(value) => value !== sort && update(value === 'shuffle' ? { sort: null, seed: null } : { sort: value, seed: null })}
+          onShuffle={() => update({ sort: 'shuffle', seed: newShuffleSeed() })}
           q={q}
           onSearch={onSearch}
           suggestions={ready ? suggestions : []}

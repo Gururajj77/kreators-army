@@ -14,6 +14,7 @@ import { leads } from './leads';
 import { mega } from './mega';
 import { previews } from './previews';
 import { session } from './session';
+import { storage } from './storage';
 import { videos } from './videos';
 
 export const admin = new Hono<AppEnv>();
@@ -48,5 +49,6 @@ admin.route('/', previews);
 admin.route('/', mega);
 admin.route('/', imports);
 admin.route('/', leads);
+admin.route('/', storage);
 
 admin.notFound((c) => c.json({ error: 'not found', code: 'not-found', requestId: c.get('requestId') }, 404));

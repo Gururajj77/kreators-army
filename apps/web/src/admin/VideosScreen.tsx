@@ -3,7 +3,7 @@
 // (/admin/videos/new, /admin/videos/:id). On desktop widths the cells edit in place (inlineEdit.tsx) and the columns can be chosen (listColumns.tsx).
 import { BLOCKING_PROBLEMS, type AdminVideo, type AdminVideoList, type BulkAction, type BulkFields, type VideoProblem } from '@kreators/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowDownToLine, ArrowUpToLine, Copy, Pencil, Plus, Search, Trash2, Upload, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpToLine, Copy, Pencil, Plus, RefreshCw, Search, Trash2, Upload, X } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { Link, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ChipRail } from '../components/tabs';
@@ -14,6 +14,8 @@ import { BulkBar, BulkNote, SelectBox, useBulkActions, useSelection, type BulkSu
 import { useInlineEditor } from './inlineEdit';
 import { COLUMNS, ColumnsMenu, useColumns } from './listColumns';
 import { MediaGenControl } from './mediaGen/MediaGenControl';
+import { REGEN_LABEL, useRegenerate } from './mediaGen/Regenerate';
+import { canMake } from './mediaGen/runner';
 import { toast } from './Toasts';
 import { useReorder } from './useReorder';
 import { deleteWithUndo, mergeVideo } from './videoCache';
@@ -316,9 +318,13 @@ export function VideosScreen() {
     }
   };
 
+  // (admin10) One video's, or the selected rows', thumbnail and hover preview made again (first in line; asks before replacing a hand-picked one).
+  const regen = useRegenerate();
+
   const menuFor = (v: AdminVideo): MenuItem[] => [
     { label: 'Edit', icon: <Pencil className="size-4" aria-hidden />, onSelect: () => navigate(`/admin/videos/${encodeURIComponent(v.id)}${location.search}`) },
     { label: v.mega ? 'Copy MEGA link' : 'Copy stream link', icon: <Copy className="size-4" aria-hidden />, onSelect: () => void copyLink(v), disabled: !linkOf(v) },
+    { label: REGEN_LABEL, icon: <RefreshCw className="size-4" aria-hidden />, onSelect: () => regen.request([v]), disabled: !canMake(v) },
     { label: 'Move to top', icon: <ArrowUpToLine className="size-4" aria-hidden />, onSelect: () => reorder.moveTo(v.id, 'top'), disabled: !reorderOn },
     { label: 'Move to bottom', icon: <ArrowDownToLine className="size-4" aria-hidden />, onSelect: () => reorder.moveTo(v.id, 'bottom'), disabled: !reorderOn },
     { label: 'Delete', icon: <Trash2 className="size-4" aria-hidden />, onSelect: () => setConfirmDelete(v), danger: true },
@@ -488,6 +494,7 @@ export function VideosScreen() {
             onSet={(fields) => void runBulk('set', fields)}
             onExport={() => bulk.exportCsv(selected)}
             onRecheck={() => void bulk.recheck(selected)}
+            onRegenerate={() => regen.request(selected)}
             onPurge={() => setConfirmBulkPurge(selected.length)}
           />
         )}
@@ -562,6 +569,7 @@ export function VideosScreen() {
         </datalist>
       ))}
 
+      {regen.dialog}
       {confirmDelete && (
         <ConfirmDialog
           title="Delete this video?"

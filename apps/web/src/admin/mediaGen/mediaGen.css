@@ -334,3 +334,217 @@
     }
   }
 }
+
+/* (admin10) Regenerate one video's thumbnail and preview (drawer, row), and "Clear unused cache". */
+@layer components {
+  .mg-regen {
+    margin: 4px 0 16px;
+  }
+
+  .mg-regen-media {
+    display: flex;
+    gap: 12px;
+    margin: 0 0 10px;
+  }
+
+  .mg-regen-media figure {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    width: 96px;
+  }
+
+  .mg-regen-media[data-shape='landscape'] figure {
+    width: 150px;
+  }
+
+  .mg-regen-media img,
+  .mg-regen-media video,
+  .mg-regen-none {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--surface-2, color-mix(in oklab, var(--ink) 6%, var(--surface)));
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .mg-regen-media[data-shape='landscape'] img,
+  .mg-regen-media[data-shape='landscape'] video,
+  .mg-regen-media[data-shape='landscape'] .mg-regen-none {
+    aspect-ratio: 16 / 9;
+  }
+
+  .mg-regen-media figcaption {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .mg-regen-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mg-regen-state {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--muted);
+  }
+
+  .mg-regen-state .mg-bar {
+    flex: 1 1 120px;
+  }
+
+  .mg-regen-state[data-tone='ok'],
+  .mg-regen-badge[data-tone='ok'] {
+    color: var(--adm-ok);
+  }
+
+  .mg-regen-state[data-tone='err'],
+  .mg-regen-badge[data-tone='err'] {
+    color: var(--adm-err);
+  }
+
+  .mg-regen-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--muted);
+  }
+
+  .mg-regen-badge[data-tone='busy'] {
+    color: var(--adm-info);
+  }
+
+  .mg-regen-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mg-regen-spin {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: mg-spin 0.9s linear infinite;
+  }
+
+  @keyframes mg-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mg-regen-spin {
+      animation: none;
+    }
+  }
+
+  .mg-ask-actions {
+    flex-wrap: wrap;
+  }
+
+  .mg-storage {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 12px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .mg-clear .adm-confirm-in {
+    width: min(560px, calc(100vw - 32px));
+  }
+
+  .mg-clear-list {
+    display: grid;
+    gap: 0;
+    margin: 12px 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mg-clear-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .mg-clear-list li[data-empty] {
+    color: var(--muted);
+  }
+
+  .mg-clear-label {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mg-clear-detail,
+  .mg-clear-size {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .mg-clear-num {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: flex-end;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mg-clear-size {
+    font-weight: 400;
+  }
+
+  .mg-clear-keep,
+  .mg-clear-fine,
+  .mg-clear-loading {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .mg-clear-fine {
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .mg-clear-done p {
+    margin: 8px 0;
+  }
+}

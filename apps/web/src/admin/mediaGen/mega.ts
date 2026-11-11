@@ -428,6 +428,21 @@ export class MegaFile {
     return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-CTR', counter: counterBlock(c.nonce, offset), length: 64 }, c.key, data));
   }
 
+  /** (admin10) Bytes of decrypted chunks kept in memory. */
+  keptBytes(): number {
+    let n = 0;
+    for (const c of this.chunks.values()) n += c.byteLength;
+    return n;
+  }
+
+  /** (admin10) "Clear unused cache": drops the kept chunks, unless a read is on its way (it would need them); answers the bytes dropped. */
+  dropChunks(): number {
+    if (this.inflight.size) return 0;
+    const n = this.keptBytes();
+    this.chunks.clear();
+    return n;
+  }
+
   private keep(i: number, bytes: Uint8Array<ArrayBuffer>) {
     this.chunks.delete(i);
     this.chunks.set(i, bytes);

@@ -9,6 +9,7 @@ import { Clapperboard, Pause, Play, RotateCcw } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { adminApi, keys, retryOnce } from '../api';
 import { ConfirmDialog, Modal } from '../bits';
+import { ClearCacheDialog } from './ClearCache';
 import { attachQueryClient, canMake, clearFinished, closePanel, enqueue, needsPreview, needsThumb, openPanel, pause, resume, retry, useMediaGen, type Job } from './runner';
 import './mediaGen.css';
 
@@ -200,6 +201,7 @@ export function MediaGenPanel() {
   const { jobs, done, failed: failedN, queued: active, total: liveTotal } = useProgress();
   const failed = jobs.filter((j) => j.status === 'failed');
   const [confirmAll, setConfirmAll] = useState(false);
+  const [clearCache, setClearCache] = useState(false);
   const [replaceHand, setReplaceHand] = useState(false);
   const titleId = useId();
 
@@ -302,6 +304,12 @@ export function MediaGenPanel() {
                   ))}
               </ol>
             )}
+            <div className="mg-storage" data-mediagen-storage>
+              <span>Storage: thumbnails and previews of binned videos, old link checks and sign-ins, old copies of the site in this browser.</span>
+              <button type="button" className="adm-link-btn" onClick={() => setClearCache(true)} data-clear-cache>
+                Clear unused cache…
+              </button>
+            </div>
             <div className="adm-confirm-actions">
               <button type="button" className="btn btn-sm btn-ghost" onClick={closePanel}>
                 {running ? 'Hide (it keeps going)' : 'Close'}
@@ -311,6 +319,7 @@ export function MediaGenPanel() {
         </Modal>
       )}
 
+      {clearCache && <ClearCacheDialog onClose={() => setClearCache(false)} />}
       {confirmAll && (
         <ConfirmDialog
           title="Regenerate every preview?"

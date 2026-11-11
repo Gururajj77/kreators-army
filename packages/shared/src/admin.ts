@@ -380,3 +380,26 @@ export interface AdminErrorBody extends ApiErrorBody {
   /** 422 mega-unusable: what MEGA or the file said. */
   megaProblem?: MegaProblem;
 }
+
+// ---- (admin10) storage housekeeping ----------------------------------------------------------------------
+
+/** What GET /api/admin/storage/unused would remove and POST /api/admin/storage/clear removed, group by group. */
+export const STORAGE_GROUPS = ['binMedia', 'orphanMedia', 'megaChecks', 'sessions', 'attempts'] as const;
+export type StorageGroup = (typeof STORAGE_GROUPS)[number];
+
+export interface StorageGroupCount {
+  /** Rows: for the media groups, thumbnails plus previews. */
+  count: number;
+  /** Stored bytes (BLOB or text length); null where a size means nothing (a sign-in row). */
+  bytes: number | null;
+  /** The media groups only: how many thumbnails and how many previews. */
+  posters?: number;
+  previews?: number;
+  /** binMedia only: how many videos in the Bin have something stored. */
+  videos?: number;
+}
+
+export interface StorageReport {
+  groups: Record<StorageGroup, StorageGroupCount>;
+  total: { count: number; bytes: number };
+}

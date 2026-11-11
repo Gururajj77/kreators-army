@@ -1,7 +1,7 @@
 import type { Video } from '@kreators/shared';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Character, type CastId } from '../cast';
-import { CastBubble, ChatAvatar, ChatBubble, ChatThread, FaqChat, Typing, useCastLine } from '../components/chat';
+import { CastBubble, ChatAvatar, ChatBubble, ChatThread, ChatThreadSkeleton, FaqChat, Typing, useCastLine } from '../components/chat';
 import { ControlSplit, CreativeLoop, MechanismCard, MechanismChip, toneAt } from '../components/demos';
 import { FaqItem } from '../components/FaqItem';
 import { Coverflow, DeckCard, FrameDeck, StoryRing, VideoFrame, ViewsSticker, deckOrder } from '../components/frames';
@@ -19,7 +19,6 @@ import {
   FAQS,
   HERO,
   HOME_FAQ_SLUGS,
-  INTERACTION_THREAD,
   JOURNEY,
   MECHANISMS,
   PILOT_STEPS,
@@ -27,6 +26,7 @@ import {
   type CastLineKey,
 } from '../lib/content';
 import { useVideos } from '../lib/queries';
+import { resolveThread, THREAD_CAST } from '../lib/thread';
 
 // The component kit (V2-SPEC 7.1): every shared component of A2 and A3 in its states, on one page, for kit.cjs to shoot at 1440 and 390, light and
 // dark, moving and still. It exists only in a kit build (VITE_KIT=1): a normal build has neither the route nor this chunk. Each section is a
@@ -130,7 +130,7 @@ export function Kit() {
   const byId = (id: string) => videos.find((v) => v.id === id);
   const { open, dialog } = useVideoPlayer(videos);
   const chain = useRef<ChainHandle>(null);
-  const pairs = INTERACTION_THREAD.map((p) => ({ question: p.q, video: byId(p.videoId) })).filter((p): p is { question: string; video: Video } => Boolean(p.video));
+  const pairs = useMemo(() => resolveThread(videos), [videos]);
   const [seg, setSeg] = useState<'trial' | 'question'>('trial');
   const [chip, setChip] = useState<string | null>('10');
   const [multi, setMulti] = useState<string[]>(['product', 'logo']);
@@ -268,10 +268,10 @@ export function Kit() {
         </div>
       </Section>
 
-      <Section name="thread" title="ChatThread" note="Plays once, about 1 s a pair, as its top enters the lower 85% of the viewport; waiting bubbles show as outlines; completes at once if it leaves the viewport. Four columns, two, then one on phones.">
+      <Section name="thread" title="ChatThread" note="Bolu, Tiko, Sochu and Gola each ask one real question; every bubble and reply shows from the start. As its top enters the lower 85% of the viewport all questions type out together (40 ms a character, caret), once; completes at once if it leaves the viewport; full text under still. Four columns, two, then one on phones.">
         <InteractionChain mode="controlled" ref={chain} />
         <div style={{ height: 40 }} />
-        {pairs.length ? <ChatThread pairs={pairs} chain={chain} onOpen={open} label="Real questions we've filmed" /> : <TileSkeletons count={4} />}
+        {pairs.length ? <ChatThread pairs={pairs} chain={chain} onOpen={open} label="Real questions we've filmed" /> : <ChatThreadSkeleton askers={THREAD_CAST} />}
       </Section>
 
       <Section name="faq" title="FaqChat" note="The first answer is open on load. Side panel at 1068 and wider; inline below." alt>

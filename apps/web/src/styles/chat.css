@@ -331,17 +331,16 @@
     padding-top: 64px;
   }
 
-  /* The question and its typing dots share one cell, so nothing shifts when the dots give way. */
+  /* The question's cell holds at least two lines of a bubble (10 + 16 + 2 + 2 x 23 + 12), the bubble at its foot by the reply, so the loading
+     skeleton and a one- or two-line thread are the same height. */
   .chat-q {
     display: grid;
+    align-items: end;
+    min-height: 86px;
   }
 
   .chat-q > * {
     grid-area: 1 / 1;
-  }
-
-  .chat-q > .chat-typing {
-    align-self: start;
   }
 
   .chat-pair .chat-a {
@@ -371,16 +370,99 @@
     }
   }
 
-  /* ---------- Ghosts: a bubble still to come is an outline of itself, never a blank. The armed thread's waiting rows ([data-wait]) and the loading
-     skeleton's rows ([data-ghost]) look alike, so the swap from one to the other does not show. Bolu's face stays; an opaque wash of the page colour
-     (the bubble's own colour at 22% for the question, the sunken tone for the reply) covers the words and the poster, which stay in the DOM and in the
-     accessibility tree. The row sits at 96% and springs to full size as the wash fades. ---------- */
+  /* ---------- Typing: all of the thread's questions type out together (ChatThread's TypedText). The full words stay in the flow, size the bubble and
+     are what screen readers read; while typing they are transparent and an aria-hidden copy on top holds every character in its own span, the
+     untyped ones hidden, so the copy wraps exactly as the full text does and no text node moves. The caret is the next character's ::before,
+     absolutely placed, so it takes no width. */
+  .typed {
+    display: block;
+    position: relative;
+  }
+
+  .typed[data-typing] .typed-full {
+    color: transparent;
+  }
+
+  /* Hidden, not transparent: the caret (a pseudo-element, visible again) keeps the bubble's text colour. */
+  .typed-live [data-off] {
+    visibility: hidden;
+  }
+
+  /* 2px of slack on the right: a question on one line sizes its bubble to the text's exact (fractional) width, and the per-character copy measured a
+     hair wider, so without the slack it wrapped to two lines and ran out of the bubble while typing. Wrapped questions break at the same places. */
+  .typed-live {
+    position: absolute;
+    inset: 0 -2px 0 0;
+  }
+
+  .typed-live [data-caret] {
+    position: relative;
+  }
+
+  .typed-live [data-caret]::before {
+    content: '';
+    position: absolute;
+    top: 0.1em;
+    bottom: 0.1em;
+    left: -1px;
+    border-left: 2px solid currentColor;
+    visibility: visible;
+    animation: typed-caret 1s steps(1) infinite;
+  }
+
+  @keyframes typed-caret {
+    50% {
+      border-left-color: transparent;
+    }
+  }
+
+  :root[data-still] .typed-live {
+    display: none;
+  }
+
+  :root[data-still] .typed-full {
+    color: inherit;
+  }
+
+  @media print {
+    .typed-live {
+      display: none;
+    }
+
+    .typed-full {
+      color: inherit !important;
+    }
+  }
+
+  /* ---------- The loading skeleton: each character's own bubble (face, name, colour) with two outlined placeholder lines where the words will be, and
+     the outline of a video reply. The question cell holds two lines' height in the thread and the skeleton alike, so nothing moves when the real
+     thread arrives. ---------- */
   .chat-skeleton {
     --ghost-shine: rgb(255 255 255 / 0.55);
   }
 
   :where([data-theme='dark'], .band-dark) .chat-skeleton {
     --ghost-shine: rgb(255 255 255 / 0.06);
+  }
+
+  .bubble-ghost .bubble-text {
+    display: grid;
+    grid-template-rows: 23px 23px;
+    align-items: center;
+    width: 168px;
+    max-width: 100%;
+  }
+
+  .ghost-line {
+    display: block;
+    height: 12px;
+    border-radius: 6px;
+    background-color: color-mix(in oklab, currentColor 16%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, currentColor 40%, transparent);
+  }
+
+  .ghost-line + .ghost-line {
+    width: 62%;
   }
 
   .chat-ghost-reply {
@@ -391,68 +473,16 @@
     aspect-ratio: 9 / 16;
     border-radius: 22px 22px 6px 22px;
     overflow: clip;
-  }
-
-  :is(.chat-thread .chat-q .bubble, .chat-thread .chat-a :is(.vframe-bubble, .chat-avatar), .chat-skeleton :is(.bubble, .chat-a .chat-avatar, .chat-ghost-reply))::after {
-    content: '';
-    position: absolute;
-    z-index: 6;
-    inset: 0;
-    border-radius: inherit;
     background: var(--sunken);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 240ms var(--ease-out);
-  }
-
-  :is(.chat-thread .chat-q, .chat-skeleton) .bubble::after {
-    background: color-mix(in oklab, var(--b-bg) 22%, var(--bg));
-  }
-
-  .chat-thread [data-wait]:not([data-wait='typing']) :is(.bubble, .vframe-bubble, .chat-avatar)::after,
-  .chat-skeleton [data-ghost] :is(.bubble, .chat-ghost-reply, .chat-a .chat-avatar)::after {
-    opacity: 1;
-    transition: none;
-  }
-
-  /* A reply still to come also hides its poster and takes the wash's colour itself, so no sliver of the picture shows at the scaled, anti-aliased
-     edges. Its children are decorative (the button's name is its aria-label), so hiding them changes nothing for screen readers. On arrival they
-     show at once, under the wash, which then fades. */
-  .chat-thread .chat-a[data-wait] .vframe-bubble {
-    background: var(--sunken);
-  }
-
-  .chat-thread .chat-a[data-wait] :is(.vframe-bubble, .chat-avatar) > * {
-    visibility: hidden;
-  }
-
-  .chat-skeleton .chat-ghost-reply,
-  .chat-thread .chat-a[data-wait] .vframe-bubble {
     box-shadow: 0 0 0 1px var(--line);
   }
 
-  :root[data-js]:not([data-still]) .chat-thread [data-arrive][data-wait],
-  :root[data-js]:not([data-still]) .chat-skeleton [data-ghost] {
-    opacity: 1;
-    transform: scale(0.96);
-    transition: none;
+  .chat-skeleton .chat-a .chat-avatar {
+    background: var(--sunken);
   }
 
-  /* While its typing dots stand in the cell, the question's outline steps aside. */
-  :root[data-js]:not([data-still]) .chat-thread [data-arrive][data-wait='typing'] {
-    opacity: 0;
-  }
-
-  .chat-thread [data-wait] {
-    pointer-events: none;
-  }
-
-  :root[data-still] :is(.chat-thread, .chat-skeleton) *::after {
-    transition: none;
-  }
-
-  /* The skeleton's slow shimmer: a soft light band across each outline, only while motion is allowed. */
-  :root[data-js]:not([data-still]) .chat-skeleton [data-ghost] :is(.bubble, .chat-ghost-reply, .chat-a .chat-avatar)::after {
+  /* The slow shimmer: a soft light band across each placeholder, only while motion is allowed. */
+  :root[data-js]:not([data-still]) .chat-skeleton :is(.ghost-line, .chat-ghost-reply) {
     background-image: linear-gradient(100deg, transparent 35%, var(--ghost-shine) 50%, transparent 65%);
     background-size: 300% 100%;
     background-repeat: no-repeat;
@@ -460,7 +490,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .chat-skeleton [data-ghost] :is(.bubble, .chat-ghost-reply, .chat-a .chat-avatar)::after {
+    .chat-skeleton :is(.ghost-line, .chat-ghost-reply) {
       animation: none !important;
     }
   }

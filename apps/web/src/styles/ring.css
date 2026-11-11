@@ -11,7 +11,8 @@
     --cw: 240px;
     --ch: 340px;
     --gap: 12px;
-    /* The hover's step toward you; ring.tsx reads it to keep a lifted card inside the stage too. */
+    /* The old hover step toward you (now the zoom, which fits itself to the stage); ring.tsx still counts it when it sizes the ring, so the slot
+       counts, and the ring's look at rest, are what they were. */
     --lift: 32px;
     --stage-h: var(--cring-h, 500px);
     --R: calc(var(--n) * (var(--cw) + var(--gap)) / 6.2832);
@@ -100,6 +101,12 @@
       filter 200ms var(--ease-out);
   }
 
+  /* (ring9) The interactive ring's cards are moved by the zoom (ring.tsx writes their transform every frame, springs included), so only the
+     brightness eases here; a transform transition would lag behind it. */
+  .cring:not([data-decorative], [data-flat]) .cring-card {
+    transition: filter 200ms var(--ease-out);
+  }
+
   .cring[data-decorative],
   .cring[data-decorative] .cring-slot {
     pointer-events: none;
@@ -153,20 +160,21 @@
     outline-offset: 4px;
   }
 
-  /* Hover (a fine pointer): the card steps toward you, brightens and gets a thin white edge, so it reads as something to press even on the far
-     wall, where a lift alone is a few pixels. The edge gives way to the focus ring when both apply. */
+  /* Hover (a fine pointer): the card zooms where it stands (ring.tsx, noflip: it never turns; its neighbours slide along the ring), brightens and gets a thin
+     white edge. The zoomed slot carries data-zoomed, so a clone (inert, no :hover) gets the edge too. The edge gives way to the focus ring. */
   @media (hover: hover) and (pointer: fine) {
     :root:not([data-still]) .cring:not([data-flat], [data-decorative]) .cring-card:hover {
-      transform: translateZ(var(--lift));
       filter: brightness(1.15);
     }
 
-    .cring:not([data-decorative]) .cring-card:hover:not(:focus-visible) {
+    .cring:not([data-decorative]) .cring-card:hover:not(:focus-visible),
+    .cring:not([data-decorative], [data-flat]) .cring-slot[data-zoomed] > .cring-card:not(:focus-visible) {
       outline: 2px solid rgb(255 255 255 / 0.9);
       outline-offset: -2px;
     }
 
-    :root:not([data-theme='dark']) .cring:not([data-decorative]) .cring-card:hover:not(:focus-visible) {
+    :root:not([data-theme='dark']) .cring:not([data-decorative]) .cring-card:hover:not(:focus-visible),
+    :root:not([data-theme='dark']) .cring:not([data-decorative], [data-flat]) .cring-slot[data-zoomed] > .cring-card:not(:focus-visible) {
       outline-color: rgb(255 255 255 / 0.95);
       box-shadow: 0 0 0 1px rgb(0 0 0 / 0.18);
     }

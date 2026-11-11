@@ -4,7 +4,7 @@
 // a failure, with a summary that names the videos that couldn't take the action and why. Export as CSV writes the import template's columns.
 import { BLOCKING_PROBLEMS, VIDEO_ASPECTS, type AdminVideo, type BulkAction, type BulkFailure, type BulkField, type BulkFields, type BulkResult, type VideoProblem } from '@kreators/shared';
 import { useQueryClient } from '@tanstack/react-query';
-import { Archive, Check, ChevronDown, ChevronLeft, Download, Ellipsis, Eye, EyeOff, Minus, RefreshCw, RotateCcw, Star, StarOff, Trash2, X } from 'lucide-react';
+import { Archive, Check, ChevronDown, ChevronLeft, Clapperboard, Download, Ellipsis, Eye, EyeOff, Minus, RefreshCw, RotateCcw, Star, StarOff, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { AdminApiError, adminApi, keys } from './api';
 import { MenuButton, Spinner, usePopover } from './bits';
@@ -614,6 +614,7 @@ export function BulkBar({
   onSet,
   onExport,
   onRecheck,
+  onRegenerate,
   onPurge,
 }: {
   bin: boolean;
@@ -624,6 +625,8 @@ export function BulkBar({
   onSet: (fields: BulkFields) => void;
   onExport: () => void;
   onRecheck: () => void;
+  /** (admin10) "Regenerate thumbnails & previews" for the selected rows. */
+  onRegenerate?: () => void;
   onPurge: () => void;
 }) {
   const busy = bulk.busy !== null;
@@ -674,6 +677,7 @@ export function BulkBar({
                 { label: 'Take off featured', icon: <StarOff className="size-4" aria-hidden />, onSelect: () => onAction('unfeature'), disabled: busy },
                 { label: 'Export as CSV', icon: <Download className="size-4" aria-hidden />, onSelect: onExport },
                 { label: 'Check streams again', icon: <RefreshCw className="size-4" aria-hidden />, onSelect: onRecheck, disabled: busy },
+                ...(onRegenerate ? [{ label: 'Regenerate thumbnails & previews', icon: <Clapperboard className="size-4" aria-hidden />, onSelect: onRegenerate }] : []),
               ]}
             >
               {spin('feature') ?? spin('unfeature') ?? spin('recheck') ?? <Ellipsis className="size-4" aria-hidden />}

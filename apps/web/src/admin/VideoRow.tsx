@@ -10,6 +10,7 @@ import { Link } from 'react-router';
 import { InstagramGlyph, YouTubeGlyph, toneOf } from '../components/frames';
 import { spring } from '../lib/spring';
 import { MenuButton, StatusChip, Switch, When, usePopover, type ChipTone, type MenuItem } from './bits';
+import { RegenBadge } from './mediaGen/Regenerate';
 import { SelectBox } from './bulk';
 import { EditCell, PROBLEM_WORDS, cellDisplay, type InlineEditor } from './inlineEdit';
 import type { ColKey } from './listColumns';
@@ -213,6 +214,7 @@ export function VideoRow({
           </>
         )}
         {note && <span className="adm-row-note">{note}</span>}
+        {!bin && <RegenBadge video={video} />}
       </div>
 
       <div className="adm-row-status">

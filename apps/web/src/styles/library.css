@@ -304,7 +304,8 @@
     }
   }
 
-  /* ---------- The bar: glass, sticky under the nav. The count, the search and the sort on top; the chip rails below as one sideways strip. ---------- */
+  /* ---------- The bar: glass, sticky under the nav. One line on top: Uploaded and the count (left), the search (truly centred: the two sides are equal
+     columns), the sort and Shuffle (right); on phones the search takes a line of its own first. The chip rails below as one sideways strip. ---------- */
   .lib-body {
     position: relative;
     padding-bottom: 96px;
@@ -323,16 +324,81 @@
 
   .lib-bar-top {
     position: relative;
-    display: flex;
+    display: grid;
+    /* The two sides are equal columns at least as wide as the sort and Shuffle need, so the search is truly centred and gives way first. */
+    --lib-side: 0px;
+    grid-template-areas: 'left search right';
+    grid-template-columns: minmax(var(--lib-side), 1fr) minmax(0, 440px) minmax(var(--lib-side), 1fr);
     align-items: center;
     gap: 8px;
   }
 
+  @media (max-width: 1068px) {
+    .lib-bar-top {
+      --lib-side: 248px;
+      grid-template-columns: minmax(var(--lib-side), 1fr) minmax(0, 400px) minmax(var(--lib-side), 1fr);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .lib-bar-top {
+      --lib-side: 188px;
+    }
+  }
+
+  .lib-bar-left,
+  .lib-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .lib-bar-left {
+    grid-area: left;
+    justify-content: flex-start;
+  }
+
+  .lib-bar-right {
+    grid-area: right;
+    justify-content: flex-end;
+  }
+
+  /* Uploaded: the date facet as a compact menu; the button carries how many are chosen. */
+  .lib-date-n {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: var(--r-pill);
+    background: var(--on-glass);
+    color: var(--surface-5);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lib-opt-count {
+    flex: none;
+    min-width: 24px;
+    padding: 1px 7px;
+    border-radius: var(--r-pill);
+    background: var(--sunken);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
   .lib-count {
     flex: none;
-    min-width: 92px;
+    min-width: 0;
     margin: 0;
-    padding: 0 4px 0 12px;
+    padding: 0 4px 0 8px;
     color: var(--on-glass);
     font-size: 15px;
     font-weight: 600;
@@ -447,7 +513,7 @@
 
   .lib-search-wrap {
     position: relative;
-    flex: 1;
+    grid-area: search;
     min-width: 0;
   }
 
@@ -511,8 +577,55 @@
   }
 
   /* The sort menu: opaque, always (R17), from its button, with a check on the current order. */
-  .lib-sort-wrap {
+  .lib-menu-wrap {
     position: relative;
+    flex: none;
+  }
+
+  /* Shuffle: beside the sort; lit while the library is in a shuffled order. The die turns once per press. */
+  .lib-shuffle[data-active] {
+    background: color-mix(in srgb, var(--on-glass) 12%, transparent);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .lib-shuffle:hover {
+      background: color-mix(in srgb, var(--on-glass) 8%, transparent);
+    }
+  }
+
+  :root:not([data-still]) .lib-shuffle-icon[data-turn] {
+    animation: lib-shuffle-turn 420ms var(--ease-out);
+  }
+
+  @keyframes lib-shuffle-turn {
+    from {
+      transform: rotate(-180deg) scale(0.85);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lib-shuffle-icon[data-turn] {
+      animation: none;
+    }
+  }
+
+  /* Below 900px (and on phones) Shuffle is its icon, the word kept for screen readers. */
+  @media (max-width: 900px) {
+    .lib-shuffle {
+      padding-inline: 11px;
+    }
+
+    .lib-shuffle-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 
   .lib-pop {
@@ -541,6 +654,13 @@
 
   :root[data-still] .lib-pop {
     transition: none;
+  }
+
+  /* Uploaded's popover opens from the left edge of its button. */
+  .lib-pop[data-align='left'] {
+    right: auto;
+    left: 0;
+    transform-origin: 28px -8px;
   }
 
   .lib-opt {
@@ -804,6 +924,12 @@
     min-height: 44px;
   }
 
+  @media (max-width: 734px) {
+    .lib-bar-shell {
+      min-height: 96px;
+    }
+  }
+
   /* The end card fills the last row's gap; on a full row it takes one cell of a new row. */
   .lib-end {
     position: relative;
@@ -914,9 +1040,13 @@
       gap: 14px;
     }
 
-    /* The suggestions take the whole top row (the box and the sort), so a long brand reads in full. */
-    .lib-search-wrap {
-      position: static;
+    /* Two lines on phones: the search full width first, then Uploaded on the left and the sort and Shuffle on the right. */
+    .lib-bar-top {
+      grid-template-areas:
+        'search search'
+        'left right';
+      grid-template-columns: minmax(0, 1fr) auto;
+      row-gap: 8px;
     }
 
     /* Beside the views sticker on a two-column phone grid there is no room: the player still shows the month. */

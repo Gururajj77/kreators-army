@@ -290,11 +290,13 @@ const numDate = (v: Video) => (day(v.uploadDate) ? Number(v.uploadDate!.replaceA
 const knownViews = (v: Video) => (v.views > 0 ? v.views : null);
 const knownLength = (v: Video) => (v.durationMs && v.durationMs > 0 ? v.durationMs : null);
 
-/** The orders that mean something for these videos. Our picks always; Newest and Oldest with a date; Shortest and Longest when most have a length. */
+/** The orders that mean something for these videos. Shuffled (the default: a fresh random order per visit) and Our picks always; Newest and Oldest
+ *  with a date; Shortest and Longest when most have a length. */
 export function sortsFor(videos: Video[]): SortDef[] {
   const dated = videos.some((v) => numDate(v) !== null);
   const timed = videos.filter((v) => knownLength(v) !== null).length;
   return [
+    { value: 'shuffle', label: 'Shuffled' },
     { value: 'featured', label: 'Our picks' },
     ...(dated
       ? [
@@ -314,6 +316,22 @@ export function sortsFor(videos: Video[]): SortDef[] {
   ];
 }
 
+/** A small seeded generator (mulberry32) from any string, so a shuffle stays put across renders and in a shared link (?sort=shuffle&seed=). */
+function seeded(seed: string): () => number {
+  let h = 1779033703 ^ seed.length;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 3432918353) >>> 0;
+  let t = h >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** A new shuffle seed (each visit's default order, and the Shuffle button): short, URL-safe. */
+export const newShuffleSeed = () => Math.random().toString(36).slice(2, 8);
+
 /** Missing values (no date, unknown views, no length) go last in both directions. Ties keep the library's order. */
 const by = (get: (v: Video) => number | null, dir: 1 | -1) => (a: Video, b: Video) => {
   const x = get(a);
@@ -322,9 +340,15 @@ const by = (get: (v: Video) => number | null, dir: 1 | -1) => (a: Video, b: Vide
   return (x - y) * dir;
 };
 
-export function sortVideos(list: Video[], sort: string): Video[] {
+export function sortVideos(list: Video[], sort: string, seed = '1'): Video[] {
   const out = [...list];
-  if (sort === 'new') out.sort(by(numDate, -1));
+  if (sort === 'shuffle') {
+    const rnd = seeded(seed);
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [out[i], out[j]] = [out[j]!, out[i]!];
+    }
+  } else if (sort === 'new') out.sort(by(numDate, -1));
   else if (sort === 'old') out.sort(by(numDate, 1));
   else if (sort === 'views') out.sort(by(knownViews, -1));
   else if (sort === 'least') out.sort(by(knownViews, 1));

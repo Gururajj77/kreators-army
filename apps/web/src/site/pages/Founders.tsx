@@ -54,7 +54,7 @@ const cardVariants: Variants = {
 function QuestionOfTheWeek({ name, body, videos, onOpen }: { name: string; body: string; videos: Video[]; onOpen: (video: Video) => void }) {
   // Worded from topics already in the video library, labelled as examples, not weeks: these are real questions we have filmed, not a series that has run.
   const cards: Card[] = [
-    ...INTERACTION_THREAD.map((t, i) => ({ week: `Example ${i + 1}`, question: t.q, video: videos.find((v) => v.id === t.videoId) })),
+    ...INTERACTION_THREAD.filter((t) => !t.fallback).map((t, i) => ({ week: `Example ${i + 1}`, question: t.q, video: videos.find((v) => v.id === t.videoId) })),
     { week: 'Next week', question: 'Your category, your question.', action: true },
   ];
   // A position on an endless tape, not an index: a card can leave and come round again while its last exit is still running, so each pass needs its own key.

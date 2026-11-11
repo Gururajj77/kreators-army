@@ -16,8 +16,6 @@ export type Speaker = CastId | 'you' | 'company';
 
 const LABEL: Record<Speaker, string> = { bolu: 'Bolu', tiko: 'Tiko', gola: 'Gola', sochu: 'Sochu', you: 'You', company: 'Kreators.Army' };
 
-const wait = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
-
 // ---------- ChatBubble ----------
 
 export interface ChatBubbleProps {
@@ -274,11 +272,9 @@ export function useCastLine(): CastLine {
 // ---------- ChatThread (Home #interaction) ----------
 
 export interface ChatThreadProps {
-  /** INTERACTION_THREAD resolved against the library; a missing video drops its pair. */
-  pairs: { question: string; video: Video }[];
-  /** Default 'bolu'. */
-  asker?: CastId;
-  /** Lights the chain in step with the thread: the six chips spread evenly from 150 ms to the last answer (chainAt). */
+  /** INTERACTION_THREAD resolved against the library (lib/thread.ts resolveThread): each question with its asker and its real video. */
+  pairs: { who: CastId; question: string; video: Video }[];
+  /** Lights the chain in step with the typing: the six chips spread evenly from 150 ms to the end of the longest question (chainAt). */
   chain?: RefObject<ChainHandle | null>;
   /** useVideoPlayer().open */
   onOpen: (v: Video) => void;
@@ -287,87 +283,102 @@ export interface ChatThreadProps {
   className?: string;
 }
 
-/** The thread's cadence in ms: typing dots, then the question; the answer after it; the pause before the next pair. About 1 s a pair. */
-export const THREAD_BEAT = { typing: 350, answer: 350, next: 350 } as const;
-const PAIR_MS = THREAD_BEAT.typing + THREAD_BEAT.answer + THREAD_BEAT.next;
-/** When the last answer of an n-pair thread arrives, from the start: 3.85 s for four pairs. */
-export const threadSpan = (n: number) => Math.max(0, n - 1) * PAIR_MS + THREAD_BEAT.typing + THREAD_BEAT.answer;
-/** When chip k (0 to 5) of the chain lights for an n-pair thread: evenly from 150 ms to the last answer. */
-export const chainAt = (k: number, n: number) => Math.round(150 + ((threadSpan(n) - 150) * k) / 5);
+/** Milliseconds a character while the questions type out (all of them together). */
+export const TYPE_MS = 40;
+/** How long the typing runs for these questions: the longest one's length at TYPE_MS a character (about 1.6 s for 40 characters). */
+export const threadSpan = (questions: readonly string[]) => TYPE_MS * Math.max(0, ...questions.map((q) => q.length));
+/** When chip k (0 to 5) of the chain lights over a typing span of `span` ms: evenly from 150 ms to the end. */
+export const chainAt = (k: number, span: number) => Math.round(150 + (Math.max(150, span) - 150) * (k / 5));
 
 /**
- * Four real questions, each answered by its real video. Every bubble is in the DOM, visible, from the first paint; an effect marks the ones still to
- * come (data-wait) only when motion is allowed, so no JS, a failed chunk or still mode shows the whole thread. A waiting bubble is a faint outline of
- * itself, holding its place, never a blank. It plays once per page view, starting as the thread's top enters the lower 85% of the viewport (at every
- * width), about 1 s a pair, and completes at once if the thread leaves the viewport mid-way or a reply takes keyboard focus. No live region.
+ * A question's words as they type out. The full text stays in the flow, in the accessibility tree, and sizes the bubble from the first paint (so
+ * nothing shifts); while typing it is transparent and an aria-hidden copy on top holds every character in its own span, the untyped ones transparent,
+ * so the copy wraps exactly as the full text does and no text node ever moves (layout-shift free). The caret is drawn by the next character's span.
+ * `shown` null: the full text, no copy.
  */
-export function ChatThread({ pairs, asker = 'bolu', chain, onOpen, label, className }: ChatThreadProps) {
+function TypedText({ text, shown }: { text: string; shown: number | null }) {
+  if (shown === null || shown >= text.length) return <span className="typed">{text}</span>;
+  return (
+    <span className="typed" data-typing="">
+      <span className="typed-full">{text}</span>
+      <span className="typed-live" aria-hidden>
+        {Array.from(text, (c, i) => (
+          <span key={i} data-off={i >= shown ? '' : undefined} data-caret={i === shown ? '' : undefined}>
+            {c}
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * Up to four real questions, one from each character (Bolu, Tiko, Sochu, Gola), each answered by its real video. Every bubble and every reply is in
+ * the DOM, visible, from the first paint. When motion is allowed an effect empties the questions before the first paint (bubbles at their final size,
+ * a caret waiting); as the thread's top enters the lower 85% of the viewport (at every width) all of them type out together, TYPE_MS a character, once
+ * per page view. It completes at once if the thread leaves the viewport mid-way or still is switched on; no JS, a failed chunk, still, reduced motion
+ * and print show the full text. Screen readers always get the full question. No live region.
+ */
+export function ChatThread({ pairs, chain, onOpen, label, className }: ChatThreadProps) {
   const list = useRef<HTMLOListElement>(null);
   const n = pairs.length;
-  // How far the sequence has got: questions shown, answers shown, the pair whose typing dots are up. Armed means "ghost what has not arrived yet".
-  const [armed, setArmed] = useState(false);
-  const [asked, setAsked] = useState(n);
-  const [answered, setAnswered] = useState(n);
-  const [typing, setTyping] = useState<number | null>(null);
+  const questions = useMemo(() => pairs.map((p) => p.question), [pairs]);
+  const span = threadSpan(questions);
+  const total = Math.max(0, ...questions.map((q) => q.length));
+  // Characters typed so far, the same for every question; null is the full text (not armed, or done).
+  const [shown, setShown] = useState<number | null>(null);
   const [running, setRunning] = useState(false);
-  const run = useRef({ started: false, finished: false, cancel: false });
+  const run = useRef({ started: false, finished: false });
 
   const finish = useCallback(() => {
-    const r = run.current;
-    r.cancel = true;
-    r.finished = true;
-    setTyping(null);
-    setAsked(n);
-    setAnswered(n);
+    run.current.finished = true;
+    setShown(null);
     setRunning(false);
     for (let k = 0; k < 6; k++) chain?.current?.light(k);
-  }, [n, chain]);
+  }, [chain]);
 
-  // Arm before the first paint, so nothing flashes, and only when motion is allowed.
+  // Arm before the first paint, so the full text never flashes, and only when motion is allowed. Once per mount: a library refresh after the questions
+  // have typed (or while they type) never empties them again.
   useLayoutEffect(() => {
-    if (!motionOk() || n === 0) return;
-    run.current = { started: false, finished: false, cancel: false };
-    setArmed(true);
-    setAsked(0);
-    setAnswered(0);
-  }, [n]);
+    if (!motionOk() || n === 0 || total === 0 || run.current.started || run.current.finished) return;
+    setShown(0);
+  }, [n, total]);
 
+  const armed = shown !== null;
   useEffect(() => {
     const el = list.current;
     if (!armed || !el) return;
     const r = run.current;
+    if (r.started) return;
     const timers: number[] = [];
-    const later = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
+    let raf = 0;
 
-    const play = async () => {
+    const play = () => {
       if (r.started || r.finished) return;
       r.started = true;
       setRunning(true);
-      for (let k = 0; k < 6; k++) later(chainAt(k, n), () => !r.finished && chain?.current?.light(k));
-      for (let i = 0; i < n; i++) {
-        if (r.cancel) return;
-        setTyping(i);
-        await wait(THREAD_BEAT.typing);
-        if (r.cancel) return;
-        setTyping(null);
-        setAsked(i + 1);
-        await wait(THREAD_BEAT.answer);
-        if (r.cancel) return;
-        setAnswered(i + 1);
-        if (i < n - 1) await wait(THREAD_BEAT.next);
-      }
-      if (!r.cancel) finish();
+      for (let k = 0; k < 6; k++) timers.push(window.setTimeout(() => !r.finished && chain?.current?.light(k), chainAt(k, span)));
+      const t0 = performance.now();
+      let last = 0;
+      const tick = (now: number) => {
+        if (r.finished) return;
+        const typed = Math.min(total, Math.floor((now - t0) / TYPE_MS));
+        if (typed >= total) return finish();
+        if (typed !== last) setShown((last = typed));
+        raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
     };
 
-    // Starts as the thread's top comes 15% above the viewport's bottom edge: the first dots show while the visitor is still scrolling towards it.
+    // Starts as the thread's top comes 15% above the viewport's bottom edge.
     const start = new IntersectionObserver(
       ([e]) => {
-        if (e?.isIntersecting) void play();
+        if (e?.isIntersecting) play();
       },
       { rootMargin: '0px 0px -15% 0px', threshold: 0 },
     );
     start.observe(el);
-    // Once started, leaving the viewport completes it at once (nobody comes back to a half-played thread).
+    // Once started, leaving the viewport completes it at once (nobody comes back to half-typed questions).
     const leave = new IntersectionObserver(
       ([e]) => {
         if (e && !e.isIntersecting && r.started && !r.finished) finish();
@@ -375,56 +386,47 @@ export function ChatThread({ pairs, asker = 'bolu', chain, onOpen, label, classN
       { threshold: 0 },
     );
     leave.observe(el);
-    // Still switched on mid-way: everything arrives.
+    // Still switched on (also mid-way): the full text at once.
     const mo = new MutationObserver(() => {
-      if (!motionOk()) finish();
+      if (!motionOk() && !r.finished) finish();
     });
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-still'] });
     return () => {
       start.disconnect();
       leave.disconnect();
       mo.disconnect();
+      cancelAnimationFrame(raf);
       timers.forEach((t) => window.clearTimeout(t));
-      r.cancel = true;
+      // Unmounted or re-armed mid-way: the next run starts clean.
+      if (r.started && !r.finished) r.started = false;
     };
-  }, [armed, n, chain, finish]);
+  }, [armed, total, span, chain, finish]);
 
-  const newest = answered > 0 ? answered - 1 : -1;
-  // A keyboard visitor tabbing into a reply that has not arrived gets the whole thread at once.
-  const onFocus = () => {
-    if (armed && !run.current.finished) finish();
-  };
-
+  // The last reply plays its preview by itself once the questions are typed (desktop only, under the shared preview rule).
+  const last = n - 1;
   return (
-    <ol ref={list} className={className ? `chat-thread ${className}` : 'chat-thread'} aria-label={label} data-run={running ? '' : undefined} onFocus={onFocus}>
+    <ol ref={list} className={className ? `chat-thread ${className}` : 'chat-thread'} aria-label={label} data-run={running ? '' : undefined}>
       {pairs.map((p, i) => (
         <li key={p.video.id} className="chat-pair">
           <div className="chat-q">
-            {/* data-wait="typing": the dots stand in its cell, so its outline steps aside. */}
-            <div className="chat-row" data-side="left" data-arrive="" data-wait={armed && i >= asked ? (typing === i ? 'typing' : '') : undefined}>
-              <ChatAvatar who={asker} />
+            <div className="chat-row" data-side="left">
+              <ChatAvatar who={p.who} />
               <ChatBubble
-                who={asker}
+                who={p.who}
                 label={
                   <>
-                    {castById(asker).name}
+                    {castById(p.who).name}
                     <span className="sr-only"> asks</span>
                   </>
                 }
               >
-                {p.question}
+                <TypedText text={p.question} shown={shown} />
               </ChatBubble>
             </div>
-            {typing === i && (
-              <div className="chat-row chat-typing" data-side="left" aria-hidden>
-                <ChatAvatar who={asker} />
-                <Typing who={asker} />
-              </div>
-            )}
           </div>
-          <div className="chat-row chat-a" data-side="right" data-arrive="slide" data-wait={armed && i >= answered ? '' : undefined}>
+          <div className="chat-row chat-a" data-side="right">
             <ChatAvatar poster={p.video.posterUrl} />
-            <VideoFrame video={p.video} variant="bubble" width="var(--reply-w)" onOpen={onOpen} preview={i === newest ? 'active' : 'hover'} active={i === newest && answered > i} />
+            <VideoFrame video={p.video} variant="bubble" width="var(--reply-w)" onOpen={onOpen} preview={i === last ? 'active' : 'hover'} active={i === last && !armed} />
           </div>
         </li>
       ))}
@@ -433,19 +435,22 @@ export function ChatThread({ pairs, asker = 'bolu', chain, onOpen, label, classN
 }
 
 /**
- * The thread's place while the library loads: the same grid of pairs, each Bolu's face beside the outline of the question to come (its real words,
- * invisible, so the outline is the bubble's own size) and the outline of a video reply, with a slow shimmer (none under still). aria-hidden: the
- * thread itself is what screen readers get.
+ * The thread's place while the library loads: the same grid of pairs, each character's own bubble (face, name, colour) with outlined placeholder lines
+ * where the words will be, and the outline of a video reply, with a slow shimmer (none under still). The question cell keeps the thread's height, so
+ * nothing moves when the real thread arrives. aria-hidden: the thread itself is what screen readers get.
  */
-export function ChatThreadSkeleton({ questions, asker = 'bolu', className }: { questions: readonly string[]; asker?: CastId; className?: string }) {
+export function ChatThreadSkeleton({ askers, className }: { askers: readonly CastId[]; className?: string }) {
   return (
     <ol className={className ? `chat-skeleton ${className}` : 'chat-skeleton'} aria-hidden>
-      {questions.map((q) => (
-        <li key={q} className="chat-pair">
+      {askers.map((who) => (
+        <li key={who} className="chat-pair">
           <div className="chat-q">
             <div className="chat-row" data-side="left" data-ghost="">
-              <ChatAvatar who={asker} />
-              <ChatBubble who={asker}>{q}</ChatBubble>
+              <ChatAvatar who={who} />
+              <ChatBubble who={who} className="bubble-ghost">
+                <span className="ghost-line" />
+                <span className="ghost-line" />
+              </ChatBubble>
             </div>
           </div>
           <div className="chat-row chat-a" data-side="right" data-ghost="">
