@@ -1,5 +1,6 @@
-/* Owner: A3 Scene. The footer: the ending of every page. A dark stage in both themes, whatever the page around it is doing. v2 (content §1.3,
-   visual §2.9): the ask with its eyebrow and line, the reach block (email, WhatsApp, city, socials with the dock pop), the skyline behind the wordmark. */
+/* Owner: A3 Scene. The footer: the ending of every page. One sheet of fluted glass that follows the theme (round 10): dark glass in the dark
+   theme, pearl glass in the light theme, so the page never turns from light to dark at its end. v2 (content §1.3, visual §2.9): the ask with its
+   eyebrow and line, the reach block (email, WhatsApp, city, socials with the dock pop), the skyline behind the wordmark. */
 @layer components {
   .ft {
     --ft-link: #e4e1da;
@@ -15,12 +16,29 @@
       radial-gradient(60% 90% at 62% 112%, color-mix(in oklab, #47c349 12%, transparent), transparent 70%),
       radial-gradient(60% 90% at 88% 112%, color-mix(in oklab, #ff8d3a 16%, transparent), transparent 70%);
 
-    /* The band's glass grain. The footer is dark in both themes, so it always takes the light speckle. */
+    /* The band's glass grain: the light speckle on the dark sheet (the light theme swaps in the dark speckle, below). */
     --ft-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -.92'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --ft-grain-o: 0.08;
+    /* Round 11, the sheet's grain glass: the same speckle with its strength baked in (0.08), so it can share one layer with the sheen. */
+    --ft-grain-sheet: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .128 -.0736'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    /* ...and the light on its top: a soft, wide sheen where the sheet turns whole (the band's top). */
+    --ft-sheen: 170 182 255;
+    --ft-sheen-a: 0.045;
+    /* The flute pitch of the whole footer: the page's (backdrop.css .bd --rib), so the page's, the band's and the sheet's flutes line up. All
+       start at the viewport's left edge. */
+    --rib: 24px;
 
-    /* Round 9, the seam: no edge, no corners. The sheet's top --ft-blend is a dusk: the page (and, in dark, its flutes) shows through and is
-       covered on an eased curve, through a faint indigo, until the sheet is the glass's own base (#07080f). Nothing of the footer's sits in it,
-       so the last section never looks cut. The band's glass rises out of the same zone (.ft-glass), on the page's flute pitch and phase. */
+    /* Round 10: the footer is one sheet of fluted glass from the dusk to the colour bar. In the dark theme it is the dark glass (#07080f); in
+       the light theme a pearl one (below). The band's vivid glass (.ft-glass) dissolves into it, and the links sheet keeps the band's colours
+       (--ft-carry) until the cast's own lights (--g-stage) take over at the wordmark. No rule, no edge: space separates the parts. */
+    --ft-base: #07080f;
+    --ft-title: #ffffff;
+    --ft-hover: #ffffff;
+    --ft-hair: 255 255 255;
+
+    /* Round 9, the seam: no edge, no corners. The sheet's top --ft-blend is a dusk: the page (and its flutes) shows through and is covered on
+       an eased curve until the sheet is the glass's own base. Nothing of the footer's sits in it, so the last section never looks cut. The
+       band's glass rises out of the same zone (.ft-glass), on the page's flute pitch and phase. */
     --ft-blend: clamp(240px, 25vw, 360px);
     --ft-dusk: linear-gradient(
       180deg,
@@ -34,19 +52,87 @@
       rgb(12 14 30 / 0.78) calc(var(--ft-blend) * 0.7),
       rgb(10 11 22 / 0.9) calc(var(--ft-blend) * 0.8),
       rgb(8 9 17 / 0.97) calc(var(--ft-blend) * 0.9),
-      #07080f var(--ft-blend)
+      var(--ft-base) var(--ft-blend)
     );
+    /* The band's lower colours, carried down through the links: its navy pool on the left, its crimson edge on the right, its green rising in
+       the middle. Anchored to the footer's bottom (the links, the bar and the stage are about the same height at every width), under the band's
+       glass, so they show only where the glass thins out, and they meet the cast's lights (--g-stage) at the wordmark. */
+    --ft-carry:
+      radial-gradient(34% 560px at 0% calc(100% - 840px), rgb(48 58 178 / 0.3), transparent 72%),
+      radial-gradient(30% 540px at 100% calc(100% - 860px), rgb(160 32 76 / 0.27), transparent 72%),
+      radial-gradient(38% 380px at 46% calc(100% - 900px), rgb(26 122 74 / 0.16), transparent 72%);
 
     position: relative;
     margin-top: calc(var(--end-y) / 2);
     padding-top: var(--ft-blend);
     overflow: clip;
-    /* A stacking context, so the glass (z-index -1) paints over the sheet and under all of the footer's content; it does not flatten the
-       ring's preserve-3d. The sheet is opaque below the dusk. */
+    /* A stacking context, so the sheet's flutes and the band's glass (z-index -1) paint over the sheet and under all of the footer's content; it
+       does not flatten the ring's preserve-3d. The sheet is opaque below the dusk. */
     background-color: transparent;
     background-image: var(--g-stage), var(--ft-dusk);
     isolation: isolate;
     color: var(--ft-link);
+  }
+
+  /* With a band, its colours carry on below it. Round 11: the band's glass now rises out of the page over the whole dusk (.ft-glass --ft-up), so
+     it is the dusk: the sheet under it stays clear until the glass is whole and only then turns to the base, out of sight. The page's colours
+     cross straight into the glass's, with no darker trough between them. */
+  .ft:has(> .ft-band-cta) {
+    --ft-dusk-late: linear-gradient(180deg, transparent calc(var(--ft-blend) + 40px), var(--ft-base) calc(var(--ft-blend) + 40px));
+    background-image: var(--g-stage), var(--ft-carry), var(--ft-dusk-late);
+  }
+
+  /* ---------- Grain glass (round 11): the footer reads as one raised sheet of frosted glass ----------
+     Over everything in the sheet (the band's glass, the landscape, the flutes) and under all of its content: a fine film grain and a soft light
+     on its top. It fades in over the dusk exactly as the sheet does, so it never draws an edge; the elevation is texture and light, not a rule
+     or a shadow. One static layer, no backdrop filter. */
+  .ft::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(68% 260px at 50% var(--ft-blend), rgb(var(--ft-sheen) / var(--ft-sheen-a)), transparent),
+      var(--ft-grain-sheet);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, rgb(0 0 0 / 0.5) calc(var(--ft-blend) * 0.5), #000 var(--ft-blend));
+    mask-image: linear-gradient(180deg, transparent 0, rgb(0 0 0 / 0.5) calc(var(--ft-blend) * 0.5), #000 var(--ft-blend));
+  }
+
+  @media (max-width: 1068px) {
+    .ft {
+      --rib: 20px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .ft {
+      --rib: 16px;
+    }
+  }
+
+  /* The sheet's flutes: the page's own profile (a dark seam, a clear body, the bright streak right of centre) in overlay, so on the bare sheet
+     they all but vanish and where the colour is they turn into soft stripes, as on the page above. They start under the dusk's end, faded in,
+     so the dusk keeps only the page's flutes. Under the band's glass, which brings its own; where that glass thins out, these carry on at the
+     same pitch and phase, so the texture dims instead of ending. Under the links, the skyline and the wordmark. */
+  .ft::before {
+    content: '';
+    position: absolute;
+    inset: var(--ft-blend) 0 0;
+    z-index: -1;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    background: repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.6) 0,
+      rgb(0 0 0 / 0.22) calc(var(--rib) * 0.22),
+      rgb(255 255 255 / 0) calc(var(--rib) * 0.5),
+      rgb(255 255 255 / 0.32) calc(var(--rib) * 0.74),
+      rgb(255 255 255 / 0.07) calc(var(--rib) * 0.9),
+      rgb(0 0 0 / 0.6) var(--rib)
+    );
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 240px);
+    mask-image: linear-gradient(180deg, transparent, #000 240px);
   }
 
   /* ---------- Closing line, the action, the links ---------- */
@@ -78,13 +164,15 @@
      kreators.app's closing-card recipe: a field of colour lit from the upper right (a pale core, violet, electric blue, a crimson edge, a deep navy
      pool at the left, bottle green rising from the bottom), fixed upright flutes over it in overlay (a dark seam, a clear body, a bright streak
      right of centre), a crest line per flute where the light is, a scrim pooled under the words, and grain. Only the field moves: an 8 s sideways
-     drift on the compositor while the band is on screen, plus a lean toward a fine pointer. The glass runs 160 px past the band and fades into
-     the sheet before the links. White and --ft-soft keep AA over it (scrim under the copy). Same dark glass in both themes. */
+     drift on the compositor while the band is on screen, plus a lean toward a fine pointer. The glass runs 160 px past the band and dissolves
+     into the sheet's own flutes over its last --ft-down, on an eased curve, so neither the rib texture nor the colour ever stops at a line.
+     --ft-title and --ft-soft keep AA over it (scrim under the copy). Dark glass in the dark theme, pearl glass in the light theme (below). */
   .ft-glass {
-    /* The page's flute pitch (backdrop.css .bd --rib), so where both show in the dusk the ribs line up; both start at the viewport's left edge. */
-    --rib: 24px;
-    /* The glass starts inside the dusk and rises out of it: transparent at its top, whole where the dusk ends (the band's top). */
-    --ft-up: calc(var(--ft-blend) * 0.6);
+    /* The glass rises out of the page over the whole dusk: transparent at the footer's top, whole where the dusk ends (the band's top). Round 11:
+       the whole dusk, not its lower 60%, so its colours cross into the page's own instead of surfacing out of a dark trough. */
+    --ft-up: var(--ft-blend);
+    /* ...and dissolves at its foot: whole until --ft-down from its end, then out on the same eased curve. */
+    --ft-down: 460px;
     --ft-rise-in: linear-gradient(
       180deg,
       transparent 0,
@@ -98,10 +186,19 @@
       rgb(0 0 0 / 0.9) calc(var(--ft-up) * 0.8),
       rgb(0 0 0 / 0.97) calc(var(--ft-up) * 0.9),
       #000 var(--ft-up),
-      #000 calc(100% - 320px),
-      transparent
+      #000 calc(100% - var(--ft-down)),
+      rgb(0 0 0 / 0.97) calc(100% - var(--ft-down) * 0.9),
+      rgb(0 0 0 / 0.9) calc(100% - var(--ft-down) * 0.8),
+      rgb(0 0 0 / 0.78) calc(100% - var(--ft-down) * 0.7),
+      rgb(0 0 0 / 0.65) calc(100% - var(--ft-down) * 0.6),
+      rgb(0 0 0 / 0.5) calc(100% - var(--ft-down) * 0.5),
+      rgb(0 0 0 / 0.35) calc(100% - var(--ft-down) * 0.4),
+      rgb(0 0 0 / 0.22) calc(100% - var(--ft-down) * 0.3),
+      rgb(0 0 0 / 0.1) calc(100% - var(--ft-down) * 0.2),
+      rgb(0 0 0 / 0.03) calc(100% - var(--ft-down) * 0.1),
+      transparent 100%
     );
-    --fg-base: #07080f;
+    --fg-base: var(--ft-base);
     --fg-blue: #2b3fc9;
     --fg-deep: #1d2a8a;
     --fg-crimson: #a0203f;
@@ -117,12 +214,6 @@
     background: var(--fg-base);
     -webkit-mask-image: var(--ft-rise-in);
     mask-image: var(--ft-rise-in);
-  }
-
-  @media (max-width: 1068px) {
-    .ft-glass {
-      --rib: 20px;
-    }
   }
 
   .ft-glass-lean,
@@ -142,7 +233,8 @@
     position: absolute;
     inset: -6% -12%;
     background:
-      radial-gradient(10% 16% at 82% 0%, var(--fg-core) 0%, transparent 100%),
+      /* Round 11: the pale core a little softer (85%), so it surfaces out of the page's own colours over the longer rise, not as a white smear. */
+      radial-gradient(10% 16% at 82% 0%, color-mix(in srgb, var(--fg-core) 85%, transparent) 0%, transparent 100%),
       radial-gradient(18% 28% at 92% 8%, color-mix(in srgb, var(--fg-violet) 90%, transparent) 0%, transparent 100%),
       radial-gradient(24% 40% at 76% 32%, var(--fg-blue) 0%, transparent 100%),
       radial-gradient(18% 32% at 99% 66%, color-mix(in srgb, var(--fg-crimson) 85%, transparent) 0%, transparent 100%),
@@ -197,30 +289,28 @@
     mask-image: radial-gradient(40% 50% at 82% calc(var(--ft-up) - 40px + 8%), #000, transparent 75%);
   }
 
-  /* The words are centred, so the scrim is a centred pool at the top of the band. The copy must stay inside it. */
+  /* The words are centred, so the scrim is a centred pool at the top of the band, in the sheet's own base. The copy must stay inside it. */
   .ft-glass-scrim {
-    background: radial-gradient(46% 34% at 50% calc(var(--ft-up) - 40px + 14%), rgb(7 8 15 / 0.86) 0%, rgb(7 8 15 / 0.62) 55%, transparent 100%);
+    --scrim: 7 8 15;
+    background: radial-gradient(46% 34% at 50% calc(var(--ft-up) - 40px + 14%), rgb(var(--scrim) / 0.86) 0%, rgb(var(--scrim) / 0.62) 55%, transparent 100%);
   }
 
+  /* The glass's grain is the sheet's now (.ft::after): one film over the whole footer, so the band never carries a second, denser grain. */
   .ft-glass::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--ft-grain);
-    opacity: 0.08;
+    content: none;
   }
 
   @media (max-width: 734px) {
     .ft-glass {
-      --rib: 16px;
+      --ft-down: 320px;
       inset: calc(-1 * var(--ft-up)) 0 -96px 0;
     }
 
     .ft-glass-scrim {
       background: linear-gradient(
         180deg,
-        rgb(7 8 15 / 0.8) calc(var(--ft-up) - 40px),
-        rgb(7 8 15 / 0.55) calc(var(--ft-up) - 40px + 34%),
+        rgb(var(--scrim) / 0.8) calc(var(--ft-up) - 40px),
+        rgb(var(--scrim) / 0.55) calc(var(--ft-up) - 40px + 34%),
         transparent calc(var(--ft-up) - 40px + 60%)
       );
     }
@@ -229,7 +319,7 @@
     .ft-glass-field {
       inset: -4% -6%;
       background:
-        radial-gradient(18% 10% at 86% 0%, var(--fg-core) 0%, transparent 100%),
+        radial-gradient(18% 10% at 86% 0%, color-mix(in srgb, var(--fg-core) 85%, transparent) 0%, transparent 100%),
         radial-gradient(34% 18% at 96% 8%, color-mix(in srgb, var(--fg-violet) 90%, transparent) 0%, transparent 100%),
         radial-gradient(46% 30% at 84% 56%, var(--fg-blue) 0%, transparent 100%),
         radial-gradient(30% 22% at 100% 82%, color-mix(in srgb, var(--fg-crimson) 85%, transparent) 0%, transparent 100%),
@@ -251,16 +341,20 @@
     transition: none;
   }
 
-  /* Less transparency or more contrast asked for: the solid base alone. */
+  /* Less transparency or more contrast asked for: the solid base alone, no flutes on the band or the sheet. */
   @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
     .ft-glass > *,
-    .ft-glass::after {
+    .ft-glass::after,
+    .ft::before,
+    .ft::after {
       display: none;
     }
   }
 
   @media print {
-    .ft-glass {
+    .ft-glass,
+    .ft::before,
+    .ft::after {
       display: none;
     }
   }
@@ -278,7 +372,7 @@
     margin: 0;
     padding: 6px 12px;
     border-radius: var(--r-pill);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+    box-shadow: inset 0 0 0 1px rgb(var(--ft-hair) / 0.14);
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     color: var(--ft-soft);
@@ -295,7 +389,7 @@
   .ft-title {
     max-width: 14ch;
     margin: 16px auto 0;
-    color: #ffffff;
+    color: var(--ft-title);
     text-wrap: balance;
   }
 
@@ -356,27 +450,31 @@
     gap: 12px;
   }
 
-  /* Below the band, a hairline, then the reach block and the links. */
+  /* Below the band, space (no rule: round 10), then the reach block and the links, while the band's glass dissolves behind them. */
   /* No band (legal pages, a 404, pages with their own action): the dusk is the lead-in, so the links start a little sooner. */
-  .ft > .ft-body:first-child > .ft-top {
+  .ft > .ft-land:first-child > .ft-body > .ft-top {
     padding-top: 48px;
   }
 
-  .ft-band-cta + .ft-body > .ft-top {
-    margin-top: 72px;
-    border-top: 1px solid rgb(255 255 255 / 0.1);
+  /* Round 11: the space under the buttons is the landscape box's own padding (not the links' margin), so the box, and the city in it, starts
+     right under the buttons. */
+  .ft-band-cta + .ft-land {
+    padding-top: 72px;
+  }
+
+  .ft-band-cta + .ft-land > .ft-body > .ft-top {
     padding-top: 64px;
   }
 
-  /* The sheet is near-black (#07080f) whichever theme is on, so its hairlines are set here. */
+  /* The sheet's own hairlines (white on the dark glass, ink on the pearl). */
   .ft .btn-ghost {
-    box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.28);
+    box-shadow: inset 0 0 0 1.5px rgb(var(--ft-hair) / 0.28);
   }
 
   @media (hover: hover) and (pointer: fine) {
     .ft .btn-ghost:hover {
-      background: rgb(255 255 255 / 0.1);
-      box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.5);
+      background: rgb(var(--ft-hair) / 0.1);
+      box-shadow: inset 0 0 0 1.5px rgb(var(--ft-hair) / 0.5);
     }
   }
 
@@ -447,7 +545,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     .ft-social:hover {
-      background: rgb(255 255 255 / 0.08);
+      background: rgb(var(--ft-hair) / 0.08);
       color: var(--tint);
     }
 
@@ -532,7 +630,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     .ft-link:hover {
-      color: #ffffff;
+      color: var(--ft-hover);
     }
 
     .ft-link:hover::after {
@@ -554,6 +652,7 @@
   }
 
   /* ---------- Hairline and bottom bar ---------- */
+  /* The legal row keeps one hairline for reading, faint and fading out at both ends, so it is a line of light on the glass, not a cut. */
   .ft-bar {
     display: flex;
     flex-wrap: wrap;
@@ -561,7 +660,8 @@
     justify-content: space-between;
     gap: 4px 24px;
     padding-block: 12px;
-    border-top: 1px solid rgb(255 255 255 / 0.14);
+    background: linear-gradient(90deg, transparent, rgb(var(--ft-hair) / 0.038) 18%, rgb(var(--ft-hair) / 0.038) 82%, transparent) top / 100% 1px
+      no-repeat;
     color: var(--ft-soft);
     font-size: 14px;
     line-height: 20px;
@@ -584,7 +684,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     .ft-owner:hover {
-      color: #ffffff;
+      color: var(--ft-hover);
     }
   }
 
@@ -626,7 +726,7 @@
     width: 34px;
     height: 20px;
     border-radius: var(--r-pill);
-    background: rgb(255 255 255 / 0.2);
+    background: rgb(var(--ft-hair) / 0.2);
     transition: background-color var(--dur-hover) ease;
   }
 
@@ -647,7 +747,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     .ft-pause:not([disabled]):hover {
-      color: #ffffff;
+      color: var(--ft-hover);
     }
   }
 
@@ -657,11 +757,90 @@
     padding-top: calc(var(--ft-cast-h) + 28px);
   }
 
-  /* The skyline (components/street, variant skyline) behind the wordmark and the cast, just above the ground band. */
-  .ft-stage > .street-host {
-    --street-h: clamp(150px, 19vw, 280px);
+  /* ---------- The landscape (round 11): the city from just under the band's buttons down to the colour bar ----------
+     One box (.ft-land) holds the reach block, the links, the legal row and the stage; the street (components/street, variant skyline) fills it,
+     three layers deep, back to front: the far city (.street-haze: slender towers, a TV mast, two cranes) rising toward the buttons and fading out
+     on the way, the middle distance (.street-mids: mid-rise blocks, water tanks, a tree line) lower, and the skyline with the viaduct and its
+     train (.street-far) at the base, behind the wordmark, as before. The far two are seen as through frosted glass: faint and soft (a small
+     blur, drawn once; nothing in them moves), so behind the links they stay calm and every link keeps AA. At z -1 after the band (tree order):
+     over the sheet's flutes and the band glass's dissolving foot, under the sheet's grain (.ft::after) and all of the content. The wordmark,
+     the cast, the train and the colour bar stay at the bottom. */
+  .ft-land {
+    --ft-near-h: clamp(150px, 19vw, 280px);
+    --ft-mids-h: clamp(240px, 62%, 540px);
+    --ft-haze-h: 100%;
+    position: relative;
+  }
+
+  .ft-land > .street-host {
+    inset: 0;
+    z-index: -1;
+    height: auto;
+  }
+
+  /* The night glow rises from the base: deep indigo under the skyline, thinning out behind the middle distance, gone well below the links. */
+  .ft-skyline .street-sky {
+    background: linear-gradient(
+      to top,
+      var(--ft-sky-0) 0,
+      var(--ft-sky-1) calc(var(--ft-near-h) * 0.36),
+      var(--ft-sky-2) calc(var(--ft-near-h) * 0.68),
+      var(--ft-sky-3) calc(var(--ft-near-h) * 1.25),
+      var(--ft-sky-4) calc(var(--ft-near-h) * 2.2)
+    );
+  }
+
+  .ft-skyline .street-layer {
     bottom: 8px;
+  }
+
+  .ft-skyline .street-far {
+    height: var(--ft-near-h);
     opacity: 0.9;
+  }
+
+  .ft-skyline .street-mids {
+    height: var(--ft-mids-h);
+    opacity: var(--ft-mids-o);
+    filter: blur(var(--ft-mids-blur));
+    -webkit-mask-image: linear-gradient(to bottom, transparent 4%, #000 46%);
+    mask-image: linear-gradient(to bottom, transparent 4%, #000 46%);
+  }
+
+  .ft-skyline .street-haze {
+    height: var(--ft-haze-h);
+    opacity: var(--ft-haze-o);
+    filter: blur(var(--ft-haze-blur));
+    /* Hazy toward the buttons: the tallest towers fade out before they reach them. */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgb(0 0 0 / 0.6) 12%, rgb(0 0 0 / 0.9) 30%, #000 50%);
+    mask-image: linear-gradient(to bottom, transparent 0, rgb(0 0 0 / 0.6) 12%, rgb(0 0 0 / 0.9) 30%, #000 50%);
+  }
+
+  /* Night (the dark glass): indigo silhouettes a step above the sheet, a few warm windows, all faint. */
+  .ft {
+    --ft-sky-0: #221f45;
+    --ft-sky-1: #1a1836;
+    --ft-sky-2: rgb(22 20 46 / 0.6);
+    --ft-sky-3: rgb(22 20 46 / 0.2);
+    --ft-sky-4: rgb(22 20 46 / 0);
+    --ft-haze-o: 0.3;
+    --ft-haze-blur: 1.6px;
+    --ft-mids-o: 0.4;
+    --ft-mids-blur: 1.1px;
+  }
+
+  /* A phone: a shorter landscape. The far city rises behind the lower links, not the whole column. */
+  @media (max-width: 734px) {
+    .ft-land {
+      --ft-mids-h: 230px;
+      --ft-haze-h: 380px;
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .ft-skyline :is(.street-haze, .street-mids) {
+      display: none;
+    }
   }
 
   .ft-word-box {
@@ -894,8 +1073,11 @@
       padding-top: 64px;
     }
 
-    .ft-band-cta + .ft-body > .ft-top {
-      margin-top: 56px;
+    .ft-band-cta + .ft-land {
+      padding-top: 56px;
+    }
+
+    .ft-band-cta + .ft-land > .ft-body > .ft-top {
       padding-top: 56px;
     }
   }
@@ -929,8 +1111,11 @@
       gap: 8px;
     }
 
-    .ft-band-cta + .ft-body > .ft-top {
-      margin-top: 40px;
+    .ft-band-cta + .ft-land {
+      padding-top: 40px;
+    }
+
+    .ft-band-cta + .ft-land > .ft-body > .ft-top {
       padding-top: 32px;
     }
 
@@ -984,5 +1169,172 @@
     .ft-word-rest {
       opacity: 0.4;
     }
+  }
+
+  /* ---------- Light theme: pearl glass (round 10) ----------
+     In the light theme the page flows into a light footer: no light-to-dark turn at all. The same fluted glass in pearl: the page's own pale base,
+     the band's blue and violet core as a bright glow on white, a rose edge and a mint pool, the same flutes in overlay (on the pearl they all but
+     vanish; in the glow they turn into crisp tinted stripes, never grey), a pearl scrim under the words and the dark grain. Ink text. The tokens
+     re-scope to the light ones, so the buttons, the ring's cards and the focus rings inside read as on the light page. The dark theme keeps its
+     dark glass. */
+  :root:not([data-theme='dark']) .ft {
+    --bg: #eff0f7;
+    --surface-0: #eff0f7;
+    --surface-1: #ffffff;
+    --surface-2: #ffffff;
+    --surface-3: #ffffff;
+    --surface-4: #ffffff;
+    --surface-5: #ffffff;
+    --surface-6: #ffffff;
+    --surface: #ffffff;
+    --sunken: #e7e7f0;
+    --ink: #0e0e10;
+    --muted: #55535c;
+    --line: rgb(14 14 16 / 0.14);
+    --field-line: rgb(14 14 16 / 0.46);
+    --focus: #5a4cf0;
+    --accent: #d91a1a;
+    --plate-edge: inset 0 0 0 1px rgb(14 14 16 / 0.04);
+    --shadow-2: 0 2px 4px rgb(24 20 40 / 0.06), 0 12px 28px -8px rgb(24 20 40 / 0.16);
+    --shadow-3: 0 4px 8px rgb(24 20 40 / 0.08), 0 20px 44px -12px rgb(24 20 40 / 0.22);
+    --shadow-4: 0 6px 12px rgb(24 20 40 / 0.1), 0 28px 60px -16px rgb(24 20 40 / 0.28);
+    --shadow-5: 0 10px 20px rgb(24 20 40 / 0.12), 0 40px 80px -20px rgb(24 20 40 / 0.34);
+    --shadow-6: 0 24px 48px rgb(24 20 40 / 0.18), 0 64px 120px -24px rgb(24 20 40 / 0.42);
+    --glass-bg: rgb(250 250 252 / 0.8);
+    --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 0 0 0.5px rgb(14 14 16 / 0.08);
+    --on-glass: #0e0e10;
+    --on-glass-2: #4a4843;
+
+    --ft-link: #1f1e25;
+    --ft-soft: #55535c;
+    --ft-title: #0e0e10;
+    --ft-hover: #0e0e10;
+    --ft-hair: 14 14 16;
+    /* The page's light glass base (backdrop.css), so the dusk is all but invisible: the page simply carries on. */
+    --ft-base: #eff0f7;
+    --ft-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.6 -.92'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --ft-grain-o: 0.05;
+    --ft-grain-sheet: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .08 -.046'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --ft-sheen: 255 255 255;
+    --ft-sheen-a: 0.6;
+    --ft-dusk: linear-gradient(
+      180deg,
+      rgb(239 240 247 / 0) 0,
+      rgb(239 240 247 / 0.03) calc(var(--ft-blend) * 0.1),
+      rgb(239 240 247 / 0.1) calc(var(--ft-blend) * 0.2),
+      rgb(239 240 247 / 0.22) calc(var(--ft-blend) * 0.3),
+      rgb(239 240 247 / 0.35) calc(var(--ft-blend) * 0.4),
+      rgb(239 240 247 / 0.5) calc(var(--ft-blend) * 0.5),
+      rgb(239 240 247 / 0.65) calc(var(--ft-blend) * 0.6),
+      rgb(239 240 247 / 0.78) calc(var(--ft-blend) * 0.7),
+      rgb(239 240 247 / 0.9) calc(var(--ft-blend) * 0.8),
+      rgb(239 240 247 / 0.97) calc(var(--ft-blend) * 0.9),
+      var(--ft-base) var(--ft-blend)
+    );
+    /* The band's periwinkle pool, rose edge and mint, carried down through the links as soft light. */
+    --ft-carry:
+      radial-gradient(34% 560px at 0% calc(100% - 840px), rgb(132 146 255 / 0.26), transparent 72%),
+      radial-gradient(30% 540px at 100% calc(100% - 860px), rgb(255 138 172 / 0.22), transparent 72%),
+      radial-gradient(38% 380px at 46% calc(100% - 900px), rgb(96 206 150 / 0.16), transparent 72%);
+    color-scheme: light;
+  }
+
+  /* The band's field in light: the same composition, every colour turned to light. A white core at the upper right, violet, a luminous
+     periwinkle where the dark glass has its electric blue, a rose edge, a soft periwinkle pool on the left and mint rising from the bottom. */
+  /* The sheet's flutes in light: the page's light profile (backdrop.css), so the page's flutes simply carry on into the footer. */
+  :root:not([data-theme='dark']) .ft::before {
+    background: repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.28) 0,
+      rgb(0 0 0 / 0.1) calc(var(--rib) * 0.22),
+      rgb(255 255 255 / 0) calc(var(--rib) * 0.5),
+      rgb(255 255 255 / 0.36) calc(var(--rib) * 0.74),
+      rgb(255 255 255 / 0.09) calc(var(--rib) * 0.9),
+      rgb(0 0 0 / 0.28) var(--rib)
+    );
+  }
+
+  :root:not([data-theme='dark']) .ft-glass {
+    --fg-core: #ffffff;
+    --fg-violet: #a99cff;
+    --fg-blue: #8b9dff;
+    --fg-deep: #aeb8ff;
+    --fg-crimson: #ff97b3;
+    --fg-green: #86d9ad;
+  }
+
+  /* The flutes, a step gentler than on the dark glass: overlay on a bright colour cuts deeper than on a dark one. */
+  :root:not([data-theme='dark']) .ft-glass-ribs {
+    background: repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.5) 0,
+      rgb(0 0 0 / 0.18) calc(var(--rib) * 0.22),
+      rgb(255 255 255 / 0) calc(var(--rib) * 0.5),
+      rgb(255 255 255 / 0.6) calc(var(--rib) * 0.74),
+      rgb(255 255 255 / 0.14) calc(var(--rib) * 0.9),
+      rgb(0 0 0 / 0.5) var(--rib)
+    );
+  }
+
+  :root:not([data-theme='dark']) .ft-glass-shine {
+    opacity: 0.6;
+  }
+
+  :root:not([data-theme='dark']) .ft-glass-scrim {
+    --scrim: 239 240 247;
+  }
+
+  /* The eyebrow pill gets a little frost of its own on the brighter glass. */
+  :root:not([data-theme='dark']) .ft-eyebrow {
+    background: rgb(255 255 255 / 0.45);
+  }
+
+  :root:not([data-theme='dark']) .ft-pause-thumb {
+    box-shadow: 0 1px 2px rgb(14 14 16 / 0.28);
+  }
+
+  /* Hover tints dark enough to read on the pearl (4.5:1 or better on the sheet). */
+  :root:not([data-theme='dark']) .ft :is(.ft-social, .ft-group)[data-who='tiko'] {
+    --tint: #5a4cf0;
+  }
+  :root:not([data-theme='dark']) .ft :is(.ft-social, .ft-group)[data-who='sochu'] {
+    --tint: #8a6400;
+  }
+  :root:not([data-theme='dark']) .ft :is(.ft-social, .ft-group)[data-who='bolu'] {
+    --tint: #1f7a33;
+  }
+  :root:not([data-theme='dark']) .ft :is(.ft-social, .ft-group)[data-who='gola'] {
+    --tint: #b34a00;
+  }
+
+  /* The skyline by day: blocks a few percent off the pearl, a pale lavender haze behind the wordmark, no lit windows. */
+  :root:not([data-theme='dark']) .ft .street[data-variant='skyline'] {
+    --st-sky: linear-gradient(to bottom, rgb(239 240 247 / 0) 0%, rgb(226 226 246 / 0.55) 32%, #e3e2f5 64%, #dddcf2 100%);
+    /* Round 11: a step darker than before, so by day the nearest blocks read nearest (darker than the middle distance behind them). */
+    --st-far: #d5d5ea;
+    --st-far2: #d1d1e7;
+    --st-far-line: #c8c7e0;
+    --st-far-lit-o: 0;
+    --st-train: #c9c8e2;
+    --st-train-win: #f7f4ea;
+    /* The landscape by day: periwinkle-grey towers and blocks, laid down faint over the pearl, no lit windows. */
+    --st-hz: #8f93c4;
+    --st-hz2: #9a9dcb;
+    --st-hz-line: #8f93c4;
+    --st-hz-lit: #9a9dcb;
+    --st-md: #9a9cc6;
+    --st-md2: #a3a5cc;
+    --st-md-lit: #a3a5cc;
+  }
+
+  /* The day sky: a pale lavender haze rising from the base, as the skyline's own. */
+  :root:not([data-theme='dark']) .ft {
+    --ft-sky-0: #dddcf2;
+    --ft-sky-1: #e3e2f5;
+    --ft-sky-2: rgb(226 226 246 / 0.55);
+    --ft-sky-3: rgb(226 226 246 / 0.2);
+    --ft-sky-4: rgb(226 226 246 / 0);
+    --ft-haze-o: 0.14;
+    --ft-mids-o: 0.2;
   }
 }

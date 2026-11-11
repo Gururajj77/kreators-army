@@ -26,14 +26,25 @@ function useHeadTag(tag: 'meta' | 'link', attrs: Record<string, string> | null) 
 }
 
 /**
- * Sets the page's title and description. `noindex` keeps a page out of search (the 404, which the Worker serves with a 200), and `canonical` names the one
- * address a page with an alias should be indexed under.
+ * The build prerenders the blog (src/blog/prerender.tsx), and every tag it adds to <head> carries data-pre="<its path>". They describe the page the visitor
+ * landed on, so they stay while that page shows and go as soon as another page's Seo runs. The canonical and robots tags always go: Seo writes its own.
  */
-export function Seo({ title, description, noindex, canonical }: { title?: string; description: string; noindex?: boolean; canonical?: string }) {
+function dropPrerenderedHead() {
+  for (const el of document.head.querySelectorAll('[data-pre]')) {
+    if (el.getAttribute('data-pre') !== window.location.pathname || el.matches('link[rel="canonical"], meta[name="robots"]')) el.remove();
+  }
+}
+
+/**
+ * Sets the page's title and description. `noindex` keeps a page out of search (the 404, which the Worker serves with a 200), and `canonical` names the one
+ * address a page with an alias should be indexed under. `fullTitle` is used as the whole <title>, with nothing appended (a blog post's metaTitle).
+ */
+export function Seo({ title, fullTitle, description, noindex, canonical }: { title?: string; fullTitle?: string; description: string; noindex?: boolean; canonical?: string }) {
   useEffect(() => {
-    document.title = title ? `${title} | ${SITE_TITLE}` : 'Vox Pop Street Interview Agency for D2C Brands | Kreators.Army';
+    dropPrerenderedHead();
+    document.title = fullTitle ?? (title ? `${title} | ${SITE_TITLE}` : 'Vox Pop Street Interview Agency for D2C Brands | Kreators.Army');
     document.querySelector('meta[name="description"]')?.setAttribute('content', description);
-  }, [title, description]);
+  }, [title, fullTitle, description]);
   useHeadTag('meta', noindex ? { name: 'robots', content: 'noindex,nofollow' } : null);
   useHeadTag('link', canonical ? { rel: 'canonical', href: new URL(canonical, window.location.origin).href } : null);
   return null;

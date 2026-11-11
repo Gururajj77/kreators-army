@@ -444,17 +444,7 @@
     }
   }
 
-  /* Desktop: a stage pins the timeline while the scroll moves the playhead. Never pinned under still or without JS. */
-  @media (min-width: 735px) {
-    .etl[data-mode='stage'][data-armed] .etl-stage {
-      height: 160vh;
-    }
-
-    .etl[data-mode='stage'][data-armed] .etl-sticky {
-      position: sticky;
-      top: calc(var(--nav-offset) + 16px);
-    }
-  }
+  /* (home11) No pinned stage at any width: the playhead follows the timeline's own pass up the screen, so the page never holds still under a scroll. */
 
   /* Phones: vertical. A 2 px rail fills down the left as the dot travels; each step lights as the dot reaches it. Captions are always readable. */
   @media (max-width: 734px) {

@@ -13,7 +13,7 @@
      .bd-shine   a thin crest line per flute
      .bd::after  the glass's grain
    The colours are set so that body text keeps AA over the brightest streak plus the light: dark --muted (#c8c5bf) needs the background at relative
-   luminance 0.086 or less, light --muted (#5f5d58) needs 0.668 or more. Everything that moves changes transform or opacity only. Under still or
+   luminance 0.086 or less, light --muted (#5f5d58) needs 0.668 or more (the darkest light seam). Everything that moves changes transform or opacity only. Under still or
    reduced motion the field is a single still screen holding all three hues, and the lights never show. */
 @layer components {
   /* The body's own colour would cover a z-index -1 layer; while the field is mounted it shows through. The html keeps --bg as the canvas. */
@@ -61,13 +61,14 @@
     }
   }
 
-  /* Light theme: pale reeded glass. Pastel periwinkle, blush and mint behind white crest lines and faint navy seams. */
+  /* Light theme: pearl reeded glass (round 10). A pale lavender-white base, pastel periwinkle, lilac, blush and mint a touch clearer than
+     before, so the flutes (overlay, below) tint them instead of greying them. The footer's light glass starts from the same base (footer.css). */
   :root:not([data-theme='dark']) .bd {
-    --g-base: #eef0f5;
-    --g-navy: #e3e7f8;
-    --g-violet: #ece6f8;
-    --g-ox: #f6e3e6;
-    --g-green: #e0f0e7;
+    --g-base: #eff0f7;
+    --g-navy: #e1e6fa;
+    --g-violet: #ebe4fa;
+    --g-ox: #f8e2e8;
+    --g-green: #ddf1e6;
     /* Light is brighter here, which only raises text contrast. No crimson tone: it would darken the glass beside the button. */
     --g-bloom: rgb(255 255 255 / 0.55);
     --g-bloom-action: rgb(255 255 255 / 0.55);
@@ -185,30 +186,46 @@
     );
   }
 
-  /* Light theme: overlay barely marks a pale ground, so the flutes blend normally, a white streak and a faint navy seam. Normal blending would
-     stripe the whole page, so they are masked to a window lit from the upper right (and two softer pools), fixed like the flutes: the left text
-     column stays calm. */
+  /* Light theme (round 10): the same overlay flutes as the dark glass, even across the whole width, with no window mask. Overlay darkens a seam by
+     how far the colour behind is from white, channel by channel, so on the pearl base the flutes are a whisper and in a pastel they pick up its
+     hue (a periwinkle stripe in the periwinkle, a blush one in the blush), never a grey bar. The seam is lighter than in the dark (.28, not .6),
+     which keeps the darkest seam over the clearest pastel near luminance 0.73 (light --muted needs 0.668). Calm behind text everywhere. */
   :root:not([data-theme='dark']) .bd-ribs {
+    background: repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.28) 0,
+      rgb(0 0 0 / 0.1) calc(var(--rib) * 0.22),
+      rgb(255 255 255 / 0) calc(var(--rib) * 0.5),
+      rgb(255 255 255 / 0.36) calc(var(--rib) * 0.74),
+      rgb(255 255 255 / 0.09) calc(var(--rib) * 0.9),
+      rgb(0 0 0 / 0.28) var(--rib)
+    );
+  }
+
+  /* The flat fallback in light: no blend, a faint lilac seam and a white streak. */
+  :root:not([data-theme='dark']) .bd[data-glass='flat'] .bd-ribs {
     mix-blend-mode: normal;
     background: repeating-linear-gradient(
       90deg,
-      rgb(36 44 92 / 0.06) 0,
-      rgb(36 44 92 / 0.025) calc(var(--rib) * 0.22),
+      rgb(92 80 180 / 0.035) 0,
+      rgb(92 80 180 / 0.012) calc(var(--rib) * 0.22),
       rgb(255 255 255 / 0) calc(var(--rib) * 0.5),
-      rgb(255 255 255 / 0.7) calc(var(--rib) * 0.74),
-      rgb(255 255 255 / 0.18) calc(var(--rib) * 0.9),
-      rgb(36 44 92 / 0.06) var(--rib)
+      rgb(255 255 255 / 0.4) calc(var(--rib) * 0.74),
+      rgb(255 255 255 / 0.1) calc(var(--rib) * 0.9),
+      rgb(92 80 180 / 0.035) var(--rib)
     );
-    -webkit-mask-image:
-      radial-gradient(40% 30% at 88% 0%, #000, transparent), radial-gradient(30% 30% at 6% 40%, rgb(0 0 0 / 0.6), transparent),
-      radial-gradient(40% 32% at 92% 100%, rgb(0 0 0 / 0.8), transparent);
-    mask-image:
-      radial-gradient(40% 30% at 88% 0%, #000, transparent), radial-gradient(30% 30% at 6% 40%, rgb(0 0 0 / 0.6), transparent),
-      radial-gradient(40% 32% at 92% 100%, rgb(0 0 0 / 0.8), transparent);
   }
 
+  /* A white crest line per flute, as on the dark glass: the pearl's sheen. */
   :root:not([data-theme='dark']) .bd-shine {
-    display: none;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(var(--rib) * 0.72),
+      rgb(255 255 255 / 0.14) calc(var(--rib) * 0.74),
+      transparent calc(var(--rib) * 0.8),
+      transparent var(--rib)
+    );
   }
 
   /* Focus: the field calms everywhere (the veil) while the halo lights the glass around the hovered or focused element. */

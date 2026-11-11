@@ -5,7 +5,8 @@
     /* A low band: the street is a backdrop under the deck, noticed second. */
     --street-h: clamp(240px, 30vh, 300px);
     /* The deck's height, as frames.css sizes it, so the cast can stand at the right distances from it. */
-    --hero-reel: clamp(440px, calc(100svh - 360px), 540px);
+    /* (home11) A touch smaller than before (540 at most, 100svh - 360): the deck and its views card now clear the nav and the fold with air. */
+    --hero-reel: clamp(420px, calc(100svh - 400px), 520px);
     --fw: calc(var(--hero-reel) * 280 / 580);
     /* One design pixel at the 280 x 580 phone the staging was drawn at. */
     --u: calc(var(--hero-reel) / 580);
@@ -19,8 +20,10 @@
     /* The footpath's edges (--floor-*) are measured against the hero's width: the street is as wide as the hero. */
     container-type: inline-size;
     min-height: clamp(720px, 100svh, 960px);
-    /* clip, never hidden: nothing sticky is affected, and the deck's shadow and the cast's boxes stay inside. */
-    overflow: clip;
+    /* clip, never hidden: nothing sticky is affected. Sideways only (home11): the deck's tilted back cards hang a few px below the footpath, and a clip
+       on y sliced them flat along the hero's bottom edge, the hard line between the hero and Work. */
+    overflow-x: clip;
+    overflow-y: visible;
   }
 
   .hero > .street-host {
@@ -36,12 +39,14 @@
     min-height: inherit;
   }
 
+  /* (home11) Centred in the room between the nav and the street's rooftops, so the copy and the deck share one centre line and neither hugs an edge. */
   .hero-copy {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: flex-start;
-    padding-top: calc(var(--nav-offset) + 48px);
-    padding-bottom: 32px;
+    padding-top: calc(var(--nav-offset) + 40px);
+    padding-bottom: calc(var(--street-h) * 0.5);
   }
 
   .hero-copy h1 {
@@ -62,7 +67,7 @@
   }
 
   .hero-proof {
-    margin-top: 36px;
+    margin-top: 44px;
   }
 
   /* The proof row: a number, a rating, the brands. Plain figures, painted with the first frame. */
@@ -77,7 +82,7 @@
     flex-direction: column-reverse;
     justify-content: flex-end;
     gap: 2px;
-    padding-inline: 24px;
+    padding-inline: 28px;
     border-left: 1px solid var(--line);
   }
 
@@ -164,11 +169,17 @@
     position: relative;
   }
 
+  /* (home11) --deck-x: the deck's centre in the stage. A little left of the middle on desktop, so Gola on the right stays inside the content edge and the
+     group reads centred against the copy. */
+  .hero-stage {
+    --deck-x: 46%;
+  }
+
   .hero-deck {
     --reel-h: var(--hero-reel);
     position: absolute;
     z-index: 2;
-    left: 50%;
+    left: var(--deck-x);
     bottom: var(--floor-back);
     translate: -50% 0;
   }
@@ -188,24 +199,24 @@
   }
 
   .hero-bolu {
-    right: calc(50% + var(--fw) / 2 - 24 * var(--u));
+    right: calc(100% - var(--deck-x) + var(--fw) / 2 - 24 * var(--u));
     bottom: var(--floor-front);
   }
 
   .hero-tiko {
-    left: calc(50% + var(--fw) / 2 - 22 * var(--u));
+    left: calc(var(--deck-x) + var(--fw) / 2 - 22 * var(--u));
     bottom: var(--floor-front);
   }
 
   .hero-sochu {
     z-index: 1;
-    right: calc(50% + var(--fw) / 2 + 136 * var(--u));
+    right: calc(100% - var(--deck-x) + var(--fw) / 2 + 120 * var(--u));
     bottom: var(--floor-back);
   }
 
   .hero-gola {
     z-index: 1;
-    left: calc(50% + var(--fw) / 2 + 150 * var(--u));
+    left: calc(var(--deck-x) + var(--fw) / 2 + 128 * var(--u));
     bottom: var(--floor-back);
   }
 
@@ -267,8 +278,9 @@
     }
 
     .hero-stage {
-      height: calc(var(--hero-reel) + 160px);
-      margin-top: 32px;
+      --deck-x: 50%;
+      height: calc(var(--hero-reel) + 176px);
+      margin-top: 40px;
     }
   }
 
@@ -281,7 +293,7 @@
     }
 
     .hero-copy {
-      padding-top: calc(var(--nav-offset) + 20px);
+      padding-top: calc(var(--nav-offset) + 28px);
     }
 
     .hero-copy h1 {
@@ -364,7 +376,7 @@
 
     .hero-stage {
       height: calc(var(--hero-reel) + 150px);
-      margin-top: 24px;
+      margin-top: 32px;
     }
 
     /* Phones: the deck sits right of centre so the street shows on the left; Bolu on the left and Tiko on the right, the back two step off. */
@@ -427,30 +439,36 @@
     margin-bottom: 48px;
   }
 
+  /* (home11) Three reels as true 9:16 frames, so a vertical video shows whole, then the three stats stacked in the fourth column. The frames' width
+     sets their height (aspect-ratio), and the three stat rows share it: no fixed row heights, nothing that moves when the posters arrive. */
   .work-bento {
     display: grid;
     gap: var(--gap);
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: repeat(3, 167px);
+    grid-template-rows: repeat(3, minmax(0, 1fr));
   }
 
-  .work-slot-lead {
-    grid-column: span 2;
+  .work-slot {
     grid-row: span 3;
   }
 
-  .work-bento[data-single] .work-slot-lead {
-    grid-column: span 3;
+  .work-stat {
+    grid-column: 4;
   }
 
-  .work-slot-next {
-    grid-row: span 3;
+  /* Fewer than three reels: the stats take the columns left over. */
+  .work-bento[data-reels='2'] .work-stat {
+    grid-column: 3 / -1;
+  }
+
+  .work-bento[data-reels='1'] .work-stat {
+    grid-column: 2 / -1;
   }
 
   /* No overflow here: the tile inside has to be free to grow its 6 px on hover. */
   .work-reel {
     position: relative;
-    height: 100%;
+    aspect-ratio: 9 / 16;
     border-radius: var(--r-tile);
     isolation: isolate;
   }
@@ -516,6 +534,9 @@
     gap: var(--gap);
     padding-inline: var(--bleed);
     overflow-x: auto;
+    /* (home11) overflow-x: auto makes the y axis a scroller too, and the tip-in and hover lift overflow it by a few px: a vertical wheel or swipe
+       then latched onto the rail and the page stopped. Hidden on y: only the page scrolls vertically, the rail only sideways. */
+    overflow-y: hidden;
     overscroll-behavior-x: contain;
     scroll-padding-inline: var(--bleed);
     scroll-snap-type: x proximity;
@@ -587,24 +608,21 @@
     }
   }
 
+  /* Tablets: the three reels side by side, the stats as a row under them. */
   @media (max-width: 1068px) and (min-width: 735px) {
     .work-bento {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      grid-template-rows: minmax(0, 1fr) 150px;
-      aspect-ratio: 1 / 1;
+      grid-template-rows: auto minmax(150px, auto);
     }
 
-    .work-slot-lead {
-      grid-column: span 2;
-      grid-row: auto;
+    .work-slot {
+      grid-row: 1;
     }
 
-    .work-bento[data-single] .work-slot-lead {
-      grid-column: span 3;
-    }
-
-    .work-slot-next {
-      grid-row: auto;
+    .work-stat,
+    .work-bento[data-reels] .work-stat {
+      grid-column: auto;
+      grid-row: 2;
     }
 
     .work-empty {
@@ -627,34 +645,39 @@
       margin-bottom: 32px;
     }
 
+    /* Phones: two reels side by side, then the third beside the three stats. */
     .work-bento {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-rows: auto repeat(3, minmax(0, 1fr));
     }
 
-    .work-slot-lead,
-    .work-bento[data-single] .work-slot-lead {
-      grid-column: 1 / -1;
-      grid-row: auto;
+    .work-slot-a {
+      grid-column: 1;
+      grid-row: 1;
     }
 
-    .work-slot-lead > .work-reel {
-      height: auto;
-      aspect-ratio: 4 / 5;
+    .work-slot-b {
+      grid-column: 2;
+      grid-row: 1;
     }
 
-    .work-slot-next {
+    .work-slot-c {
       grid-column: 1;
       grid-row: 2 / span 3;
     }
 
-    .work-slot-next > .work-reel {
-      height: auto;
-      aspect-ratio: 9 / 16;
+    .work-stat,
+    .work-bento[data-reels] .work-stat {
+      grid-column: 2;
     }
 
-    .work-stat {
-      grid-column: 2;
+    /* One reel: it stands beside the stats. Two: the stats take a full row each under them. */
+    .work-bento[data-reels='1'] .work-slot-a {
+      grid-row: 1 / span 4;
+    }
+
+    .work-bento[data-reels='2'] .work-stat {
+      grid-column: 1 / -1;
     }
 
     .work-stat-in {
@@ -992,7 +1015,8 @@
   }
 
   /* The Army sentence (M2). Without JavaScript, under Pause animations and as the default markup: a centred sentence with the four sitting in their
-     slots, nothing pinned. Armed: a 220 vh stage (150 on phones) whose box stays in the viewport while the four fly in. */
+     slots, nothing pinned. Armed: a screen-tall box that scrolls with the page (home11: no longer pinned, so the scroll never holds still) while the
+     four fly in, driven by the box's own pass up the screen. */
   .army {
     position: relative;
     margin-top: 56px;
@@ -1006,15 +1030,12 @@
   }
 
   .army[data-armed] {
-    height: 220vh;
     margin-top: 0;
   }
 
   .army[data-armed] .army-sticky {
-    position: sticky;
-    top: 0;
-    height: 100svh;
-    padding-block: calc(var(--nav-offset) + 8px) 0;
+    height: clamp(460px, 66svh, 640px);
+    padding-block: 24px 0;
     overflow: clip;
   }
 
@@ -1032,7 +1053,7 @@
   }
 
   .army[data-armed] .army-sentence {
-    margin-bottom: 18vh;
+    margin-bottom: 14vh;
   }
 
   .army-phrase {
@@ -1081,8 +1102,8 @@
       margin-top: 40px;
     }
 
-    .army[data-armed] {
-      height: 150vh;
+    .army[data-armed] .army-sticky {
+      height: clamp(420px, 62svh, 540px);
     }
 
     .army-sentence {
@@ -1447,6 +1468,7 @@
       margin-top: 32px;
       padding-inline: 6.25%;
       overflow-x: auto;
+      overflow-y: hidden;
       overscroll-behavior-x: contain;
       scroll-padding-inline: 6.25%;
       scroll-snap-type: x proximity;

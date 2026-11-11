@@ -2278,3 +2278,13 @@
     transition: none;
   }
 }
+
+/* (home11) Horizontal scrollers never scroll vertically. overflow-x: auto turns the y axis into a scroller too, and a few px of tip-in, hover lift or
+   focus ring overflowing it was enough for a vertical wheel or swipe to latch onto the strip and stop the page. Hidden on y, the page always takes the
+   vertical gesture and the strip only the sideways one (the browser's own axis lock). Nothing here clips more than before: these already clipped on y. */
+@layer components {
+  :is(.cring-row, .lib-facets, .chip-rail, .tab-bar, .bw-slides, .bp-table-scroll),
+  :root[data-still] .marquee {
+    overflow-y: hidden;
+  }
+}

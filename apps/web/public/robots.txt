@@ -1,0 +1,25 @@
+# Kreators.Army. Every crawler is welcome, search engines and AI and answer engines alike. Only the admin and the API are off limits.
+# The blog is prerendered, so crawlers that do not run JavaScript read every post in full. /llms.txt has a summary for AI tools.
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api
+
+# Named so the choice is explicit: AI crawlers and answer engines may read and cite the whole site, the blog included.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
+Allow: /
+Disallow: /admin
+Disallow: /api
+
+Sitemap: https://kreators.army/sitemap.xml

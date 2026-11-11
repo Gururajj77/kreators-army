@@ -4,8 +4,9 @@ import { Character, cascade, type CastId, type CharacterHandle } from '../../cas
 import { ARMY_SENTENCE, FOOTER_CAST_ORDER } from '../../lib/content';
 import { useMotionOk } from '../../lib/motionOk';
 
-// The Army sentence (motion M2, V2-SPEC 5.2 row 3): one sticky stage, 220 vh on desktop and 150 vh on phones. The four stand in a line-up at the bottom;
-// as the page scrolls each flies into its slot in the sentence, just before its own phrase, which brightens as it lands. Then the sentence holds, whole.
+// The Army sentence (motion M2, V2-SPEC 5.2 row 3): a screen-tall box that scrolls with the page (home11: no longer a pinned 220 vh stage, which held
+// the page still under the visitor's scroll and read as stuck). The four stand in a line-up at the bottom; as the box rises up the screen each flies
+// into its slot in the sentence, just before its own phrase, which brightens as it lands. All four have landed by the time the box is centred.
 //
 // The markup with no JavaScript, under Pause animations, or if motion is refused is the end state: no pinning, the four already sitting in their slots
 // (their rest pose needs no rig). Motion opts in from there. Words and slots are aria-hidden; screen readers get the plain sentence once.
@@ -78,11 +79,13 @@ export function ArmySentence() {
   // Opted in after the first paint, so the static end state is what renders without JavaScript.
   const [armed, setArmed] = useState(false);
   const live = armed && ok;
-  const { scrollYProgress: p } = useScroll({ target: stage, offset: ['start start', 'end end'] });
+  // 0 as the box's top enters the bottom tenth of the screen, 1 as its bottom leaves the top tenth: the flights (0.12 to 0.5) run while the box rises
+  // from the lower screen to about the middle, and the sentence then stays whole as it scrolls away.
+  const { scrollYProgress: p } = useScroll({ target: stage, offset: ['start 90%', 'end 10%'] });
 
   useLayoutEffect(() => setArmed(true), []);
 
-  // Where everything is, inside the sticky box (offsets inside it do not change while it is pinned).
+  // Where everything is, inside the box (offsets inside it do not change as it scrolls).
   useLayoutEffect(() => {
     const box = sticky.current;
     if (!live || !box || !sentence) return;

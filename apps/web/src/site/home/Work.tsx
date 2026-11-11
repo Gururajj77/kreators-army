@@ -9,8 +9,9 @@ import { TileSkeletons, VideoTile } from '../../components/video';
 import { IMPACT, RESULTS_NOTE, type Stat } from '../../lib/content';
 import { motionOk } from '../../lib/motionOk';
 
-// Work (V2-SPEC 5.2 row 2): the two biggest reels as card frames with stickers, three stat tiles with the odometer, then the rail, whose frames tip in
-// (M10) and which ends on a deck of posters. Reel 1 previews by the one rule of 3.4 (desktop only, one video on the page at a time: the hero deck's
+// Work (V2-SPEC 5.2 row 2): the three biggest reels as full 9:16 frames with stickers (home11: the lead used to be a near-square cell that cropped the
+// vertical video; now every reel shows whole), three stat tiles with the odometer, then the rail, whose frames tip in (M10) and which ends on a deck of
+// posters. Reel 1 previews by the one rule of 3.4 (desktop only, one video on the page at a time: the hero deck's
 // front card has the token first, and Reel 1 takes it when the deck leaves the screen).
 
 /** The biggest tile: a muted preview while it is well in view (where the device and the video allow it), and its own pause control then. */
@@ -31,7 +32,7 @@ const STAT_TONES: TileTone[] = ['sochu', 'plate', 'plate'];
 
 function StatTile({ stat, tone, i, last }: { stat: Stat; tone: TileTone; i: number; last: boolean }) {
   return (
-    <Reveal i={i + 2} className="work-stat">
+    <Reveal i={i + 3} className="work-stat">
       <Tile tone={tone} className="h-full">
         <div className="work-stat-in">
           <p className="work-stat-label">{stat.label}</p>
@@ -151,9 +152,14 @@ function WorkEmpty({ failed, onRetry, shown }: { failed: boolean; onRetry: () =>
   );
 }
 
+const SLOTS = ['a', 'b', 'c'] as const;
+
 export function Work({ videos, loading, failed, onRetry, onOpen }: { videos: Video[]; loading: boolean; failed: boolean; onRetry: () => void; onOpen: (v: Video) => void }) {
   const byViews = [...videos].sort((a, b) => b.views - a.views);
-  const [first, second, ...rest] = byViews;
+  // The bento's three frames are 9:16, so vertical reels take them first (a landscape one would be cropped); the rail gets the rest, in views order.
+  const reels = [...byViews.filter((v) => v.aspect !== 'landscape'), ...byViews.filter((v) => v.aspect === 'landscape')].slice(0, SLOTS.length);
+  const rest = byViews.filter((v) => !reels.includes(v));
+  const [first] = reels;
   const empty = !loading && !first;
 
   return (
@@ -173,30 +179,25 @@ export function Work({ videos, loading, failed, onRetry, onOpen }: { videos: Vid
           />
         </div>
 
-        <div className="wrap work-bento" data-single={!second && !empty && !loading ? '' : undefined}>
-          {loading && (
-            <>
-              <div className="work-slot-lead">
+        <div className="wrap work-bento" data-reels={loading ? SLOTS.length : empty ? undefined : reels.length}>
+          {loading &&
+            SLOTS.map((k) => (
+              <div key={k} className={`work-slot work-slot-${k}`}>
                 <div className="work-reel skeleton" />
               </div>
-              <div className="work-slot-next">
-                <div className="work-reel skeleton" />
-              </div>
-            </>
-          )}
+            ))}
           <WorkEmpty failed={failed} onRetry={onRetry} shown={empty} />
-          {first && (
-            <Reveal className="work-slot-lead">
-              <LeadReel video={first} onOpen={onOpen} />
+          {reels.map((v, i) => (
+            <Reveal key={v.id} i={i} className={`work-slot work-slot-${SLOTS[i]}`}>
+              {i === 0 ? (
+                <LeadReel video={v} onOpen={onOpen} />
+              ) : (
+                <div className="work-reel">
+                  <VideoTile video={v} onOpen={onOpen} variant="bento" sticker />
+                </div>
+              )}
             </Reveal>
-          )}
-          {second && (
-            <Reveal i={1} className="work-slot-next">
-              <div className="work-reel work-reel-next">
-                <VideoTile video={second} onOpen={onOpen} variant="bento" sticker />
-              </div>
-            </Reveal>
-          )}
+          ))}
           {IMPACT.map((stat, i) => (
             <StatTile key={stat.label} stat={stat} tone={STAT_TONES[i] ?? 'plate'} i={i} last={i === IMPACT.length - 1} />
           ))}

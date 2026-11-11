@@ -1,0 +1,19 @@
+import type { PostMeta } from '../types';
+
+const meta: PostMeta = {
+  slug: 'vox-pop-mofu-content-strategy',
+  title: 'MoFu content with vox pops: the middle of the funnel',
+  metaTitle: 'MoFu content with vox pops | Kreators.Army',
+  description: 'Middle-of-funnel content earns trust from people who already know you. How vox pops fill the gap: the two-answer rule, city lenses and a one-week loop.',
+  primaryQuery: 'mofu content',
+  secondaryQueries: ['middle of funnel content ideas', 'mofu video content', 'consideration stage content', 'mofu content examples', 'two answer rule interview'],
+  datePublished: '2026-11-11',
+  dateModified: '2026-11-11',
+  readingMinutes: 30,
+  author: { kind: 'organization', name: 'Kreators.Army' },
+  category: 'Plan',
+  tags: ['mofu', 'funnel', 'strategy', 'questions', 'india'],
+  hero: { brand: 'CircleStore', title: 'Trust Blindly' },
+};
+
+export default meta;

@@ -2,17 +2,28 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { blogPrerender } from './scripts/blogPrerender';
+import { blogSummary } from './scripts/blogSummary';
 
 // Lazy chunks with fixed names, keyed by the module that starts each one (see build.rollupOptions.output).
-const NAMED_CHUNKS: [RegExp, string][] = [
+const NAMED_CHUNKS: [RegExp, string | ((m: RegExpExecArray) => string)][] = [
   [/\/src\/admin\/AdminApp\.tsx$/, 'admin'],
   [/\/src\/components\/street\/StreetScene\.tsx$/, 'street-far'],
   [/\/src\/components\/street\/art-full\.ts$/, 'street-full'],
   // (pv) The clip muxers, loaded by the admin's "Thumbnails & previews" only: admin-* names keep them out of the service worker's precache.
   [/\/node_modules\/mp4-muxer\//, 'admin-mp4-muxer'],
   [/\/node_modules\/webm-muxer\//, 'admin-webm-muxer'],
+  // (blogcore10) Each blog post's body is its own chunk, post-<slug>-*.js: loaded when its page opens, and kept out of the precache below.
+  [/\/src\/blog\/posts\/([a-z0-9-]+)\.ts$/, (m) => `post-${m[1]}`],
 ];
-const namedChunk = (facade: string | null) => (facade ? NAMED_CHUNKS.find(([re]) => re.test(facade))?.[1] : undefined);
+const namedChunk = (facade: string | null) => {
+  if (!facade) return undefined;
+  for (const [re, name] of NAMED_CHUNKS) {
+    const m = re.exec(facade);
+    if (m) return typeof name === 'string' ? name : name(m);
+  }
+  return undefined;
+};
 // Vite names a chunk's stylesheet after the chunk's own name (its entry file). The street's two paint sheets (paint-*.css, paint-full-*.css) are shared
 // with How we work's vignettes, so they keep their own names; scripts/perf-budget.mjs counts them with the street chunks.
 const NAMED_CSS: Record<string, string> = { AdminApp: 'admin', StreetScene: 'street-far', 'art-full': 'street-full' };
@@ -21,6 +32,10 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    // (blogcore10) After the client bundle: every blog post and the index as static HTML, sitemap.xml, /blog/rss.xml and /llms.txt (scripts/blogPrerender.ts).
+    blogPrerender(),
+    // (bento10) Each post's widgets and framework names for the index tiles, read from the post file (scripts/blogSummary.ts).
+    blogSummary(),
     VitePWA({
       registerType: 'autoUpdate',
       // The nav logo and the hero's client logos (about 48 kB) keep the shell whole offline. The reels' posters stay out: their videos cannot play offline.
@@ -51,6 +66,12 @@ export default defineConfig({
         // No runtime route for /api/* or /media/* (a MEGA stream is ranged and private to the Worker's cache), and /admin is never served from here:
         // it is not precached and its navigations always go to the network (V2-SPEC 2.13 item 7).
         runtimeCaching: [
+          // (blogcore10) A blog post's body chunk, once read, stays for offline reading. Names carry a content hash, so cache-first is safe.
+          {
+            urlPattern: ({ url }) => /^\/assets\/post-[a-z0-9-]+-[A-Za-z0-9_-]+\.js$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: { cacheName: 'blog-posts', expiration: { maxEntries: 40 } },
+          },
           {
             urlPattern: ({ request, url }) =>
               request.mode === 'navigate' && !url.pathname.startsWith('/api/') && !url.pathname.startsWith('/media/') && !url.pathname.startsWith('/admin'),
@@ -64,7 +85,8 @@ export default defineConfig({
         ],
         // svg keeps the cast's plates available offline. The admin chunk is never precached.
         globPatterns: ['**/*.{js,css,html,woff2,svg}'],
-        globIgnores: ['**/admin-*.js', '**/admin-*.css'],
+        // (blogcore10) The blog's prerendered pages and post bodies are fetched when read, not installed with the app: 22 posts would add about 1 MB.
+        globIgnores: ['**/admin-*.js', '**/admin-*.css', 'blog.html', 'blog/**', '**/post-*.js'],
       },
     }),
   ],
@@ -76,9 +98,12 @@ export default defineConfig({
         // Lazy chunks named by the module that starts them, not with manualChunks: a manual chunk swallows its unassigned dependencies, which would pull
         // the app's own shared code into the admin chunk and the admin into the first download. admin-*.js and admin-*.css are never precached or
         // preloaded; the street splits into the skyline with the scene's code and styles (street-far) and the rest of the drawing (street-full).
-        chunkFileNames: (chunk) => `assets/${namedChunk(chunk.facadeModuleId) ?? '[name]'}-[hash].js`,
+        // (blogcore10) The blog's shared chunk (the registry, every post's meta and the renderer) and its stylesheet are blog-*.js and blog-*.css.
+        chunkFileNames: (chunk) =>
+          `assets/${namedChunk(chunk.facadeModuleId) ?? (chunk.moduleIds.some((id) => id.endsWith('/src/blog/registry.ts')) ? 'blog' : '[name]')}-[hash].js`,
         assetFileNames: (asset) => {
           const name = asset.names[0] ?? '';
+          if (name.endsWith('.css') && typeof asset.source === 'string' && asset.source.includes('.post-toc')) return 'assets/blog-[hash][extname]';
           const named = NAMED_CSS[name.replace(/\.css$/, '')];
           return named && name.endsWith('.css') ? `assets/${named}-[hash][extname]` : 'assets/[name]-[hash][extname]';
         },

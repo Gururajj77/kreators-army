@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { motionOk } from '../../lib/motionOk';
 import { FAR } from './art-far';
-import { SKYLINE } from './art-skyline';
+import { SKYLINE, SKYLINE_HAZE, SKYLINE_MIDS } from './art-skyline';
 import './paint.css';
 import '../../styles/street.css';
 
@@ -20,8 +20,9 @@ const loadFull = () => import('./art-full').then((m) => (fullArt = m));
 /** The markup for one scene. */
 function markup(variant: StreetVariant, full: Full | null): string {
   const sky = '<div class="street-sky"></div>';
-  // The footer keeps its own fuller night skyline (art-skyline, painted in paint.css); the heroes keep the quiet far layer.
-  if (variant === 'skyline') return sky + SKYLINE;
+  // The footer keeps its own fuller night skyline (art-skyline, painted in paint.css); the heroes keep the quiet far layer. Round 11: the footer's
+  // landscape is three deep, back to front: the far city (rising toward the band's buttons), the middle distance, then the skyline and its train.
+  if (variant === 'skyline') return sky + SKYLINE_HAZE + SKYLINE_MIDS + SKYLINE;
   if (!full) return sky + FAR;
   return sky + FAR + full.MID + full.NEAR;
 }
@@ -64,20 +65,23 @@ export function StreetArt({ variant, time = 'auto', cue }: StreetArtProps) {
     return () => cancelAnimationFrame(raf);
   }, [ready]);
 
-  // The footer's one ambient pass: the train crosses once when the skyline first comes into view on this page view. Never under still.
+  // The footer's one ambient pass: the train crosses once when the skyline first comes into view on this page view. Never under still. The
+  // landscape is tall (it rises to the band's buttons), so the watch is on the base layer that carries the viaduct, at half in view: the train
+  // starts when its track is on screen.
   useEffect(() => {
     const el = ref.current;
     if (variant !== 'skyline' || !ready || !el) return;
     el.removeAttribute('data-train');
+    const base = el.querySelector('.street-far') ?? el;
     const io = new IntersectionObserver(
       ([e]) => {
         if (!e?.isIntersecting) return;
         io.disconnect();
         if (motionOk() && document.visibilityState !== 'hidden') requestAnimationFrame(() => el.setAttribute('data-train', ''));
       },
-      { threshold: 0.2 },
+      { threshold: base === el ? 0.2 : 0.5 },
     );
-    io.observe(el);
+    io.observe(base);
     return () => io.disconnect();
   }, [variant, ready, cue]);
 

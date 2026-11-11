@@ -42,8 +42,20 @@ function ScrollToHash() {
   return null;
 }
 
+/**
+ * The build's prerendered page (src/blog/prerender.tsx), kept before React replaces #root: while that page's chunks load, it stands in for the skeleton,
+ * so the article never blinks out. Only for the address it was rendered for.
+ */
+const PRERENDERED = (() => {
+  const main = document.querySelector('#root > main[data-prerendered]');
+  const inner = main?.firstElementChild;
+  return main && inner ? { path: main.getAttribute('data-prerendered'), html: inner.innerHTML } : null;
+})();
+
 /** Shaped like the page it stands in for, so the swap does not jump. Shown only on a cold load: after the first paint every route is prefetched. */
 function PageSkeleton() {
+  const { pathname } = useLocation();
+  if (PRERENDERED && PRERENDERED.path === pathname) return <div dangerouslySetInnerHTML={{ __html: PRERENDERED.html }} />;
   return (
     <div className="page-skeleton wrap" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading</span>

@@ -315,165 +315,169 @@ export function Footer() {
           </div>
         </section>
       )}
-      <div className="ft-body wrap">
-        <div className="ft-top">
-          <div className="ft-lead">
-            <div className="ft-reach">
-              <ul className="ft-contacts">
-                <li>
-                  <a className="ft-link ft-mail" href={`mailto:${SITE.email}`}>
-                    {SITE.email}
-                  </a>
-                </li>
-                {wa && phone ? (
-                  // The one number takes both: shown once, as "WhatsApp / Call +91 …".
+      {/* The landscape (round 11): one box from just under the band's buttons to the colour bar, the city rising behind the reach block and the
+          links, the skyline and its train at the base, behind the wordmark. */}
+      <div className="ft-land">
+        {/* The far city, the middle distance and the skyline (water tanks, the tower, the metro). Its train crosses once a page view, when its track first shows. */}
+        <Street variant="skyline" cue={pathname} className="ft-skyline" />
+        <div className="ft-body wrap">
+          <div className="ft-top">
+            <div className="ft-lead">
+              <div className="ft-reach">
+                <ul className="ft-contacts">
                   <li>
-                    <a className="ft-link" href={wa} target="_blank" rel="noreferrer">
-                      WhatsApp
-                    </a>
-                    {' / '}
-                    <a className="ft-link" href={`tel:${phone.tel}`}>
-                      Call {phone.display}
+                    <a className="ft-link ft-mail" href={`mailto:${SITE.email}`}>
+                      {SITE.email}
                     </a>
                   </li>
-                ) : (
-                  // No WhatsApp line: the one number, as a phone.
-                  callPhone() && (
+                  {wa && phone ? (
+                    // The one number takes both: shown once, as "WhatsApp / Call +91 …".
                     <li>
-                      <a className="ft-link" href={`tel:${callPhone()!.tel}`}>
-                        Call {callPhone()!.display}
+                      <a className="ft-link" href={wa} target="_blank" rel="noreferrer">
+                        WhatsApp
+                      </a>
+                      {' / '}
+                      <a className="ft-link" href={`tel:${phone.tel}`}>
+                        Call {phone.display}
                       </a>
                     </li>
-                  )
-                )}
-                <li className="ft-city">{SITE.city}</li>
-              </ul>
-              <ul className="ft-socials" onPointerEnter={(e) => e.pointerType === 'mouse' && wink()} onFocus={wink}>
-                {SOCIALS.map((s, i) => (
-                  <li key={s.label}>
-                    <a className="ft-social" href={s.url} target="_blank" rel="noreferrer" aria-label={s.label} data-who={FOOTER_CAST_ORDER[i]}>
-                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden focusable="false">
-                        {SOCIAL_ICON[s.label]}
-                      </svg>
-                    </a>
-                  </li>
+                  ) : (
+                    // No WhatsApp line: the one number, as a phone.
+                    callPhone() && (
+                      <li>
+                        <a className="ft-link" href={`tel:${callPhone()!.tel}`}>
+                          Call {callPhone()!.display}
+                        </a>
+                      </li>
+                    )
+                  )}
+                  <li className="ft-city">{SITE.city}</li>
+                </ul>
+                <ul className="ft-socials" onPointerEnter={(e) => e.pointerType === 'mouse' && wink()} onFocus={wink}>
+                  {SOCIALS.map((s, i) => (
+                    <li key={s.label}>
+                      <a className="ft-social" href={s.url} target="_blank" rel="noreferrer" aria-label={s.label} data-who={FOOTER_CAST_ORDER[i]}>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden focusable="false">
+                          {SOCIAL_ICON[s.label]}
+                        </svg>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <nav className="ft-nav" aria-label="Footer">
+              {FOOTER_GROUPS.map((group, i) => {
+                const who = FOOTER_CAST_ORDER[i] as CastId;
+                return (
+                  <div
+                    key={group.label}
+                    className="ft-group"
+                    data-who={who}
+                    onPointerEnter={(e) => e.pointerType === 'mouse' && glance(who, e.currentTarget)}
+                    onPointerLeave={(e) => e.pointerType === 'mouse' && letGo(who)}
+                    onFocus={(e) => glance(who, e.currentTarget)}
+                    onBlur={() => letGo(who)}
+                  >
+                    <h2 className="ft-group-title">{group.label}</h2>
+                    <ul>
+                      {group.links.map(([label, to]) => (
+                        <li key={to}>
+                          <Link className="ft-link" to={to}>
+                            {label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </nav>
+          </div>
+
+          <div className="ft-bar">
+            <p className="ft-legal">
+              © {new Date().getFullYear()} {SITE.name}. {operator[0]}
+              <a className="ft-owner" href={SITE.owner.url} target="_blank" rel="noreferrer">
+                {SITE.owner.name}
+              </a>
+              {operator[1]}
+            </p>
+            <div className="ft-bar-end">
+              <Link className="ft-link" to="/legal/privacy">
+                Privacy
+              </Link>
+              <Link className="ft-link" to="/legal/terms">
+                Terms
+              </Link>
+              <PauseSwitch />
+            </div>
+          </div>
+        </div>
+
+        <div className="ft-stage" ref={stage}>
+          <div className="ft-pools" aria-hidden>
+            {FOOTER_CAST_ORDER.map((who) => (
+              <span key={who} className="ft-pool" data-who={who} />
+            ))}
+          </div>
+
+          <div className="ft-word-box" style={{ aspectRatio: `${WORDMARK.width} / ${WORD_FLOOR}` }}>
+            <Link className="ft-mark" to="/" aria-label={`${SITE.name}, back to the home page`}>
+              <span className="ft-mark-ring" aria-hidden />
+              <svg className="ft-word" viewBox={WORDMARK.viewBox} aria-hidden focusable="false">
+                <defs>
+                  <path id="ft-word-path" d={WORDMARK.d} />
+                  {/* The four quarters of the word, each in its character's colour, breaking in the gaps between letters so no letter is split. */}
+                  <linearGradient id="ft-word-four" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={WORDMARK.width} y2="0">
+                    <stop offset={1932 / WORDMARK.width} stopColor="#6d61fe" />
+                    <stop offset={1932 / WORDMARK.width} stopColor="#fbd43f" />
+                    <stop offset={4347 / WORDMARK.width} stopColor="#fbd43f" />
+                    <stop offset={4347 / WORDMARK.width} stopColor="#47c349" />
+                    <stop offset={6171 / WORDMARK.width} stopColor="#47c349" />
+                    <stop offset={6171 / WORDMARK.width} stopColor="#ff8d3a" />
+                  </linearGradient>
+                  {/* Fluted like kreators.app's wordmark: its 14 px rib (a dark seam, a clear body, a white streak right of centre), drawn in the
+                      word's own units so the flutes scale with it (14 px at 1440). */}
+                  <linearGradient id="ft-word-rib">
+                    {WORD_RIB_STOPS.map(([at, color, alpha], i) => (
+                      <stop key={i} offset={at} stopColor={color} stopOpacity={alpha} />
+                    ))}
+                  </linearGradient>
+                  <pattern id="ft-word-ribs" patternUnits="userSpaceOnUse" width={WORD_RIB} height={WORDMARK.height}>
+                    <rect width={WORD_RIB} height={WORDMARK.height} fill="url(#ft-word-rib)" />
+                  </pattern>
+                </defs>
+                {['rest', 'lit'].map((k) => (
+                  <g key={k} className={`ft-word-${k}`}>
+                    <use href="#ft-word-path" fill="url(#ft-word-four)" />
+                    <use href="#ft-word-path" fill="url(#ft-word-ribs)" />
+                  </g>
                 ))}
-              </ul>
+              </svg>
+            </Link>
+
+            <div className="ft-cast">
+              {FOOTER_CAST_ORDER.map((who) => (
+                <span key={who} className="ft-char" style={{ '--x': pct(STANCE[who].x, WORDMARK.width), '--y': pct(STANCE[who].y, WORD_FLOOR) } as CSSProperties}>
+                  <Character
+                    ref={(h) => {
+                      cast.current[who] = h;
+                    }}
+                    who={who}
+                    size={CAST_SIZE}
+                  />
+                </span>
+              ))}
             </div>
           </div>
 
-          <nav className="ft-nav" aria-label="Footer">
-            {FOOTER_GROUPS.map((group, i) => {
-              const who = FOOTER_CAST_ORDER[i] as CastId;
-              return (
-                <div
-                  key={group.label}
-                  className="ft-group"
-                  data-who={who}
-                  onPointerEnter={(e) => e.pointerType === 'mouse' && glance(who, e.currentTarget)}
-                  onPointerLeave={(e) => e.pointerType === 'mouse' && letGo(who)}
-                  onFocus={(e) => glance(who, e.currentTarget)}
-                  onBlur={() => letGo(who)}
-                >
-                  <h2 className="ft-group-title">{group.label}</h2>
-                  <ul>
-                    {group.links.map(([label, to]) => (
-                      <li key={to}>
-                        <Link className="ft-link" to={to}>
-                          {label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div className="ft-bar">
-          <p className="ft-legal">
-            © {new Date().getFullYear()} {SITE.name}. {operator[0]}
-            <a className="ft-owner" href={SITE.owner.url} target="_blank" rel="noreferrer">
-              {SITE.owner.name}
-            </a>
-            {operator[1]}
-          </p>
-          <div className="ft-bar-end">
-            <Link className="ft-link" to="/legal/privacy">
-              Privacy
-            </Link>
-            <Link className="ft-link" to="/legal/terms">
-              Terms
-            </Link>
-            <PauseSwitch />
-          </div>
-        </div>
-      </div>
-
-      <div className="ft-stage" ref={stage}>
-        {/* The skyline behind the wordmark: water tanks, the tower, the metro. Its train crosses once a page view, when the footer first shows. */}
-        <Street variant="skyline" cue={pathname} className="ft-skyline" />
-        <div className="ft-pools" aria-hidden>
-          {FOOTER_CAST_ORDER.map((who) => (
-            <span key={who} className="ft-pool" data-who={who} />
-          ))}
-        </div>
-
-        <div className="ft-word-box" style={{ aspectRatio: `${WORDMARK.width} / ${WORD_FLOOR}` }}>
-          <Link className="ft-mark" to="/" aria-label={`${SITE.name}, back to the home page`}>
-            <span className="ft-mark-ring" aria-hidden />
-            <svg className="ft-word" viewBox={WORDMARK.viewBox} aria-hidden focusable="false">
-              <defs>
-                <path id="ft-word-path" d={WORDMARK.d} />
-                {/* The four quarters of the word, each in its character's colour, breaking in the gaps between letters so no letter is split. */}
-                <linearGradient id="ft-word-four" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={WORDMARK.width} y2="0">
-                  <stop offset={1932 / WORDMARK.width} stopColor="#6d61fe" />
-                  <stop offset={1932 / WORDMARK.width} stopColor="#fbd43f" />
-                  <stop offset={4347 / WORDMARK.width} stopColor="#fbd43f" />
-                  <stop offset={4347 / WORDMARK.width} stopColor="#47c349" />
-                  <stop offset={6171 / WORDMARK.width} stopColor="#47c349" />
-                  <stop offset={6171 / WORDMARK.width} stopColor="#ff8d3a" />
-                </linearGradient>
-                {/* Fluted like kreators.app's wordmark: its 14 px rib (a dark seam, a clear body, a white streak right of centre), drawn in the
-                    word's own units so the flutes scale with it (14 px at 1440). */}
-                <linearGradient id="ft-word-rib">
-                  {WORD_RIB_STOPS.map(([at, color, alpha], i) => (
-                    <stop key={i} offset={at} stopColor={color} stopOpacity={alpha} />
-                  ))}
-                </linearGradient>
-                <pattern id="ft-word-ribs" patternUnits="userSpaceOnUse" width={WORD_RIB} height={WORDMARK.height}>
-                  <rect width={WORD_RIB} height={WORDMARK.height} fill="url(#ft-word-rib)" />
-                </pattern>
-              </defs>
-              {['rest', 'lit'].map((k) => (
-                <g key={k} className={`ft-word-${k}`}>
-                  <use href="#ft-word-path" fill="url(#ft-word-four)" />
-                  <use href="#ft-word-path" fill="url(#ft-word-ribs)" />
-                </g>
-              ))}
-            </svg>
-          </Link>
-
-          <div className="ft-cast">
+          <div className="ft-band" aria-hidden>
             {FOOTER_CAST_ORDER.map((who) => (
-              <span key={who} className="ft-char" style={{ '--x': pct(STANCE[who].x, WORDMARK.width), '--y': pct(STANCE[who].y, WORD_FLOOR) } as CSSProperties}>
-                <Character
-                  ref={(h) => {
-                    cast.current[who] = h;
-                  }}
-                  who={who}
-                  size={CAST_SIZE}
-                />
-              </span>
+              <span key={who} className="ft-seg" data-who={who} />
             ))}
           </div>
-        </div>
-
-        <div className="ft-band" aria-hidden>
-          {FOOTER_CAST_ORDER.map((who) => (
-            <span key={who} className="ft-seg" data-who={who} />
-          ))}
         </div>
       </div>
     </footer>

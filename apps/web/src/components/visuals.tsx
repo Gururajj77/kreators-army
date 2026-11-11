@@ -10,8 +10,6 @@ import { CastBubble, ChatAvatar, useCastLine } from './chat';
 // (MechanismCard, MechanismChip, CreativeLoop, ControlSplit) live in components/demos, so their code and CSS stay out of the first download:
 // import them from '../components/demos'.
 
-const PHONE = '(max-width: 734px)';
-
 function whenInView(el: Element, ratio: number, fn: () => void): () => void {
   const io = new IntersectionObserver(
     (entries) => {
@@ -119,7 +117,7 @@ export interface TimelineStep {
 
 export interface EditTimelineProps {
   steps: readonly TimelineStep[];
-  /** 'stage': the playhead follows the scroll through a 160 vh pinned stage (Home #how-it-works). 'reveal': it crosses once, 600 ms a clip, at 50% in view. */
+  /** 'stage': the playhead follows the scroll as the timeline passes up the screen, unpinned (Home #how-it-works). 'reveal': it crosses once, 600 ms a clip, at 50% in view. */
   mode: 'stage' | 'reveal';
   /** 'ink' is the dark editing plate (default); 'plate' sits on a light band. */
   tone?: 'ink' | 'plate';
@@ -151,7 +149,6 @@ export function EditTimeline({ steps, mode, tone = 'ink', onStep, onDone, aside,
   const n = steps.length;
   const [armed, setArmed] = useState(false);
   // Read once: crossing the breakpoint later keeps the first layout's behaviour, which stays correct either way.
-  const [phone] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE).matches);
   const [active, setActive] = useState(n - 1);
   const reached = useRef(new Set<number>());
   const finished = useRef(false);
@@ -221,12 +218,13 @@ export function EditTimeline({ steps, mode, tone = 'ink', onStep, onDone, aside,
     };
   }, [armed, mode, n, land, setP]);
 
-  // Stage: the playhead follows the scroll. Desktop pins it in a 160 vh stage; phones follow the list itself, unpinned.
-  const { scrollYProgress } = useScroll({ target: stage, offset: phone ? ['start 75%', 'end 60%'] : ['start start', 'end end'] });
+  // Stage: the playhead follows the scroll as the timeline itself passes up the screen, at every width. Never pinned (home11): a pinned stage held the
+  // page still under the visitor's scroll, which read as the page being stuck.
+  const { scrollYProgress } = useScroll({ target: stage, offset: ['start 75%', 'end 60%'] });
   useEffect(() => {
     if (!armed || mode !== 'stage') return;
     const apply = (v: number) => {
-      const p = Math.min(1, Math.max(0, phone ? v : v * 1.12));
+      const p = Math.min(1, Math.max(0, v));
       setP(p);
       const k = p <= 0 ? -1 : Math.min(n - 1, Math.floor(p * n - 1e-6));
       if (k >= 0) land(k);
@@ -234,7 +232,7 @@ export function EditTimeline({ steps, mode, tone = 'ink', onStep, onDone, aside,
     };
     apply(scrollYProgress.get());
     return scrollYProgress.on('change', apply);
-  }, [armed, mode, phone, n, land, setP, scrollYProgress]);
+  }, [armed, mode, n, land, setP, scrollYProgress]);
 
   const lit = (k: number) => !armed || k <= active;
 

@@ -18,3 +18,6 @@ dist
 
 # MEGA test fixtures built by apps/api/test/mega/fixtures/build.mjs (vitest globalSetup)
 apps/api/test/mega/.out/
+
+# Third-party copywriting course notes (style reference only; not ours to publish)
+copy-os/

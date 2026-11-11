@@ -39,6 +39,15 @@
     --st-far-lit-o: 1;
     --st-train: #232341;
     --st-train-win: #ffd75e;
+    /* Round 11, the landscape behind the footer's links: the far city and the middle distance. Painted at full strength here; the footer lays
+       them down faint and soft (footer.css .ft-skyline), so these are a step brighter than the skyline's blocks. */
+    --st-hz: #2c3070;
+    --st-hz2: #343a80;
+    --st-hz-line: #3a3f86;
+    --st-hz-lit: #ffd75e;
+    --st-md: #2a2c5c;
+    --st-md2: #30325f;
+    --st-md-lit: #ffd75e;
   }
 
   .s-far {
@@ -66,5 +75,26 @@
   }
   .street[data-variant='skyline'] .s-train-win {
     opacity: 0.8;
+  }
+  .s-hz {
+    fill: var(--st-hz);
+  }
+  .s-hz2 {
+    fill: var(--st-hz2);
+  }
+  .s-hz-line {
+    stroke: var(--st-hz-line);
+  }
+  .s-hz-lit {
+    fill: var(--st-hz-lit);
+  }
+  .s-md {
+    fill: var(--st-md);
+  }
+  .s-md2 {
+    fill: var(--st-md2);
+  }
+  .s-md-lit {
+    fill: var(--st-md-lit);
   }
 }

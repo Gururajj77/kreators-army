@@ -134,6 +134,102 @@ function skyline() {
   return s;
 }
 
+// ---------- the footer's landscape: two deeper layers that rise from the skyline up toward the band's buttons (round 11) ----------
+// Drawn on taller canvases (2400 x 900 and 2400 x 600, bottom-aligned like every layer), so behind the links they read as the city's depth while
+// the skyline above (with the viaduct and its train) stays at the base. Calm by design: the footer paints them faint and soft (footer.css), a
+// distant haze that fades out toward the buttons, the nearer blocks lower. Windows are tiny, sparse and only a few are lit.
+const HAZE_H = 900;
+const MIDS_H = 600;
+const layerH = (cls, h, body) =>
+  `<svg class="street-layer ${cls}" viewBox="0 0 ${W} ${h}" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">${body}</svg>`;
+
+// The far city: slender towers in two clusters (a business district right of centre, a second one left), a TV mast and two cranes.
+function skylineHaze() {
+  seed = 23;
+  const g = (x, c, w) => Math.exp(-(((x - c) / w) ** 2));
+  const env = (x) => 330 + 520 * g(x, 1560, 300) + 380 * g(x, 760, 230) + 300 * g(x, 2120, 200) + 200 * g(x, 300, 220);
+  let s = '';
+  let lit = '';
+  let x = -20;
+  let k = 0;
+  while (x < W + 20) {
+    const w = 26 + rnd() * 48;
+    const h = env(x + w / 2) * (0.55 + rnd() * 0.45);
+    const top = HAZE_H - h;
+    const tone = k++ % 3 === 1 ? 's-hz2' : 's-hz';
+    s += `<rect class="${tone}" x="${r1(x)}" y="${r1(top)}" width="${r1(w)}" height="${r1(h)}"/>`;
+    const r = rnd();
+    if (r > 0.72 && h > 260) {
+      // a setback crown
+      const sw = w * (0.45 + rnd() * 0.25);
+      const sh = 18 + rnd() * 34;
+      s += `<rect class="${tone}" x="${r1(x + (w - sw) / 2)}" y="${r1(top - sh)}" width="${r1(sw)}" height="${r1(sh + 1)}"/>`;
+      if (rnd() > 0.5) s += `<rect class="${tone}" x="${r1(x + w / 2 - 1)}" y="${r1(top - sh - 26 - rnd() * 30)}" width="2" height="${r1(sh + 30)}"/>`;
+    } else if (r > 0.52 && h > 200) {
+      // a slanted roof
+      s += `<path class="${tone}" d="M${r1(x)} ${r1(top + 0.5)} L${r1(x + w)} ${r1(top - 16 - rnd() * 22)} L${r1(x + w)} ${r1(top + 0.5)} Z"/>`;
+    } else if (r > 0.4) {
+      // a rooftop mast
+      s += `<rect class="${tone}" x="${r1(x + w * (0.3 + rnd() * 0.4))}" y="${r1(top - 22 - rnd() * 18)}" width="1.6" height="${r1(42)}"/>`;
+    }
+    // A loose grid of windows; a few lit.
+    for (let wy = top + 14; wy < HAZE_H - 30; wy += 22) {
+      for (let wx = x + 6; wx < x + w - 8; wx += 11) {
+        if (rnd() > 0.93) lit += `<rect x="${r1(wx)}" y="${r1(wy)}" width="3.5" height="5"/>`;
+      }
+    }
+    x += w + 1 + rnd() * 8;
+  }
+  // the TV mast, slim and tall, with its pod
+  s += `<path class="s-hz-line" d="M1386 900 L1396 150 L1406 900 M1389 700 L1403 700 M1391 520 L1401 520 M1393 360 L1399 360" fill="none" stroke-width="2"/>`;
+  s += `<rect class="s-hz2" x="1386" y="236" width="20" height="16" rx="5"/><rect class="s-hz2" x="1395" y="96" width="2" height="56"/>`;
+  // two tower cranes over the new blocks
+  for (const [cx, cy, arm] of [
+    [560, 300, 170],
+    [1930, 360, -150],
+  ]) {
+    const a = arm > 0 ? cx - 40 : cx + 40;
+    s += `<path class="s-hz-line" d="M${cx} 900 L${cx} ${cy} M${a} ${cy} L${cx + arm} ${cy} M${cx} ${cy - 30} L${a} ${cy} M${cx} ${cy - 30} L${cx + arm * 0.8} ${cy} M${cx + arm * 0.7} ${cy} L${cx + arm * 0.7} ${cy + 60}" fill="none" stroke-width="2.4"/>`;
+  }
+  s += `<g class="s-hz-lit">${lit}</g>`;
+  return s;
+}
+
+// The middle distance: mid-rise blocks with rooftop water tanks on legs, a few domes and a soft tree line at their feet.
+function skylineMids() {
+  seed = 31;
+  let s = '';
+  let lit = '';
+  let x = -20;
+  let k = 0;
+  while (x < W + 20) {
+    const w = 50 + rnd() * 90;
+    const h = 120 + rnd() * 150 + (rnd() > 0.82 ? 90 : 0);
+    const top = MIDS_H - h;
+    const tone = k++ % 2 ? 's-md2' : 's-md';
+    s += `<rect class="${tone}" x="${r1(x)}" y="${r1(top)}" width="${r1(w)}" height="${r1(h)}"/>`;
+    const r = rnd();
+    if (r > 0.45) {
+      const tw = 12 + rnd() * 8;
+      const tx = x + 6 + rnd() * (w - tw - 12);
+      s += `<rect class="${tone}" x="${r1(tx)}" y="${r1(top - 14)}" width="${r1(tw)}" height="12" rx="2"/><rect class="${tone}" x="${r1(tx + 2)}" y="${r1(top - 3)}" width="2" height="4"/><rect class="${tone}" x="${r1(tx + tw - 4)}" y="${r1(top - 3)}" width="2" height="4"/>`;
+    } else if (r > 0.33) {
+      const dw = w * 0.5;
+      s += `<path class="${tone}" d="M${r1(x + w / 2 - dw / 2)} ${r1(top + 0.5)} A${r1(dw / 2)} ${r1(dw / 2.4)} 0 0 1 ${r1(x + w / 2 + dw / 2)} ${r1(top + 0.5)} Z"/>`;
+    }
+    for (let wy = top + 12; wy < MIDS_H - 40; wy += 18) {
+      for (let wx = x + 7; wx < x + w - 9; wx += 13) {
+        if (rnd() > 0.9) lit += `<rect x="${r1(wx)}" y="${r1(wy)}" width="4.5" height="6" rx="1"/>`;
+      }
+    }
+    x += w + 2 + rnd() * 14;
+  }
+  // a soft tree line at the base
+  for (let tx = -30; tx < W + 40; tx += 30 + rnd() * 24) s += `<circle class="s-md2" cx="${r1(tx)}" cy="${r1(MIDS_H - 18 - rnd() * 14)}" r="${r1(16 + rnd() * 14)}"/>`;
+  s += `<g class="s-md-lit">${lit}</g>`;
+  return s;
+}
+
 // ---------- mid: a row of shopfront silhouettes ----------
 function awning(x, y, w, tone) {
   const id = `aw${++uid}`;
@@ -379,6 +475,8 @@ const SKYLINE = layer('street-far', skyline());
 const MID = layer('street-mid', mid());
 const NEAR = layer('street-near', near());
 const VIGNETTES = vignettes();
+const SKYLINE_HAZE = layerH('street-haze', HAZE_H, skylineHaze());
+const SKYLINE_MIDS = layerH('street-mids', MIDS_H, skylineMids());
 
 mkdirSync(OUT, { recursive: true });
 const write = (file, body) => {
@@ -386,7 +484,10 @@ const write = (file, body) => {
   return body;
 };
 write('art-far.ts', `\n/** The skyline (far layer): a low haze of blocks and water tanks, the mobile tower, the metro viaduct and its train. The footer's whole street. */\nexport const FAR = ${JSON.stringify(FAR)};\n`);
-write('art-skyline.ts', `\n/** The footer's skyline: the fuller night city (taller blocks, water tanks on legs, lit windows, the tower, the viaduct and its train). Footer only. */\nexport const SKYLINE = ${JSON.stringify(SKYLINE)};\n`);
+write(
+  'art-skyline.ts',
+  `\n/** The footer's skyline: the fuller night city (taller blocks, water tanks on legs, lit windows, the tower, the viaduct and its train). Footer only. */\nexport const SKYLINE = ${JSON.stringify(SKYLINE)};\n\n/** The footer's far city (round 11): slender towers, a TV mast and two cranes, rising toward the band's buttons. Painted faint and soft. */\nexport const SKYLINE_HAZE = ${JSON.stringify(SKYLINE_HAZE)};\n\n/** The footer's middle distance (round 11): mid-rise blocks with water tanks and domes, and a tree line, between the far city and the skyline. */\nexport const SKYLINE_MIDS = ${JSON.stringify(SKYLINE_MIDS)};\n`,
+);
 write(
   'art-full.ts',
   `import './paint-full.css';\nimport './full.css';\n\n/** The shopfront row: walls, sign bands, flat awnings and shutters, a floor above some. */\nexport const MID = ${JSON.stringify(MID)};\n\n/** The footpath, a kerb line and the road. */\nexport const NEAR = ${JSON.stringify(NEAR)};\n`,
@@ -399,6 +500,8 @@ write(
 const kb = (s) => `${(s.length / 1000).toFixed(1)} kB raw, ${(gzipSync(s).length / 1000).toFixed(1)} kB gzip`;
 console.log(`far        ${kb(FAR)}`);
 console.log(`skyline    ${kb(SKYLINE)}`);
+console.log(`haze       ${kb(SKYLINE_HAZE)}`);
+console.log(`mids       ${kb(SKYLINE_MIDS)}`);
 console.log(`mid        ${kb(MID)}`);
 console.log(`near       ${kb(NEAR)}`);
 console.log(`full       ${kb(MID + NEAR)}`);
