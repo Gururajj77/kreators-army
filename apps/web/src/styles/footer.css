@@ -15,12 +15,18 @@
       radial-gradient(60% 90% at 62% 112%, color-mix(in oklab, #47c349 12%, transparent), transparent 70%),
       radial-gradient(60% 90% at 88% 112%, color-mix(in oklab, #ff8d3a 16%, transparent), transparent 70%);
 
+    /* The band's glass grain. The footer is dark in both themes, so it always takes the light speckle. */
+    --ft-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -.92'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
     position: relative;
     margin-top: var(--end-y);
     overflow: clip;
     border-radius: var(--r-footer) var(--r-footer) 0 0;
-    background-color: var(--c-ground);
+    /* The glass's own base, so the band's glass fades into the sheet without a seam. The sheet stays opaque. A stacking context, so the glass
+       (z-index -1) paints over the sheet and under all of the footer's content; it does not flatten the ring's preserve-3d. */
+    background-color: #07080f;
     background-image: var(--g-stage);
+    isolation: isolate;
     box-shadow:
       0 0 0 1px rgb(255 255 255 / 0.12),
       inset 0 1px 0 rgb(255 255 255 / 0.14);
@@ -44,8 +50,172 @@
 
   /* ---------- The ask: a centred band at the top of the footer, the card ring between its words and its buttons (library-slider-cta-spec §3) ---------- */
   .ft-band-cta {
+    /* Positioned for the glass, never a stacking context (no z-index, transform or opacity here): the glass sits at -1 in the sheet's context
+       and nothing in the band needs lifting, so the ring's 3D parents get nothing new. */
+    position: relative;
     padding-top: 80px;
     text-align: center;
+  }
+
+  /* ---------- The band's fractal glass (Footer.tsx FooterGlass; .work/v2/ref/fractal-glass-spec.md §2.b) ----------
+     kreators.app's closing-card recipe: a field of colour lit from the upper right (a pale core, violet, electric blue, a crimson edge, a deep navy
+     pool at the left, bottle green rising from the bottom), fixed upright flutes over it in overlay (a dark seam, a clear body, a bright streak
+     right of centre), a crest line per flute where the light is, a scrim pooled under the words, and grain. Only the field moves: an 8 s sideways
+     drift on the compositor while the band is on screen, plus a lean toward a fine pointer. The glass runs 160 px past the band and fades into
+     the sheet before the links. White and --ft-soft keep AA over it (scrim under the copy). Same dark glass in both themes. */
+  .ft-glass {
+    --rib: 18px;
+    --fg-base: #07080f;
+    --fg-blue: #2b3fc9;
+    --fg-deep: #1d2a8a;
+    --fg-crimson: #a0203f;
+    --fg-violet: #6d61fe;
+    --fg-green: #1a7a4a;
+    --fg-core: #e8e2ff;
+    position: absolute;
+    inset: 0 0 -160px 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    isolation: isolate;
+    background: var(--fg-base);
+    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 320px), transparent);
+    mask-image: linear-gradient(180deg, #000 calc(100% - 320px), transparent);
+  }
+
+  .ft-glass-lean,
+  .ft-glass-ribs,
+  .ft-glass-shine,
+  .ft-glass-scrim {
+    position: absolute;
+    inset: 0;
+  }
+
+  .ft-glass-lean {
+    transform: translate3d(var(--lean, 0px), 0, 0);
+    transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .ft-glass-field {
+    position: absolute;
+    inset: -6% -12%;
+    background:
+      radial-gradient(10% 16% at 82% 0%, var(--fg-core) 0%, transparent 100%),
+      radial-gradient(18% 28% at 92% 8%, color-mix(in srgb, var(--fg-violet) 90%, transparent) 0%, transparent 100%),
+      radial-gradient(24% 40% at 76% 32%, var(--fg-blue) 0%, transparent 100%),
+      radial-gradient(18% 32% at 99% 66%, color-mix(in srgb, var(--fg-crimson) 85%, transparent) 0%, transparent 100%),
+      radial-gradient(22% 36% at 4% 60%, color-mix(in srgb, var(--fg-deep) 80%, transparent) 0%, transparent 100%),
+      radial-gradient(16% 26% at 1% 88%, color-mix(in srgb, var(--fg-crimson) 55%, transparent) 0%, transparent 100%),
+      radial-gradient(34% 22% at 46% 104%, color-mix(in srgb, var(--fg-green) 45%, transparent) 0%, transparent 100%),
+      var(--fg-base);
+    /* Sine in-out, 8 s each way. Paused until the band is on screen and the tab is visible (data-run). */
+    animation: ft-glass-drift 8s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
+    animation-play-state: paused;
+    will-change: transform;
+  }
+
+  .ft-glass[data-run='true'] .ft-glass-field {
+    animation-play-state: running;
+  }
+
+  @keyframes ft-glass-drift {
+    from {
+      transform: translate3d(-5%, 0, 0);
+    }
+
+    to {
+      transform: translate3d(5%, 0, 0);
+    }
+  }
+
+  /* kreators.app's flute, unchanged. Alphas are literal (no calc() inside rgb()) for older Safari. */
+  .ft-glass-ribs {
+    mix-blend-mode: overlay;
+    background: repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.7) 0,
+      rgb(0 0 0 / 0.25) calc(var(--rib) * 0.22),
+      rgb(255 255 255 / 0) calc(var(--rib) * 0.5),
+      rgb(255 255 255 / 0.55) calc(var(--rib) * 0.74),
+      rgb(255 255 255 / 0.12) calc(var(--rib) * 0.9),
+      rgb(0 0 0 / 0.7) var(--rib)
+    );
+  }
+
+  .ft-glass-shine {
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(var(--rib) * 0.72),
+      rgb(255 255 255 / 0.22) calc(var(--rib) * 0.74),
+      transparent calc(var(--rib) * 0.8),
+      transparent var(--rib)
+    );
+    -webkit-mask-image: radial-gradient(40% 50% at 82% 8%, #000, transparent 75%);
+    mask-image: radial-gradient(40% 50% at 82% 8%, #000, transparent 75%);
+  }
+
+  /* The words are centred, so the scrim is a centred pool at the top of the band. The copy must stay inside it. */
+  .ft-glass-scrim {
+    background: radial-gradient(46% 34% at 50% 14%, rgb(7 8 15 / 0.86) 0%, rgb(7 8 15 / 0.62) 55%, transparent 100%);
+  }
+
+  .ft-glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--ft-grain);
+    opacity: 0.08;
+  }
+
+  @media (max-width: 734px) {
+    .ft-glass {
+      --rib: 14px;
+      inset: 0 0 -96px 0;
+    }
+
+    .ft-glass-scrim {
+      background: linear-gradient(180deg, rgb(7 8 15 / 0.8) 0%, rgb(7 8 15 / 0.55) 34%, transparent 60%);
+    }
+
+    /* The phone's own field: the glow comes on screen and sits low, in the ring and button zone, where there is no small text. */
+    .ft-glass-field {
+      inset: -4% -6%;
+      background:
+        radial-gradient(18% 10% at 86% 0%, var(--fg-core) 0%, transparent 100%),
+        radial-gradient(34% 18% at 96% 8%, color-mix(in srgb, var(--fg-violet) 90%, transparent) 0%, transparent 100%),
+        radial-gradient(46% 30% at 84% 56%, var(--fg-blue) 0%, transparent 100%),
+        radial-gradient(30% 22% at 100% 82%, color-mix(in srgb, var(--fg-crimson) 85%, transparent) 0%, transparent 100%),
+        radial-gradient(40% 26% at 2% 64%, color-mix(in srgb, var(--fg-deep) 90%, transparent) 0%, transparent 100%),
+        radial-gradient(30% 20% at 0% 92%, color-mix(in srgb, var(--fg-crimson) 60%, transparent) 0%, transparent 100%),
+        var(--fg-base);
+    }
+  }
+
+  /* Still or reduced motion: one frame, the field at rest, no lean. */
+  :root[data-still] .ft-glass-field {
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
+
+  :root[data-still] .ft-glass-lean {
+    transform: none;
+    transition: none;
+  }
+
+  /* Less transparency or more contrast asked for: the solid base alone. */
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .ft-glass > *,
+    .ft-glass::after {
+      display: none;
+    }
+  }
+
+  @media print {
+    .ft-glass {
+      display: none;
+    }
   }
 
   .ft-cta-copy {
@@ -146,7 +316,7 @@
     padding-top: 64px;
   }
 
-  /* The sheet is #111111 whichever theme is on, so its hairlines are set here. */
+  /* The sheet is near-black (#07080f) whichever theme is on, so its hairlines are set here. */
   .ft .btn-ghost {
     box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.28);
   }
@@ -490,9 +660,10 @@
     transition: transform 450ms var(--ease-open);
   }
 
+  /* At rest the word is fluted glass in the cast's four colours, faint, as kreators.app's; lit, the same at full strength. The flutes are an SVG
+     pattern over the word (Footer.tsx), so they stay crisp at every size. */
   .ft-word-rest {
-    fill: #ffffff;
-    opacity: 0.16;
+    opacity: 0.3;
   }
 
   .ft-word-lit {
@@ -527,7 +698,11 @@
   @media (hover: hover) and (pointer: fine) {
     :root:not([data-still]) .ft-mark:hover .ft-word,
     :root:not([data-still]) .ft-mark:hover .ft-mark-ring,
-    :root:not([data-still]) .ft-mark:hover ~ .ft-cast {
+    :root:not([data-still]) .ft-mark:hover ~ .ft-cast,
+    /* A character answers its own hover now (cast/hover.ts): hovering one lifts the word with the cast, as the word does, so nothing jumps. */
+    :root:not([data-still]) .ft-word-box:has(.ft-cast .k-char:hover) .ft-word,
+    :root:not([data-still]) .ft-word-box:has(.ft-cast .k-char:hover) .ft-mark-ring,
+    :root:not([data-still]) .ft-word-box:has(.ft-cast .k-char:hover) .ft-cast {
       transform: translateY(var(--ft-rise));
     }
   }
@@ -753,9 +928,9 @@
       height: 120px;
     }
 
-    /* A phone never sees the lit hover, and at this size 16% reads as a grey strip, not the word. Still static, still in the background. */
+    /* A phone never sees the lit hover, and at this size 30% reads as a dim strip, not the word. Still static, still in the background. */
     .ft-word-rest {
-      opacity: 0.26;
+      opacity: 0.4;
     }
   }
 }

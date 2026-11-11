@@ -6,7 +6,6 @@ import type { AppEnv, Env } from './env';
 import { blockedPath, NOINDEX, originAllowed, PAGE_HEADERS } from './headers';
 import { errorBody, HttpError } from './http';
 import { serveMedia } from './media';
-import { serveLegacy, serveVideo } from './mega/routes';
 import { servePoster } from './posters';
 import { servePreview } from './previews';
 import { admin } from './routes/admin/index';
@@ -63,6 +62,16 @@ function withPageHeaders(res: Response): Response {
   return out;
 }
 
+/**
+ * The two old MEGA stream addresses, with any query (?v=, ?preview=, ?probe=). The site plays MEGA's own embed now and the admin decrypts in
+ * the founder's browser, so the Worker never touches a MEGA video (a decrypted range ran past the free plan's 10 ms CPU and died as a 503).
+ * 410 rather than 404: a page or player cached from before learns at once that the address is gone for good, and nothing is read for it
+ * (no D1, no MEGA, no secret), so it costs next to no CPU. A day's cache keeps repeat asks off the Worker.
+ */
+function gone(): Response {
+  return new Response('gone', { status: 410, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=86400' } });
+}
+
 const STREAM = /^\/media\/v\/([A-Za-z0-9_-]{1,64})\.mp4$/;
 const LEGACY = /^\/media\/mega-([A-Za-z0-9_-]{8})\.mp4$/;
 const POSTER = /^\/media\/p\/([A-Za-z0-9_-]{1,64})\/([0-9a-f]{16})\.(webp|jpg|png)$/;
@@ -73,8 +82,8 @@ const PREVIEW = /^\/media\/pv\/([A-Za-z0-9_-]{1,64})\/([0-9a-f]{16})\.(mp4|webm)
  *  1. /api, /api/*            the Hono app (admin router at /api/admin)
  *  2. a path that holds nothing   404, never the app shell
  *  3. /admin, /admin/*        the app shell, never indexed or stored
- *  4. /media/v/<id>.mp4       MEGA stream by video id
- *  5. /media/mega-<h>.mp4     the live v1.5 MEGA address, from the same row
+ *  4. /media/v/<id>.mp4       410 Gone: the Worker no longer streams MEGA (see gone())
+ *  5. /media/mega-<h>.mp4     410 Gone, the same (the v1.5 address)
  *  6. /media/p/<id>/<sha>.<ext>   stored posters
  *  6b. /media/pv/<id>/<sha>.<ext>  stored hover previews (src/previews.ts)
  *  7. /media/*                bundled files with ranges
@@ -93,8 +102,7 @@ async function handle(req: Request, env: Env, ctx: ExecutionContext): Promise<Re
     return shell;
   }
   let m: RegExpExecArray | null;
-  if ((m = STREAM.exec(pathname))) return withPageHeaders(await serveVideo(req, env, ctx, m[1]!));
-  if ((m = LEGACY.exec(pathname))) return withPageHeaders(await serveLegacy(req, env, ctx, m[1]!));
+  if (STREAM.test(pathname) || LEGACY.test(pathname)) return withPageHeaders(gone());
   if ((m = POSTER.exec(pathname))) return withPageHeaders(await servePoster(req, env, ctx, m[1]!, m[2]!, m[3]!));
   if ((m = PREVIEW.exec(pathname))) return withPageHeaders(await servePreview(req, env, ctx, m[1]!, m[2]!, m[3]!));
   if (pathname.startsWith('/media/')) return withPageHeaders(await serveMedia(req, env.ASSETS));

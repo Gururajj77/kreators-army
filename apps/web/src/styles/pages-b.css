@@ -152,6 +152,8 @@
     font-variation-settings: 'opsz' 32;
     line-height: 52px;
     letter-spacing: -0.014em;
+    /* Seven lines and more: past balance's six-line limit, so pretty. */
+    text-wrap: pretty;
   }
 
   .fp-statement h2,

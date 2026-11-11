@@ -536,7 +536,7 @@ export function Kit() {
           <Cell label="StoryRing: unseen, seen, selected, dashed">
             <div className="kit-row">
               <StoryRing brand="FyndFlow" onSelect={() => setSelected((s) => !s)} selected={selected} />
-              <StoryRing brand="CircleStore.in" seen onSelect={() => undefined} />
+              <StoryRing brand="CircleStore" seen onSelect={() => undefined} />
               <StoryRing brand="Waxys.in" selected onSelect={() => undefined} />
               <StoryRing brand="Your brand" dashed to="/contact" caption="Your brand" />
             </div>

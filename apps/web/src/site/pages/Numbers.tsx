@@ -192,7 +192,7 @@ export default function Numbers() {
             titleClass="display"
             title={
               <>
-                The work, <span className="g-word">counted</span>
+                The work,&nbsp;<span className="g-word">counted</span>
               </>
             }
           />

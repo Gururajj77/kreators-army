@@ -61,7 +61,7 @@ d2('parseUploadDate', () => {
   });
   i2('the import reads an Upload date column', async () => {
     const { parseImport } = await import('./importLinks.ts');
-    const r = parseImport('Title,MEGA link,Upload date\nHello,https://mega.nz/file/NmU3lZjR#gPK2sRN8W0g0c69iQkFL4jsnt5dSZziHM9YjZMhEXxw,05/11/2026\nBad,https://mega.nz/file/AbCdEfGh#gPK2sRN8W0g0c69iQkFL4jsnt5dSZziHM9YjZMhEXxw,soon');
+    const r = parseImport('Title,MEGA link,Upload date\nHello,https://mega.nz/file/SyNtH001#SyNtHeTiCkEy0123456789abcdefghijklmnopqrstu,05/11/2026\nBad,https://mega.nz/file/AbCdEfGh#SyNtHeTiCkEy9876543210zyxwvutsrqponmlkjihgf,soon');
     e2(r.rows.map((x) => x.uploadDate)).toEqual(['2026-11-05', null]);
     e2(r.rows[1]!.notes.join(' ')).toMatch(/not a date/);
   });
@@ -70,7 +70,7 @@ d2('parseUploadDate', () => {
     const { isFutureDay } = await import('./text.ts');
     e2(isFutureDay('2026-11-12', Date.parse('2026-11-11T12:00:00Z'))).toBe(false);
     e2(isFutureDay('2026-11-14', Date.parse('2026-11-11T12:00:00Z'))).toBe(true);
-    const r = parseImport('Title,MEGA link,Upload date\nLater,https://mega.nz/file/NmU3lZjR#gPK2sRN8W0g0c69iQkFL4jsnt5dSZziHM9YjZMhEXxw,01/01/2099');
+    const r = parseImport('Title,MEGA link,Upload date\nLater,https://mega.nz/file/SyNtH001#SyNtHeTiCkEy0123456789abcdefghijklmnopqrstu,01/01/2099');
     e2(r.rows[0]!.uploadDate).toBeNull();
     e2(r.rows[0]!.notes.join(' ')).toMatch(/in the future/);
   });

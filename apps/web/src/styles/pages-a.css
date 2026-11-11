@@ -1674,6 +1674,7 @@
     font-variation-settings: 'opsz' 32;
     line-height: 42px;
     letter-spacing: -0.016em;
+    /* Seven lines and more at every width: past balance's six-line limit, so pretty. */
     text-wrap: pretty;
   }
 

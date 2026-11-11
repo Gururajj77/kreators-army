@@ -36,7 +36,7 @@
     font-weight: 600;
     line-height: 23px;
     letter-spacing: -0.012em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .bubble[data-size='sm'] .bubble-text,

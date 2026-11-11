@@ -17,7 +17,7 @@ export const ACTIONS = ['hop', 'wave', 'signature', 'peek', 'nod', 'shrug'] as c
 export type CastAction = (typeof ACTIONS)[number];
 
 export interface PlayOptions {
-  /** `hover` waits 6 s between plays, `tap` and `event` (the default) wait 2.5 s. */
+  /** `hover` plays every time (once the last move has finished) and never waits for the token; `tap` and `event` (the default) wait 2.5 s. */
   source?: 'hover' | 'tap' | 'event';
   /** Skip the cool-down and the wait for the performer token. For the page's own moments, sparingly. */
   force?: boolean;
@@ -30,7 +30,8 @@ export type LookTarget = Element | { x: number; y: number } | null;
 
 const QUIET_MS = 5000;
 const PUPIL_MAX = 7.2;
-const COOLDOWN = { hover: 6000, tap: 2500, event: 2500 };
+// Hover answers every time (the founder's call): the only wait is for the move already playing to end.
+const COOLDOWN = { hover: 0, tap: 2500, event: 2500 };
 const POINTER_TAU = 70;
 const POINTER_TAU_CLOSE = 36;
 const FACE_TAU = 160;
@@ -1312,13 +1313,16 @@ export function perform(actor: Actor, action: CastAction, opts: PlayOptions = {}
   if (playing.has(actor) && !opts.force) return false;
   // The token is shared with speech bubbles. The actor's own bubble holds it under the same root, so a character can speak and move together.
   const took = bubbleToken.take(actor.root);
-  if (!took && !opts.force) {
+  // A hover is the visitor's own doing: it plays even while another character speaks, and it never queues behind one.
+  if (!took && !opts.force && source !== 'hover') {
     queued ??= { actor, action, opts, at: t };
     return false;
   }
   actor.noteCooldown(source, t);
   playing.add(actor);
-  const ms = actor.run(action, opts);
+  let ms = actor.run(action, opts);
+  // A hover's move starts with a small hop, so the answer reads at any size; the hop never plays under still.
+  if (source === 'hover' && action === 'signature') ms = Math.max(ms, actor.run('hop', { small: true }));
   if (action === 'signature') glanceAt(actor);
   let done = false;
   const finish = () => {

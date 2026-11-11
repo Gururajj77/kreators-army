@@ -6,7 +6,7 @@ import { FaqItem } from '../../components/FaqItem';
 import { useSectionAt } from '../../components/brief/onView';
 import { ChipRail, IndexRail } from '../../components/tabs';
 import { Cta, HeroCopy, Reveal, Seo } from '../../components/ui';
-import { FAQ_GROUPS, FAQS, SITE, contactHref, whatsappHref, whatsappPhone } from '../../lib/content';
+import { FAQ_GROUPS, FAQS, SITE, callPhone, contactHref, whatsappHref, whatsappPhone } from '../../lib/content';
 
 // content §3.14 and §7.1; layout V2-SPEC 5.9 and visual §2.9. Two calm columns on desktop: the left one stays with you and holds the group index and
 // Sochu, thinking. Phones get the groups as a sticky row of chips under the nav. Single-open accordions. The first time a person opens an answer, Sochu
@@ -30,6 +30,7 @@ export default function FaqPage() {
   const deepLinked = FAQS.some((f) => `#${f.slug}` === hash);
   const wa = whatsappHref();
   const phone = whatsappPhone();
+  const call = callPhone();
 
   // A link straight to a question opens it. This page is a lazy chunk, so on a cold load the shell's hash scroll has already run and found nothing.
   useEffect(() => {
@@ -125,11 +126,16 @@ export default function FaqPage() {
               {wa && phone ? (
                 <>
                   {' '}
-                  or WhatsApp{' '}
+                  or{' '}
                   <a href={wa} target="_blank" rel="noreferrer">
-                    {phone.display}
-                  </a>
-                  .
+                    WhatsApp
+                  </a>{' '}
+                  / call <a href={`tel:${phone.tel}`}>{phone.display}</a>.
+                </>
+              ) : call ? (
+                <>
+                  {' '}
+                  or call <a href={`tel:${call.tel}`}>{call.display}</a>.
                 </>
               ) : (
                 '.'

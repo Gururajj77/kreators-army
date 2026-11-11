@@ -126,7 +126,7 @@ function QuestionOfTheWeek({ name, body, videos, onOpen }: { name: string; body:
                         <PrimaryCta intent={{ format: formatSlug(content) }} className="self-start" />
                       </div>
                     ) : card.video ? (
-                      <VideoFrame video={card.video} variant="polaroid" width="100%" onOpen={front ? onOpen : undefined} preview="none" />
+                      <VideoFrame video={card.video} variant="polaroid" width="100%" onOpen={front ? onOpen : undefined} preview="hover" />
                     ) : (
                       <div className="fp-card-blank" aria-hidden />
                     )}

@@ -3,8 +3,8 @@ import type { Video } from '@kreators/shared';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useLocation, useMatches } from 'react-router';
 import { Character, cascade, castLookAt, loadRig, type CastId, type CharacterHandle } from '../cast';
-import { CLOSING, FOOTER_CAST_ORDER, FOOTER_GROUPS, OWN_ACTION_ROUTES, SITE, SOCIALS, whatsappHref, whatsappPhone, type FormatSlug } from '../lib/content';
-import { useMotionOk } from '../lib/motionOk';
+import { CLOSING, FOOTER_CAST_ORDER, FOOTER_GROUPS, OWN_ACTION_ROUTES, SITE, SOCIALS, callPhone, whatsappHref, whatsappPhone, type FormatSlug } from '../lib/content';
+import { useMotionOk, useRunning } from '../lib/motionOk';
 import { useVideos } from '../lib/queries';
 import { spring } from '../lib/spring';
 import { useStill } from '../lib/store';
@@ -15,6 +15,17 @@ import { WORDMARK } from './wordmark';
 
 /** The word is cropped here, in viewBox units: below the baseline, partway down the tail of the y, which dives behind the ground band. */
 const WORD_FLOOR = 900;
+
+/** The wordmark's flute, in viewBox units: 14 CSS px at 1440, where the word is about 1371 px wide (--ft-word-w), as kreators.app's. */
+const WORD_RIB = Math.round((14 * WORDMARK.width) / 1371);
+/** kreators.app's rib across one flute: a dark seam, clear by 4/14, a white streak at 10/14, clear by 13/14, the next seam. */
+const WORD_RIB_STOPS: [number, string, number][] = [
+  [0, '#000', 0.22],
+  [4 / 14, '#000', 0],
+  [10 / 14, '#fff', 0.5],
+  [13 / 14, '#fff', 0],
+  [1, '#000', 0.22],
+];
 
 /**
  * Where each character stands, in the wordmark's own units: x is the centre of the letter, y the top of its ink. The word is mixed case, so a single cap line
@@ -61,8 +72,9 @@ const SOCIAL_ICON: Record<string, ReactNode> = {
 const RING_MIN_POSTERS = 4;
 const RING_MAX = 12;
 
-/** How many slots the ring fills to: 12, or twice the posters when there are fewer than 6, so a poster shows at most twice (its two copies half a
- *  turn apart) instead of three times across the wall. */
+/** The ring's base slot count: 12, or twice the posters when there are fewer than 6, so on a narrow stage a poster shows twice (its two copies
+ *  half a turn apart) instead of three times across the wall. A wide stage needs more slots for its edge cards to show whole, so the ring
+ *  (fitSlots) adds whole rounds of posters: each copy stays exactly one round of posters from the next. */
 function ringFill(posters: number): number {
   return Math.min(RING_MAX, posters * 2);
 }
@@ -101,9 +113,12 @@ function FooterRingCards() {
       label=""
       interactive={false}
       minCards={ringFill(cards.length)}
+      // Eager, not lazy: a slot behind the ring's camera projects to no box at all, so the browser's lazy loader never starts its poster until the
+      // card swings round to the front, and it arrives there as an empty grey card. The ring itself mounts only near the screen (FooterRing), so
+      // eager costs nothing up front; low priority keeps the posters behind anything the page itself needs.
       renderCard={(v) => (
         <div className="cring-card">
-          <img src={v.posterUrl ?? undefined} alt="" loading="lazy" decoding="async" draggable={false} />
+          <img src={v.posterUrl ?? undefined} alt="" loading="eager" fetchPriority="low" decoding="async" draggable={false} />
         </div>
       )}
     />
@@ -145,6 +160,51 @@ function FooterRing() {
   return (
     <div ref={slot} className="ft-ring-slot" aria-hidden>
       {near && <FooterRingCards />}
+    </div>
+  );
+}
+
+/** How far the glass's colour leans toward a fine pointer at the band's edge (px). */
+const GLASS_LEAN = 48;
+
+/**
+ * The band's fractal (reeded) glass, after kreators.app's closing card (.work/v2/ref/fractal-glass-spec.md §2.b): a field of colour drifting
+ * sideways behind fixed upright flutes, so the streaks shimmer. A sibling of the band's content, painted under all of it (footer.css), never a
+ * parent of the ring. All CSS; the drift runs only while the band is on screen and the tab is visible, and a fine pointer leans the colour toward
+ * itself (no React state: one custom property, eased by a CSS transition). Under still, neither.
+ */
+function FooterGlass() {
+  const ref = useRef<HTMLDivElement>(null);
+  const ok = useMotionOk();
+  const running = useRunning(ref);
+  useEffect(() => {
+    const glass = ref.current;
+    const band = glass?.parentElement;
+    if (!ok || !glass || !band) return;
+    // Pointer events arrive at most once a frame, and the write only touches the glass's own subtree.
+    const lean = (x: number) => glass.style.setProperty('--lean', `${Math.round((x - 0.5) * 2 * GLASS_LEAN)}px`);
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return;
+      const r = band.getBoundingClientRect();
+      lean(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)));
+    };
+    const onLeave = () => lean(0.5);
+    band.addEventListener('pointermove', onMove, { passive: true });
+    band.addEventListener('pointerleave', onLeave);
+    return () => {
+      band.removeEventListener('pointermove', onMove);
+      band.removeEventListener('pointerleave', onLeave);
+      glass.style.removeProperty('--lean');
+    };
+  }, [ok]);
+  return (
+    <div ref={ref} className="ft-glass" aria-hidden data-run={ok && running ? 'true' : undefined}>
+      <div className="ft-glass-lean">
+        <div className="ft-glass-field" />
+      </div>
+      <div className="ft-glass-ribs" />
+      <div className="ft-glass-shine" />
+      <div className="ft-glass-scrim" />
     </div>
   );
 }
@@ -230,6 +290,7 @@ export function Footer() {
     <footer className="ft band-dark">
       {asks && (
         <section className="ft-band-cta" aria-labelledby="ft-cta-title">
+          <FooterGlass />
           <Reveal variant="rise" className="wrap ft-cta-copy">
             <p className="eyebrow ft-eyebrow">
               <span className="ft-eyebrow-dot" aria-hidden />
@@ -264,12 +325,26 @@ export function Footer() {
                     {SITE.email}
                   </a>
                 </li>
-                {wa && phone && (
+                {wa && phone ? (
+                  // The one number takes both: shown once, as "WhatsApp / Call +91 …".
                   <li>
                     <a className="ft-link" href={wa} target="_blank" rel="noreferrer">
-                      WhatsApp {phone.display}
+                      WhatsApp
+                    </a>
+                    {' / '}
+                    <a className="ft-link" href={`tel:${phone.tel}`}>
+                      Call {phone.display}
                     </a>
                   </li>
+                ) : (
+                  // No WhatsApp line: the one number, as a phone.
+                  callPhone() && (
+                    <li>
+                      <a className="ft-link" href={`tel:${callPhone()!.tel}`}>
+                        Call {callPhone()!.display}
+                      </a>
+                    </li>
+                  )
                 )}
                 <li className="ft-city">{SITE.city}</li>
               </ul>
@@ -360,9 +435,23 @@ export function Footer() {
                   <stop offset={6171 / WORDMARK.width} stopColor="#47c349" />
                   <stop offset={6171 / WORDMARK.width} stopColor="#ff8d3a" />
                 </linearGradient>
+                {/* Fluted like kreators.app's wordmark: its 14 px rib (a dark seam, a clear body, a white streak right of centre), drawn in the
+                    word's own units so the flutes scale with it (14 px at 1440). */}
+                <linearGradient id="ft-word-rib">
+                  {WORD_RIB_STOPS.map(([at, color, alpha], i) => (
+                    <stop key={i} offset={at} stopColor={color} stopOpacity={alpha} />
+                  ))}
+                </linearGradient>
+                <pattern id="ft-word-ribs" patternUnits="userSpaceOnUse" width={WORD_RIB} height={WORDMARK.height}>
+                  <rect width={WORD_RIB} height={WORDMARK.height} fill="url(#ft-word-rib)" />
+                </pattern>
               </defs>
-              <use href="#ft-word-path" className="ft-word-rest" />
-              <use href="#ft-word-path" className="ft-word-lit" fill="url(#ft-word-four)" />
+              {['rest', 'lit'].map((k) => (
+                <g key={k} className={`ft-word-${k}`}>
+                  <use href="#ft-word-path" fill="url(#ft-word-four)" />
+                  <use href="#ft-word-path" fill="url(#ft-word-ribs)" />
+                </g>
+              ))}
             </svg>
           </Link>
 

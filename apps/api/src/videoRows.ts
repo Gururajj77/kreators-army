@@ -5,6 +5,8 @@
 import {
   codecParts,
   isPlayable,
+  megaPlayerUrls,
+  parseMegaLink,
   streamGrade,
   type AdminPoster,
   type AdminPreview,
@@ -18,12 +20,12 @@ import {
   type VideoSource,
   youTubeIdOf,
 } from '@kreators/shared';
-import { streamTag, streamUrl } from './mega/lookup';
+import { keyFromSecret } from './mega/lookup';
 import { parseSniffMeta, type SniffMeta } from './mega/sniff';
-import { PREVIEW_MAX } from './mega/stream';
+import { sha256Hex } from './mega/protocol';
 import { previewPath } from './previews';
 
-/** What GET /api/videos reads (V2-SPEC 2.10). mega_url is read only to compute the stream tag. */
+/** What GET /api/videos reads (V2-SPEC 2.10). mega_url is read only to build MEGA's embed (or page) address. */
 export const PUBLIC_COLUMNS = `v.id, v.title, v.brand, v.category, v.platform, v.aspect, v.views, v.upload_date, v.featured,
        v.mega_handle, v.mega_url, v.mega_meta, v.mega_duration_ms, v.file_ref, v.wave_ref,
        v.instagram_url, v.youtube_url, v.poster_url, p.sha AS poster_sha, p.mime AS poster_mime, pv.sha AS preview_sha, pv.mime AS preview_mime`;
@@ -110,6 +112,9 @@ export function posterUrl(row: Pick<PublicRow, 'id' | 'poster_sha' | 'poster_mim
   return null;
 }
 
+/** The old Worker stream's preview bound (8 MiB): kept only for the admin's check facts (inspect.ts). */
+const PREVIEW_MAX = 8 * 1024 * 1024;
+
 /** V2-SPEC 2.4.4: the first 6 s fit the preview bound, the file is at most 8 Mbps, and its video is H.264. False when never sniffed. */
 export function previewOkFromMeta(meta: SniffMeta | null): boolean {
   if (!meta) return false;
@@ -118,9 +123,9 @@ export function previewOkFromMeta(meta: SniffMeta | null): boolean {
   return typeof prev6 === 'number' && prev6 + 65536 <= PREVIEW_MAX && typeof meta.kbps === 'number' && meta.kbps <= 8000 && /^avc[13]\b/.test(vc);
 }
 
-function previewOk(row: Pick<PublicRow, 'mega_handle' | 'mega_meta' | 'file_ref'>): boolean {
-  if (row.mega_handle) return previewOkFromMeta(parseSniffMeta(row.mega_meta));
-  return !!row.file_ref;
+/** A muted preview of the stream is allowed: bundled files only. A MEGA entry never streams through this site, so it previews its stored clip only. */
+function previewOk(row: Pick<PublicRow, 'mega_handle' | 'file_ref'>): boolean {
+  return !row.mega_handle && !!row.file_ref;
 }
 
 /** The stored hover clip's address, or null. */
@@ -130,16 +135,50 @@ export function previewUrl(row: Pick<PublicRow, 'id' | 'preview_sha' | 'preview_
 
 const youtubeEmbed = (id: string) => `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1`;
 
-export async function toPublicVideo(row: PublicRow): Promise<Video> {
-  const stream = row.mega_handle ? await streamUrl(row) : row.file_ref;
+/**
+ * Where a MEGA row plays for the public: MEGA's embed (file link) or MEGA's own page (file in a shared folder). A row whose key is still only in
+ * the MEGA_LINKS secret (mega_url NULL) builds the embed from the secret's line with the same handle: a string match, nothing decrypted.
+ */
+export function megaPublicUrls(row: Pick<PublicRow, 'mega_handle' | 'mega_url'>, megaLinks?: string): { embedUrl: string | null; watchUrl: string | null } {
+  const none = { embedUrl: null, watchUrl: null };
+  if (!row.mega_handle) return none;
+  if (!row.mega_url) {
+    const key = keyFromSecret(row.mega_handle, megaLinks);
+    return key ? megaPlayerUrls({ kind: 'file', handle: row.mega_handle, key43: key }) : none;
+  }
+  const parsed = parseMegaLink(row.mega_url);
+  if (!parsed.ok) return none;
+  const link = parsed.link;
+  // The row's handle must be the link's own file: a stale or mismatched link plays nothing rather than another file.
+  if (link.kind === 'file' && link.handle === row.mega_handle) return megaPlayerUrls(link);
+  if (link.kind === 'folder-file' && link.nodeHandle === row.mega_handle) return megaPlayerUrls(link);
+  return none;
+}
+
+/**
+ * The public shape. `megaLinks` is env.MEGA_LINKS (only for rows whose key is still in the secret). Async for its callers' sake (it used to
+ * hash a stream tag); it makes no network call.
+ */
+export async function toPublicVideo(row: PublicRow, megaLinks?: string): Promise<Video> {
+  const mega = row.mega_handle ? megaPublicUrls(row, megaLinks) : null;
+  const stream = row.mega_handle ? null : row.file_ref;
   const ytId = row.youtube_url ? youTubeIdOf(row.youtube_url) : null;
-  const embedUrl = stream ? null : row.wave_ref ? row.wave_ref : ytId ? youtubeEmbed(ytId) : null;
+  let embedUrl: string | null = null;
   let source: PublicVideoSource = 'file';
   let ref = stream ?? '';
-  if (!stream && row.wave_ref) {
+  if (mega && (mega.embedUrl || mega.watchUrl)) {
+    embedUrl = mega.embedUrl;
+    source = 'mega';
+    ref = (mega.embedUrl ?? mega.watchUrl)!;
+  } else if (mega && row.file_ref) {
+    // A MEGA row with no usable link but a bundled copy: v1 tabs play the copy.
+    ref = row.file_ref;
+  } else if (!stream && row.wave_ref) {
+    embedUrl = row.wave_ref;
     source = 'wave';
     ref = row.wave_ref;
   } else if (!stream && ytId) {
+    embedUrl = youtubeEmbed(ytId);
     source = 'youtube';
     ref = ytId;
   }
@@ -156,6 +195,7 @@ export async function toPublicVideo(row: PublicRow): Promise<Video> {
     streamUrl: stream,
     fallbackUrl: row.mega_handle ? row.file_ref : null,
     embedUrl,
+    watchUrl: mega?.watchUrl ?? null,
     posterUrl: posterUrl(row),
     previewOk: previewOk(row),
     previewUrl: previewUrl(row),
@@ -242,6 +282,8 @@ export async function toAdminVideo(row: VideoRow): Promise<AdminVideo> {
       embedUrl: fileLink ? fileLink.replace('/file/', '/embed/') : null,
       playable: isPlayable(meta),
       previewOk: pub.previewOk,
+      // (admin8) Which file the row points at, for the admin's thumbnails & previews maker (a new file is made again). Not secret: a hash.
+      tag: await sha256Hex(row.mega_url ?? `secret:${row.mega_handle}`, 8),
     };
   }
   return {
@@ -273,5 +315,3 @@ export async function toAdminVideo(row: VideoRow): Promise<AdminVideo> {
   };
 }
 
-/** The stream tag of a row (for ETags and tests). */
-export const rowStreamTag = (row: Pick<PublicRow, 'mega_handle' | 'mega_url'>) => streamTag(row);

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, u
 import type { CastId } from '../cast';
 import { INTERACTION, type CastLineKey } from '../lib/content';
 import { motionOk } from '../lib/motionOk';
+import { tieLastSpan } from '../lib/typo';
 import { CastBubble, ChatAvatar, useCastLine } from './chat';
 
 // Content visuals used on Home (visual §1.5): the interaction chain and the edit timeline (M9). The How we work, format-page and blog pieces
@@ -244,7 +245,8 @@ export function EditTimeline({ steps, mode, tone = 'ink', onStep, onDone, aside,
       data-mode={mode}
       data-tone={tone}
       data-armed={armed ? '' : undefined}
-      style={{ '--n': n, '--p': 1 } as CSSProperties}
+      data-many={n >= 6 ? '' : undefined}
+      style={{ '--n': n, '--cols': Math.ceil(n / 2), '--p': 1 } as CSSProperties}
     >
       <div ref={stage} className="etl-stage">
         <div className="etl-sticky">
@@ -287,8 +289,8 @@ export function EditTimeline({ steps, mode, tone = 'ink', onStep, onDone, aside,
                     <span className="etl-step-num" aria-hidden>
                       {k + 1}
                     </span>
-                    <h3 className="etl-step-name">{s.name}</h3>
-                    <p className="etl-step-body">{s.body}</p>
+                    <h3 className="etl-step-name">{tieLastSpan(s.name)}</h3>
+                    <p className="etl-step-body">{tieLastSpan(s.body)}</p>
                   </li>
                 ))}
               </ol>

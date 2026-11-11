@@ -151,4 +151,186 @@
     height: 18px;
     margin-top: 1px;
   }
+
+  /* (admin7) The header chip (MediaGenChip), on every admin screen. The bar's grid gets a column for it (and a slot on the phone's first row). */
+  .adm-bar-in:has(> .mg-chip) {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+  }
+
+  .mg-chip {
+    display: inline-flex;
+    align-items: stretch;
+    min-width: 0;
+    max-width: 100%;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1.5px var(--line);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .mg-chip[data-state='quota'] {
+    background: var(--adm-warn-bg);
+    box-shadow: none;
+    color: var(--adm-warn);
+  }
+
+  .mg-chip[data-state='failed'] {
+    color: var(--adm-err);
+  }
+
+  .mg-chip-main,
+  .mg-chip-act {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    transition: background-color var(--dur-hover) ease;
+  }
+
+  .mg-chip-main {
+    gap: 8px;
+    min-width: 0;
+    padding: 0 14px 0 10px;
+    border-radius: var(--r-pill);
+  }
+
+  .mg-chip-act {
+    padding: 0 14px 0 12px;
+    border-radius: 0 var(--r-pill) var(--r-pill) 0;
+    box-shadow: inset 1px 0 0 var(--line);
+  }
+
+  .mg-chip-main:has(+ .mg-chip-act) {
+    padding-right: 12px;
+    border-radius: var(--r-pill) 0 0 var(--r-pill);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .mg-chip-main:hover,
+    .mg-chip-act:hover {
+      background: color-mix(in oklab, currentColor 8%, transparent);
+    }
+  }
+
+  .mg-chip-long,
+  .mg-chip-short {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mg-chip-short {
+    display: none;
+  }
+
+  .mg-chip-ring {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    transform: rotate(-90deg);
+  }
+
+  .mg-chip-ring circle {
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .mg-chip-ring circle:first-child {
+    stroke: var(--line);
+  }
+
+  .mg-chip-ring circle + circle {
+    stroke: var(--ink);
+    stroke-linecap: round;
+    transition: stroke-dasharray 300ms var(--ease-out);
+  }
+
+  :root[data-still] .mg-chip-ring circle + circle {
+    transition: none;
+  }
+
+  .mg-chip-dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .mg-chip[data-state='paused'] .mg-chip-dot,
+  .mg-chip[data-state='elsewhere'] .mg-chip-dot {
+    background: var(--muted);
+  }
+
+  .mg-chip[data-state='done'] .mg-chip-dot {
+    background: var(--adm-ok);
+  }
+
+  /* MEGA's sentence is long: in full only where the bar has room for it. */
+  @media (max-width: 1319px) {
+    .mg-chip[data-state='quota'] .mg-chip-long {
+      display: none;
+    }
+
+    .mg-chip[data-state='quota'] .mg-chip-short {
+      display: inline;
+    }
+  }
+
+  @media (max-width: 1099px) {
+    .mg-chip-long {
+      display: none;
+    }
+
+    .mg-chip-short {
+      display: inline;
+    }
+  }
+
+  .mg-note {
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .mg-note[data-tone='amber'] {
+    background: var(--adm-warn-bg);
+    box-shadow: none;
+    color: var(--adm-warn);
+  }
+
+  @media (max-width: 734px), (pointer: coarse) {
+    .mg-chip-main,
+    .mg-chip-act {
+      min-height: 44px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .adm-bar-in:has(> .mg-chip) {
+      grid-template-areas:
+        'mark chip lock'
+        'tabs tabs tabs';
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .mg-chip {
+      grid-area: chip;
+      justify-self: end;
+    }
+
+    .mg-chip-main {
+      padding-left: 12px;
+    }
+  }
 }

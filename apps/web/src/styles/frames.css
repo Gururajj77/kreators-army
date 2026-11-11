@@ -367,6 +367,37 @@
     opacity: 1;
   }
 
+  /* (pub8) Over the poster while an embed (MEGA's player above all) loads: a small ring, gone once the iframe shows. */
+  .player-loading {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 50%;
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    border: 3px solid rgb(255 255 255 / 0.28);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: player-spin 0.9s linear infinite;
+  }
+
+  @keyframes player-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .player-loading {
+      animation: none;
+    }
+  }
+
+  :root[data-still] .player-loading {
+    animation: none;
+  }
+
   .player-close {
     position: absolute;
     z-index: 2;
@@ -1191,6 +1222,49 @@
     }
   }
 
+  /* ---------- (hover7) Every video plays on hover ----------
+     A phone or polaroid that previews carries a small play glyph, shown on hover until the preview really plays. A frame with nothing to play yet
+     (no stored clip, no safe stream: data-pv="none") still lifts and shows it, so a hover never feels broken. `translate`, not `transform`, so a
+     frame's own tilt or the deck's slot transform is kept. */
+  .vframe-hint {
+    position: absolute;
+    z-index: 3;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border-radius: 50%;
+    background: var(--glass-media-bg);
+    -webkit-backdrop-filter: var(--glass-media-fx);
+    backdrop-filter: var(--glass-media-fx);
+    color: #fff;
+    opacity: 0;
+    transform: scale(0.85);
+    pointer-events: none;
+    transition:
+      opacity 160ms ease,
+      transform var(--spring-smooth);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .vframe[data-pv]:hover .vframe-hint {
+      opacity: 1;
+      transform: none;
+    }
+
+    .vframe[data-pv][data-playing] .vframe-hint {
+      opacity: 0;
+    }
+
+    :root:not([data-still]) div.vframe[data-pv]:hover {
+      translate: 0 -3px;
+      transition: translate var(--spring-release);
+    }
+  }
+
   /* ---------- The hero deck (M1) ---------- */
   .vdeck-wrap {
     --reel-h: clamp(440px, calc(100svh - 360px), 540px);
@@ -1875,6 +1949,11 @@
 
   .player-failed-links {
     justify-content: center;
+  }
+
+  /* (pub8) A MEGA file with no embed: the poster stays visible behind the way out to MEGA's own page. */
+  .player-watch-out {
+    background: rgb(14 14 16 / 0.72);
   }
 
   :root[data-still] :is(.vframe-bubble, .vframe-polaroid, .vframe-screen > img, .deckcard-sheet, .story-ring-art, .story-ring-face, .story-ring-circle, .vsticker) {

@@ -96,6 +96,14 @@ function command(cmd, q, host) {
 }
 
 const server = http.createServer(async (req, res) => {
+  // CORS like MEGA's own API and storage hosts, so the admin's in-browser reader (round 8) can use this mock too. Harmless for the Node tests.
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Expose-Headers', 'X-Hashcash, x-mega-time-left');
+  if (req.method === 'OPTIONS') {
+    // Echoes the asked headers: a harness page may add its own (CF-Connecting-IP) to every request, which real MEGA never sees.
+    res.writeHead(204, { 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': req.headers['access-control-request-headers'] || 'Content-Type, X-Hashcash' });
+    return res.end();
+  }
   const host = req.headers.host || `127.0.0.1:${server.address().port}`;
   const url = new URL(req.url, `http://${host}`);
   const body = await new Promise((r) => {

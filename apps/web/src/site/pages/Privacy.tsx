@@ -4,7 +4,7 @@ import { GradientTail, LegalPage, type LegalSection } from './Reading';
 // content §3.15. The YouTube and wave.video paragraph stays while any embedded player remains in the library: a YouTube-only entry can still publish
 // (V2-SPEC C20), so it stays.
 
-const UPDATED = '10 November 2026';
+const UPDATED = '11 November 2026';
 
 const SECTIONS: LegalSection[] = [
   {
@@ -13,7 +13,8 @@ const SECTIONS: LegalSection[] = [
       <p>
         When you send the form we receive your name, email address, phone number if you give it, and what you choose to share about your brand and the trial:
         brand name, website, whether you're an agency, the package you're interested in, your answers to the brief, reference links, a brand guide link or file,
-        and your message. We also keep a one-way hash of your IP address to limit abuse of the form.
+        and your message. Once you add an email address or phone number, the form saves your answers as you go, so we receive what you have entered
+        even if you stop before sending. We also keep a one-way hash of your IP address to limit abuse of the form.
       </p>
     ),
   },

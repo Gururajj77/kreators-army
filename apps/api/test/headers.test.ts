@@ -14,11 +14,16 @@ describe('CSP (V2-SPEC 2.13 item 8, 2.15)', () => {
     expect(PAGE_HEADERS['Content-Security-Policy']).toBe(CSP);
   });
 
-  it('frame-src adds https://mega.nz and nothing else changed from v1', () => {
+  it('frame-src adds https://mega.nz, the admin adds MEGA to connect-src and blob: to media-src, and nothing else changed from v1', () => {
     const frame = CSP.split('; ').find((d) => d.startsWith('frame-src '));
     expect(frame).toBe('frame-src https://www.youtube-nocookie.com https://*.wave.video https://mega.nz');
     const v1 = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; media-src 'self'; connect-src 'self'; frame-src https://www.youtube-nocookie.com https://*.wave.video; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
-    expect(CSP).toBe(v1.replace('https://*.wave.video;', 'https://*.wave.video https://mega.nz;'));
+    expect(CSP).toBe(
+      v1
+        .replace('https://*.wave.video;', 'https://*.wave.video https://mega.nz;')
+        .replace("media-src 'self';", "media-src 'self' blob:;")
+        .replace("connect-src 'self';", "connect-src 'self' https://g.api.mega.co.nz https://*.userstorage.mega.co.nz;"),
+    );
   });
 
   it('every other page header in _headers matches headers.ts', () => {

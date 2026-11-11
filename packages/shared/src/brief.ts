@@ -209,6 +209,30 @@ export function validateBrief(input: unknown): BriefValidation {
   return { ok: true, brief: out };
 }
 
+/** (form7) The guided brief's step titles, for the form and the inbox's "Stopped at step N: <title>". 6 is the review. */
+export const BRIEF_STEP_TITLES: Record<1 | 2 | 3 | 4 | 5 | 6, string> = {
+  1: 'You and your brand',
+  2: 'The objective',
+  3: 'Brand integration',
+  4: 'Must-haves and the response',
+  5: 'References and brand guide',
+  6: 'Check your brief',
+};
+
+/** The email test the form and the API share. */
+export const LEAD_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** (form7) A phone number someone could call: digits with optional +, spaces, dots, dashes and brackets, 7 to 15 digits, at most 40 characters. */
+export function isPhone(value: string): boolean {
+  const v = value.trim();
+  if (!v || v.length > 40 || !/^\+?[\d\s().-]+$/.test(v)) return false;
+  const digits = v.replace(/\D/g, '').length;
+  return digits >= 7 && digits <= 15;
+}
+
+/** (form7) A form session's draft id: 16 to 64 URL-safe characters (the form makes a random UUID). */
+export const DRAFT_ID = /^[A-Za-z0-9_-]{16,64}$/;
+
 /** The label of a stored slug, for the inbox and the CSV ('' gives ''). */
 export function briefLabel(field: 'package' | 'objective' | 'integration' | 'mustHave', slug: string): string {
   const table: Record<string, string> =

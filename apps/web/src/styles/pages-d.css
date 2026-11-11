@@ -171,7 +171,14 @@
     font-size: 19px;
     line-height: 30px;
     letter-spacing: -0.014em;
-    text-wrap: pretty;
+    text-wrap: balance;
+  }
+
+  /* On a phone these run to seven and eight lines, past balance's limit. */
+  @media (max-width: 734px) {
+    .hww-body {
+      text-wrap: pretty;
+    }
   }
 
   .hww-line {
@@ -182,7 +189,7 @@
     font-weight: 600;
     line-height: 29px;
     letter-spacing: -0.014em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .hww-small {
@@ -261,7 +268,7 @@
     font-size: 17px;
     line-height: 24px;
     letter-spacing: -0.012em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .hww-jobs {
@@ -367,6 +374,7 @@
     color: var(--muted);
     font-size: 16px;
     line-height: 25px;
+    /* Seven to fourteen lines in these tiles: past balance's six-line limit, so pretty. */
     text-wrap: pretty;
   }
 
@@ -921,6 +929,8 @@
     color: var(--muted);
     font-size: 15px;
     line-height: 22px;
+    /* The longest item runs past six lines, where balance stops working. */
+    text-wrap-style: pretty;
   }
 
   .tr-guide-list strong,
@@ -962,6 +972,13 @@
     letter-spacing: -0.014em;
   }
 
+  /* Seven lines on a phone, past balance's limit. */
+  @media (max-width: 734px) {
+    .tr-note-copy > p {
+      text-wrap: pretty;
+    }
+  }
+
   .tr-note-gola {
     padding-right: 16px;
   }
@@ -1000,7 +1017,7 @@
     font-size: 18px;
     line-height: 28px;
     letter-spacing: -0.014em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .tr-rules > li::before {
@@ -1555,7 +1572,7 @@
     font-size: 17px;
     line-height: 25px;
     letter-spacing: -0.012em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .pr-pay-foot {

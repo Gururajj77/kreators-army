@@ -1,6 +1,6 @@
 // Owner: A4 Admin. The add and edit drawer (admin brief 5.4, V2-SPEC 4.2 and 4.3): a native <dialog> sliding in from the right (960 px; full screen under
-// 900 px; a fade under data-still). Left: the preview (an unsaved link streams through its handle address (MegaInspect.previewUrl) for the admin, a saved one through its
-// streamUrl), the poster frame and "How the tile looks". Right: Stream, Details, Posted on, Visibility. Footer: Delete, Cancel, Save and Save and publish
+// 900 px; a fade under data-still). Left: the preview ((admin8) a MEGA file, saved or just checked, is read from MEGA and decrypted by this page
+// (mediaGen/useMegaPreview.ts), a bundled one plays its streamUrl), the poster frame and "How the tile looks". Right: Stream, Details, Posted on, Visibility. Footer: Delete, Cancel, Save and Save and publish
 // (published: Hide from the site and Save). A dirty guard on close, a 409 stale with Load latest / Overwrite, and a session sheet that keeps the values.
 import {
   formatViews,
@@ -26,7 +26,8 @@ import { Seo } from '../components/ui';
 import { motionOk } from '../lib/motionOk';
 import { AdminApiError, adminApi, keys } from './api';
 import { ConfirmDialog, Modal, Switch, type CloseReason } from './bits';
-import { attachQueryClient, enqueue as makeMedia } from './mediaGen/runner';
+import { attachQueryClient, canMake, enqueue as makeMedia, sourceKey } from './mediaGen/runner';
+import { useMegaPreview } from './mediaGen/useMegaPreview';
 import { MegaField, type MegaCheck } from './MegaField';
 import { PosterPicker } from './PosterPicker';
 import { posterNote, type EncodedPoster } from './posterEncode';
@@ -466,7 +467,7 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
       mergeVideo(qc, saved);
       // (pv) A new video, or a new stream for this one: its hover preview (and a thumbnail where it has none, or an automatic one) is made in
       // the background, one at a time with any other run ("Thumbnails & previews" on the Videos screen shows it).
-      if (saved.streamUrl && saved.streamUrl !== base?.streamUrl && !saved.deletedAt) {
+      if (canMake(saved) && (!base || sourceKey(saved) !== sourceKey(base))) {
         attachQueryClient(qc);
         makeMedia([saved], { mode: isNew || !saved.preview ? 'missing' : 'regenerate' });
       }
@@ -528,7 +529,12 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
 
   // ---------- What the preview plays ----------
 
-  const previewSrc = megaChanged ? (inspect?.ok ? inspect.previewUrl : null) : (base?.streamUrl ?? null);
+  // A MEGA file is read by this page (no Worker stream): the checked link by its probe, a saved one by the video's id.
+  const megaRef = megaChanged ? (inspect?.ok ? { probe: inspect.handle } : null) : base?.mega ? { video: base.id } : null;
+  const megaPreview = useMegaPreview(megaRef);
+  const previewSrc = megaRef ? megaPreview.src : megaChanged ? null : (base?.streamUrl ?? null);
+  // Without a service worker (or when MEGA refuses), MEGA's own player shows the file instead; it cannot give the poster picker frames.
+  const embedFallback = megaRef && megaPreview.error ? ((megaChanged ? (inspect?.ok ? inspect.embedUrl : null) : base?.mega?.embedUrl) ?? null) : null;
   const tile: Video = {
     id: base?.id ?? 'new',
     title: form.title || 'Untitled video',
@@ -582,12 +588,19 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
               {previewSrc ? (
                 // #t=0.001 makes the browser paint the first frame instead of a black box (a fragment: the address the server sees is unchanged).
                 <video ref={preview} key={previewSrc} className="adm-preview-video" controls playsInline preload="metadata" src={posterUrl ? previewSrc : `${previewSrc}#t=0.001`} poster={posterUrl ?? undefined} />
+              ) : embedFallback ? (
+                <iframe className="adm-preview-video" src={embedFallback} title="MEGA's player" allow="autoplay; fullscreen" allowFullScreen referrerPolicy="no-referrer" />
               ) : (
                 <div className="adm-preview-empty">
-                  {posterUrl ? <img src={posterUrl} alt="" /> : <p>The preview shows here once the MEGA link checks out.</p>}
+                  {posterUrl ? <img src={posterUrl} alt="" /> : <p>{megaRef && megaPreview.loading ? 'Opening the video from MEGA…' : 'The preview shows here once the MEGA link checks out.'}</p>}
                 </div>
               )}
             </div>
+            {megaPreview.error && (
+              <p className="adm-help" role="status">
+                {megaPreview.error}
+              </p>
+            )}
             <PosterPicker
               video={preview}
               canPick={!!previewSrc}

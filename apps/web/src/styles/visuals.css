@@ -401,6 +401,8 @@
     color: var(--clip-ink);
     font-size: 14px;
     line-height: 20px;
+    /* Narrow columns run past six lines, where balance stops working: pretty, and the last two words tied (tieLastSpan). */
+    text-wrap-style: pretty;
   }
 
   .etl[data-n-large] .etl-step-body {
@@ -430,6 +432,16 @@
   :root[data-still] .etl *,
   :root[data-still] .etl *::before {
     transition: none !important;
+  }
+
+  /* Tablets and small laptops (735-1179): six or more captions would get 65-140 px columns, where single words like "storytelling" spill out and bodies run
+     to a dozen lines. The clips keep their one row; the numbered captions under them wrap onto two rows. */
+  @media (min-width: 735px) and (max-width: 1179px) {
+    .etl[data-many] .etl-steps {
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+      row-gap: 22px;
+      column-gap: 14px;
+    }
   }
 
   /* Desktop: a stage pins the timeline while the scroll moves the playhead. Never pinned under still or without JS. */

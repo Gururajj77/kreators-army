@@ -74,6 +74,14 @@ export type MegaInspect =
     }
   | { ok: false; problem: MegaProblem; message: string; handle?: string; retryAfter?: number };
 
+/**
+ * (admin8) GET /api/admin/mega/source?video=<id> | ?probe=<handle>: what the admin's browser needs to read one MEGA file itself (the Worker
+ * never touches video bytes). `key` is the 32-byte file key, base64url. Admin only, Cache-Control: no-store, never logged.
+ */
+export type MegaFileSource =
+  | { kind: 'file'; handle: string; key: string; size: number | null }
+  | { kind: 'folder-file'; folder: string; node: string; key: string; size: number | null };
+
 // ---- videos ------------------------------------------------------------------------------------------
 
 export type VideoProblem =
@@ -98,6 +106,8 @@ export interface AdminMega {
   embedUrl: string | null;
   playable: boolean;
   previewOk: boolean;
+  /** (admin8) 8 hex characters that change whenever the row points at another file (SHA-256 of the canonical link, or of the handle while the key is in the secret). */
+  tag?: string;
 }
 
 export interface AdminPoster {
@@ -139,7 +149,7 @@ export interface AdminVideo {
   published: boolean;
   sortOrder: number;
   source: VideoSource;
-  /** What the site plays: the public streamUrl (drafts stream for the admin). */
+  /** The public streamUrl: a bundled file ('/media/<name>.mp4'), or null (a MEGA row plays in MEGA's player; the admin reads MEGA itself, see MegaFileSource). */
   streamUrl: string | null;
   mega: AdminMega | null;
   fileRef: string | null;
@@ -311,6 +321,10 @@ export type LeadStatus = (typeof LEAD_STATUSES)[number];
 export const LEAD_KINDS = ['trial', 'question'] as const;
 export type LeadKind = (typeof LEAD_KINDS)[number];
 
+/** (form7) 'partial': the visitor stopped before sending; the form saved what they had answered. */
+export const LEAD_COMPLETIONS = ['complete', 'partial'] as const;
+export type LeadCompletion = (typeof LEAD_COMPLETIONS)[number];
+
 export interface AdminLead extends Lead {
   kind: LeadKind;
   brand: string;
@@ -318,11 +332,21 @@ export interface AdminLead extends Lead {
   status: LeadStatus;
   statusAt: string | null;
   note: string;
+  completion: LeadCompletion;
+  /** The furthest step reached (1 to 5, 6 = the review); null for leads sent before progressive saving. */
+  stepReached: number | null;
+  /** When each step's answers were last saved, by step number ("1" to "6"); {} for older leads. */
+  steps: Record<string, string>;
+  /** The last save (partial) or the send (complete); null for older leads. */
+  updatedAt: string | null;
 }
 export interface AdminLeadList {
   leads: AdminLead[];
   nextCursor: string | null;
+  /** Complete enquiries by status (partial ones are not counted: nobody has sent them yet). */
   counts: Record<LeadStatus, number>;
+  /** (form7) Partial leads by status. */
+  partial: Record<LeadStatus, number>;
 }
 
 // ---- session and errors -------------------------------------------------------------------------------

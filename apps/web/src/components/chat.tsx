@@ -1,7 +1,7 @@
 import type { Video } from '@kreators/shared';
 import { useCallback, useEffect, useInsertionEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { Link } from 'react-router';
-import { bubbleToken, Character, type CastId, type CharacterHandle, type Expression, type TokenOwner } from '../cast';
+import { bubbleToken, Character, placeBubble, type CastId, type CharacterHandle, type Expression, type TokenOwner } from '../cast';
 import { BODY_COLOR, RestFace, insertCoreDefs } from '../cast/rest';
 import { CAST_LINES, castById, faqBySlug, type CastLineKey } from '../lib/content';
 import { motionOk } from '../lib/motionOk';
@@ -111,32 +111,8 @@ export interface CastBubbleProps {
   className?: string;
 }
 
-const TAIL_SHARE = { center: 0.5, start: 0.28, end: 0.72 } as const;
-const GUTTER = 12;
-
-/**
- * Keeps a bubble inside its bounds: the nearest [data-bubble-bounds] ancestor, else the viewport, with a 12 px gutter. It shifts the bubble by the
- * overflow (the `translate` property, through --shift) and moves the tail back so it still points at the head, 18 px from either end at most.
- * Measured from layout (offsetLeft, offsetWidth), not from the box, which is mid-transition when this runs.
- */
-function place(b: HTMLElement, side: keyof typeof TAIL_SHARE) {
-  b.style.removeProperty('--shift');
-  b.style.removeProperty('--tail-x');
-  const parent = b.offsetParent as HTMLElement | null;
-  if (!parent) return;
-  const w = b.offsetWidth;
-  const pr = parent.getBoundingClientRect();
-  const left = pr.left + b.offsetLeft - (side === 'center' ? w / 2 : 0);
-  const host = b.closest('[data-bubble-bounds]');
-  const box = host ? host.getBoundingClientRect() : { left: 0, right: document.documentElement.clientWidth };
-  let shift = 0;
-  if (left < box.left + GUTTER) shift = box.left + GUTTER - left;
-  else if (left + w > box.right - GUTTER) shift = box.right - GUTTER - (left + w);
-  if (!shift) return;
-  const tail = Math.max(18, Math.min(w - 18, TAIL_SHARE[side] * w - shift));
-  b.style.setProperty('--shift', `${Math.round(shift)}px`);
-  b.style.setProperty('--tail-x', `${Math.round(tail)}px`);
-}
+// Placement is shared with the hover bubble (cast/hover.ts).
+const place = placeBubble;
 
 /** A line over a character's head, inside its .k-char box (render it as the Character's child). aria-hidden, never focusable, pointer-events none. */
 export function CastBubble({ who, line, show, side = 'center', tone, className }: CastBubbleProps) {

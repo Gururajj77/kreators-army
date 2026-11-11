@@ -17,6 +17,9 @@ import { Modal, SplitButton, Spinner, inField } from './bits';
 import { EnquiriesScreen } from './EnquiriesScreen';
 import { ImportScreen } from './ImportScreen';
 import { LockScreen, type PassState } from './LockScreen';
+import { startAuto } from './mediaGen/auto';
+import { MediaGenChip, MediaGenPanel } from './mediaGen/MediaGenControl';
+import { stop as stopMedia } from './mediaGen/runner';
 import { SessionSheet } from './SessionSheet';
 import { Toasts, toast } from './Toasts';
 import { VideosScreen } from './VideosScreen';
@@ -122,6 +125,16 @@ function Shell({
     return () => enableSessionSheet(false);
   }, []);
 
+  // (admin7) Missing thumbnails and hover previews are made by themselves on a capable desktop (mediaGen/auto.ts); locking stops the run.
+  const qc = useQueryClient();
+  useEffect(() => {
+    const off = startAuto(qc);
+    return () => {
+      off();
+      stopMedia();
+    };
+  }, [qc]);
+
   // `/` focuses the search, `n` opens New video; never while typing or while a dialog is open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -170,6 +183,7 @@ function Shell({
               { to: '/admin/enquiries', label: 'Enquiries', count: count > 0 ? count : undefined },
             ]}
           />
+          <MediaGenChip />
           <SplitButton
             className="adm-lock-btn"
             label={
@@ -212,6 +226,7 @@ function Shell({
       </footer>
 
       {shortcuts && <ShortcutsDialog onClose={() => setShortcuts(false)} />}
+      <MediaGenPanel />
       <SessionSheet onUnlocked={onSheetUnlocked} onLock={onSheetLock} />
       <Toasts />
     </div>

@@ -263,6 +263,13 @@
     }
   }
 
+  /* A small laptop: its ring is narrower, so its edge cards grow less; 440 holds them whole and keeps more of the bar on the first screen. */
+  @media (max-width: 1279px) {
+    .lib-ring-wrap {
+      --cring-h: 440px;
+    }
+  }
+
   @media (max-width: 1068px) {
     .lib-ring-wrap {
       --cring-h: 400px;
@@ -767,12 +774,6 @@
     }
   }
 
-  /* ---------- Featured (M14) ---------- */
-  .lib-featured {
-    margin-top: 36px;
-    margin-bottom: 12px;
-  }
-
   /* ---------- Grid ---------- */
   .lib-grid {
     position: relative;
@@ -784,6 +785,23 @@
 
   .lib-cell {
     min-width: 0;
+  }
+
+  /* Two rows first, then "View more · N left" (the next rows also load on their own as the end nears). */
+  .lib-more {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+  }
+
+  .lib-more-btn {
+    min-width: 200px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The loading shell's bar (site/LibraryShell.tsx): the height of the real bar's top row, before the library's chunk has loaded. */
+  .lib-bar-shell {
+    min-height: 44px;
   }
 
   /* The end card fills the last row's gap; on a full row it takes one cell of a new row. */
@@ -908,10 +926,6 @@
 
     .lib-facet + .lib-facet {
       padding-left: 14px;
-    }
-
-    .lib-featured {
-      margin-top: 28px;
     }
 
     .lib-body {

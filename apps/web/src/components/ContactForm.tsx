@@ -2,11 +2,11 @@ import { INTEGRATION_OPTIONS, MUST_HAVE_OPTIONS, OBJECTIVE_OPTIONS, PACKAGE_OPTI
 import { useMutation } from '@tanstack/react-query';
 import { CircleAlert } from 'lucide-react';
 import { AnimatePresence, m } from 'motion/react';
-import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type CSSProperties, type FocusEvent, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type CSSProperties, type FocusEvent, type FormEvent, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Character, cascade, castLookAt, type CastId, type CharacterHandle, type Expression } from '../cast';
 import { ApiError, api } from '../lib/api';
-import { CAST_LINES, PRIMARY_ACTION, SITE, whatsappHref, type CastLineKey } from '../lib/content';
+import { CAST_LINES, PRIMARY_ACTION, SITE, callPhone, type CastLineKey } from '../lib/content';
 import { motionOk, useMotionOk } from '../lib/motionOk';
 import { spring } from '../lib/spring';
 import { ChoiceCards, Field, FieldError, GuideDisclosure, Label, OtherField, StepDots, type Control } from './brief/fields';
@@ -16,26 +16,33 @@ import {
   answered,
   brandError,
   calcLabel,
+  canSaveDraft,
   clear,
+  draftBody,
   emailError,
   emptyDraft,
   integrationText,
   intentKey,
   linkError,
   load,
+  loadDraftMeta,
   mustHavesText,
   nameError,
+  newDraftId,
   objectiveText,
   parseIntent,
   pillFor,
   save,
+  saveDraftMeta,
   serviceLabel,
   stepOfField,
   summary,
   toBrief,
   EMAIL,
   LINK_ERROR,
+  STEP_TITLES,
   type Draft,
+  type DraftMeta,
   type Intent,
   type Mode,
   type PackagePick,
@@ -46,16 +53,13 @@ import { ChipRail, Segment } from './tabs';
 import { Cta } from './ui';
 
 // The guided trial brief (content §5, V2-SPEC 5.6, visual §1.5 and §2.5). Plan a trial: five short steps and a review, only step 1 required, answers kept
-// in sessionStorage until sent. Ask a question: step 1's contact fields and the question. The cast stands on the form's top edge and says its lines from
+// in sessionStorage until sent, and (form7) saved to the API as they go once step 1 has an email or phone: each Next, and leaving the page. Ask a question: step 1's contact fields and the question. The cast stands on the form's top edge and says its lines from
 // content §9.2 on their triggers, one at a time, once each. Everything the cast does is decoration: labels, errors and status lines carry the meaning.
 
-const STEP_TITLE: Record<Exclude<Step, 6>, string> = {
-  1: 'You and your brand',
-  2: 'The objective',
-  3: 'Brand integration',
-  4: 'Must-haves and the response',
-  5: 'References and brand guide',
-};
+const STEP_TITLE = STEP_TITLES;
+
+/** (form7) The one line that says answers are saved as they go. */
+const SAVING_NOTE = "Once you add an email or phone number, we save your answers as you go, even if you don't finish.";
 
 /** Who speaks when a step is shown (content §9.2), and the line. */
 const STEP_LINE: Record<Step, CastLineKey> = {
@@ -211,6 +215,59 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
   }, [mode, step, reached, draft, sent]);
 
   useEffect(() => onMode?.(mode), [mode, onMode]);
+
+  // ---------- Saved as they go (form7) ----------
+
+  const draftMeta = useRef<DraftMeta | null>(null);
+  draftMeta.current ??= loadDraftMeta();
+  const live = useRef({ mode, step, reached, draft, intent, sent });
+  live.current = { mode, step, reached, draft, intent, sent };
+
+  /** Sends the answers so far when there is a way to reach the visitor and something changed since the last save. Silent either way. */
+  const saveProgress = useCallback((at: Step, upTo: Step, how: 'fetch' | 'beacon') => {
+    const s = live.current;
+    if (s.sent || !canSaveDraft(s.draft)) return;
+    const meta = draftMeta.current ?? { id: newDraftId(), sent: '' };
+    if (!draftMeta.current) {
+      draftMeta.current = meta;
+      saveDraftMeta(meta);
+    }
+    const body = draftBody(s.mode, s.draft, s.intent, at, upTo, meta.id, trapRef.current?.value ?? '');
+    // Which step it was saved from is not a change on its own: leaving from the step Next just saved sends nothing.
+    const sig = JSON.stringify({ ...body, step: 0 });
+    if (sig === meta.sent) return;
+    const json = JSON.stringify(body);
+    const done = () => {
+      if (draftMeta.current?.id !== meta.id) return;
+      draftMeta.current = { id: meta.id, sent: sig };
+      saveDraftMeta(draftMeta.current);
+    };
+    if (how === 'beacon' && typeof navigator.sendBeacon === 'function') {
+      try {
+        if (navigator.sendBeacon('/api/contact/draft', json)) return done();
+      } catch {
+        // Falls through to fetch.
+      }
+    }
+    void fetch('/api/contact/draft', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: json, keepalive: json.length < 60_000 })
+      .then((r) => r.ok && done())
+      .catch(() => undefined);
+  }, []);
+
+  // Leaving with unsaved changes: closing the tab, switching away on a phone (pagehide does not always fire there), or another page of the site.
+  useEffect(() => {
+    const away = () => saveProgress(live.current.step, live.current.reached, 'beacon');
+    const onHidden = () => {
+      if (document.visibilityState === 'hidden') away();
+    };
+    window.addEventListener('pagehide', away);
+    document.addEventListener('visibilitychange', onHidden);
+    return () => {
+      window.removeEventListener('pagehide', away);
+      document.removeEventListener('visibilitychange', onHidden);
+      away();
+    };
+  }, [saveProgress]);
 
   // Arriving with a different intent while already on the page (a link in the footer or the nav).
   const urlIntent = parseIntent(params);
@@ -415,17 +472,22 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
     setStep(s);
     setReached((r) => (s > r ? s : r));
   };
+  /** Moves on and saves this step's answers (form7). */
+  const forward = () => {
+    if (step >= REVIEW) return;
+    const to = (step + 1) as Step;
+    saveProgress(step, to > reached ? to : reached, 'fetch');
+    goTo(to);
+  };
   const next = () => {
     if (step === 1 && !checkStep1()) return;
     if (step === 5 && !checkStep5()) return;
-    if (step < REVIEW) goTo((step + 1) as Step);
+    forward();
   };
   const back = () => {
     if (step > 1) goTo((step - 1) as Step);
   };
-  const skip = () => {
-    if (step < REVIEW) goTo((step + 1) as Step);
-  };
+  const skip = forward;
 
   const setMode = (m: Mode) => {
     if (m === mode) return;
@@ -462,6 +524,8 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
       message: draft.message.trim(),
       // Read straight from the DOM, with no listener on it: a bot that sets the value without firing events is still caught.
       company: trapRef.current?.value ?? '',
+      // The saved partial lead this send completes (form7).
+      ...(draftMeta.current ? { draftId: draftMeta.current.id } : {}),
     };
     let lead: LeadInput;
     if (trial) {
@@ -481,6 +545,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
       onError: () => crew.current.sochu?.setExpression(null),
       onSuccess: () => {
         clear();
+        draftMeta.current = null;
         const all = (['sochu', 'bolu', 'tiko', 'gola'] as const).map((w) => crew.current[w] ?? null);
         for (const c of all) c?.setExpression('celebrating', { hold: 2600 });
         cascade(all, 'hop', { stagger: 110, force: true });
@@ -501,7 +566,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
   // Too many sends from this connection: retrying fails for up to an hour, so the email is the only way on.
   const limited = send.error instanceof ApiError && send.error.status === 429;
   const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent(trial ? 'Trial video request' : 'Question for Kreators.Army')}&body=${encodeURIComponent(summary(mode, draft, intent))}`;
-  const wa = whatsappHref();
+  const call = callPhone();
 
   // ---------- Pieces ----------
 
@@ -631,6 +696,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
                 className="bf-pills"
               />
             </div>
+            <p className="cf-help cf-span bf-saving m-0">{SAVING_NOTE}</p>
           </div>
         );
       case 2:
@@ -774,7 +840,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
     <>
       {step < REVIEW ? (
         <h2 ref={headingRef} tabIndex={-1} className="bf-title">
-          {STEP_TITLE[step as Exclude<Step, 6>]}
+          {STEP_TITLE[step]}
         </h2>
       ) : (
         <h2 ref={headingRef} tabIndex={-1} className="bf-title">
@@ -800,6 +866,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
         onSelect={onSelect}
         className="cf-span"
       />
+      <p className="cf-help cf-span bf-saving m-0">{SAVING_NOTE}</p>
     </div>
   );
 
@@ -970,12 +1037,12 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
                 <a href={`mailto:${SITE.email}`} className="cf-link">
                   {SITE.email}
                 </a>
-                {wa ? (
+                {call ? (
                   <>
                     {' '}
-                    or on{' '}
-                    <a href={wa} target="_blank" rel="noreferrer" className="cf-link">
-                      WhatsApp
+                    or {call.whatsapp ? 'WhatsApp / call' : 'call'}{' '}
+                    <a href={`tel:${call.tel}`} className="cf-link">
+                      {call.display}
                     </a>
                     .
                   </>

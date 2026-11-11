@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router';
 import { MechanismChip, toneAt } from '../../components/demos';
 import { Seo, Tile } from '../../components/ui';
 import { MECHANISMS, POSTS, type Mechanism, type PostSection } from '../../lib/content';
+import { tieLast } from '../../lib/typo';
 import { NotFound } from '../../screens/NotFound';
 import { GradientTail, PostCover, ReadingProgress, readingTime } from './Reading';
 
@@ -18,7 +19,7 @@ function Section({ section }: { section: PostSection }) {
     <section>
       {heading && <h2>{heading}</h2>}
       {body.map((p) => (
-        <p key={p}>{p}</p>
+        <p key={p}>{tieLast(p)}</p>
       ))}
       {list &&
         (figure === 'mechanisms' ? (
@@ -30,7 +31,7 @@ function Section({ section }: { section: PostSection }) {
         ) : (
           <ul className="read-list">
             {list.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item}>{tieLast(item)}</li>
             ))}
           </ul>
         ))}

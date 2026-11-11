@@ -2,6 +2,9 @@
  * Security headers for the pages the Worker answers itself, and the rules for a path that must never be served.
  * apps/web/public/_headers holds the same list for static files; change the two together (a test compares the CSP lines).
  * v2's one change: https://mega.nz in frame-src, for the player's on-demand MEGA fallback (V2-SPEC 2.15).
+ * (admin8) The admin reads MEGA files in the founder's browser (posters, hover clips, the drawer's preview; the Worker never touches video
+ * bytes): connect-src adds MEGA's API (g.api.mega.co.nz) and its storage hosts (*.userstorage.mega.co.nz), and media-src adds blob: for the
+ * whole-file fallback where no service worker can serve ranges.
  */
 
 export const CSP = [
@@ -10,8 +13,8 @@ export const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   "img-src 'self' data: blob: https:",
-  "media-src 'self'",
-  "connect-src 'self'",
+  "media-src 'self' blob:",
+  "connect-src 'self' https://g.api.mega.co.nz https://*.userstorage.mega.co.nz",
   'frame-src https://www.youtube-nocookie.com https://*.wave.video https://mega.nz',
   "worker-src 'self'",
   "manifest-src 'self'",

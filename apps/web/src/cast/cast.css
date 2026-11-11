@@ -15,10 +15,75 @@
     outline: none;
   }
 
-  .k-char[data-interactive] {
+  /* Every character answers a hover, a focus or a tap with a bubble (hover.ts). The box takes the pointer, never the stage drawn around it, so the
+     hit area is the character itself. An interactive character keeps its whole drawing, as before. */
+  .k-char {
     pointer-events: auto;
+  }
+
+  .k-char:not([data-interactive]) > * {
+    pointer-events: none;
+  }
+
+  .k-char[data-interactive] {
     cursor: pointer;
     touch-action: manipulation;
+  }
+
+  /* The hover bubble (hover.ts): a scripted CastBubble held open, the next of the character's own lines, or its own [data-own] bubble. It wears the
+     look of .cast-bubble[data-show] (chat.css). A scripted line on the same character wins, and the hover one waits under it. */
+  .k-char > .cast-bubble[data-hover] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 160ms var(--ease-out),
+      transform var(--spring-bouncy);
+  }
+
+  .k-char:has(> .cast-bubble[data-show]) > .cast-bubble[data-hover]:not([data-show]) {
+    opacity: 0;
+    transform: translateY(6px) scale(0.85);
+  }
+
+  /* Beside the head, when above it would slide under the nav or cover a control (placeBubble in hover.ts). The tail turns to point at the head. */
+  .k-char > .cast-bubble[data-beside] {
+    bottom: 42%;
+    translate: 0 0;
+  }
+
+  .k-char > .cast-bubble[data-beside='end'] {
+    left: calc(100% + 2px);
+    right: auto;
+    transform-origin: -8px 50%;
+  }
+
+  .k-char > .cast-bubble[data-beside='start'] {
+    left: auto;
+    right: calc(100% + 2px);
+    transform-origin: calc(100% + 8px) 50%;
+  }
+
+  .k-char > .cast-bubble[data-beside]::after {
+    top: calc(50% - 5px);
+    left: -13px;
+    rotate: 90deg;
+  }
+
+  .k-char > .cast-bubble[data-beside='start']::after {
+    left: auto;
+    right: -13px;
+    rotate: -90deg;
+  }
+
+  /* Another character's line while a hover bubble shows (hover.ts): it steps aside, and comes back with the leave if it is still up. */
+  .k-char > .cast-bubble[data-yield] {
+    opacity: 0;
+    transform: translateY(6px) scale(0.85);
+  }
+
+  :root[data-still] .k-char > .cast-bubble[data-hover] {
+    transform: none;
+    transition: opacity 1ms;
   }
 
   /* The stage is the 480-unit square the rig draws in, drawn around the 312 x 288 box that the characters fill. Feet sit on the box's bottom edge. */
@@ -58,6 +123,11 @@
 
   :root[data-still] .k-breath {
     animation: none;
+  }
+
+  /* The hover bubble's own text holds nothing until hover.ts fills it. */
+  .k-char > .cast-bubble[data-own]:not([data-hover], [data-out]) {
+    visibility: hidden;
   }
 
   .k-char[data-peek] .k-stage {

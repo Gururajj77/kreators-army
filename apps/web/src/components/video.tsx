@@ -1,12 +1,13 @@
 // Tiles and the player. Tiles are `card` frames (frames.tsx); the player is v1's native <dialog> with the tile-to-player morph, prev and next and arrow
-// keys (V1-SPEC 4 contract), playing `streamUrl` with the failure order of V2-SPEC 3.4: the bundled copy, then MEGA's own embed (only on a 503 for a
-// file link, only from the probe), then a plain message. No word on the site names MEGA (C11).
+// keys (V1-SPEC 4 contract). (pub8) What it plays: a MEGA entry opens MEGA's own embed player straight away (the Worker never streams MEGA: on
+// Cloudflare's free plan a decrypted range ran out of CPU and died as a 503); a MEGA file inside a shared folder has no embed, so it plays its bundled
+// copy when it has one, else offers MEGA's own page in a new tab; a bundled file plays in the native <video>; YouTube and wave.video in their embeds.
 //
 // The morph: `layoutId` is shared between the player's frame and an empty anchor the player mounts inside the frame that was pressed. Frames never hold
 // a Motion node, so a page with a hundred tiles measures nothing. Motion cannot change a layoutId once mounted and promotes whichever element mounted
 // last, so the order matters: anchor first, one commit later the frame. See VideoPlayerDialog.
 
-import { formatViews, isMegaStream, probeSrc, type Video } from '@kreators/shared';
+import { formatViews, isMegaEmbed, playerEmbedSrc, type Video } from '@kreators/shared';
 import { ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-react';
 import { AnimatePresence, PresenceContext, m, useIsPresent } from 'motion/react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -100,37 +101,31 @@ export function WatchLinks({ links, className }: { links: Video['links']; classN
 // ---------- The player's media ----------
 
 type Media =
-  | { kind: 'stream'; src: string; attempt: number; fallback: boolean }
+  | { kind: 'stream'; src: string }
   | { kind: 'embed'; src: string; mega: boolean }
+  /** MEGA's own page, opened in a new tab (a MEGA file inside a shared folder has no embed player). */
+  | { kind: 'watch'; href: string }
   | { kind: 'failed' };
 
 /** What a failing video settled on, so a second open in the same page view starts there (V2-SPEC 3.4: "once per video per page view"). */
 const settled = new Map<string, Media>();
 
-const MEGA_EMBED = /^https:\/\/mega\.nz\/embed\/[A-Za-z0-9_-]{8}#[A-Za-z0-9_-]{43}$/;
 const NO_PLAY_MS = 8000;
+/** An embed whose load event never comes (blocked, offline) still replaces the poster after this; MEGA's page does more before it paints. */
+const EMBED_READY_MS = { mega: 4000, other: 2000 };
+
+/** Where a MEGA entry with no embed goes when its bundled copy is missing or fails: MEGA's own page, else the message. */
+const afterStream = (video: Video): Media => (video.watchUrl ? { kind: 'watch', href: video.watchUrl } : { kind: 'failed' });
 
 function firstMedia(video: Video): Media {
   const known = settled.get(video.id);
   if (known) return known;
-  if (!video.streamUrl && video.embedUrl) return { kind: 'embed', src: video.embedUrl, mega: false };
-  if (video.streamUrl) return { kind: 'stream', src: video.streamUrl, attempt: 0, fallback: false };
-  return { kind: 'failed' };
-}
-
-/** Ask the Worker why a MEGA stream failed. A network error reads as no answer. */
-async function probe(video: Video): Promise<{ status: number; embed: string | null }> {
-  const url = probeSrc(video);
-  if (!url) return { status: 0, embed: null };
-  try {
-    const r = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
-    if (r.ok) return { status: r.status, embed: null };
-    const body = (await r.json().catch(() => null)) as { embed?: unknown } | null;
-    const embed = r.status === 503 && typeof body?.embed === 'string' && MEGA_EMBED.test(body.embed) ? body.embed : null;
-    return { status: r.status, embed };
-  } catch {
-    return { status: 0, embed: null };
-  }
+  // MEGA's embed, straight away: only a clean embed address (one public file) goes into the iframe, with MEGA's own autoplay option.
+  if (isMegaEmbed(video.embedUrl)) return { kind: 'embed', src: playerEmbedSrc(video.embedUrl), mega: true };
+  if (video.source === 'mega') return video.fallbackUrl ? { kind: 'stream', src: video.fallbackUrl } : afterStream(video);
+  if (video.streamUrl) return { kind: 'stream', src: video.streamUrl };
+  if (video.embedUrl) return { kind: 'embed', src: video.embedUrl, mega: false };
+  return afterStream(video);
 }
 
 /** The player itself. Mounted only once the frame has landed: media under a scaling transform is heavy and distorts. */
@@ -139,43 +134,12 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
   const [embedReady, setEmbedReady] = useState(false);
   const el = useRef<HTMLVideoElement>(null);
   const playedOnce = useRef(false);
-  const busy = useRef(false);
-  // The probe's answer, kept for the step after a failed fallback.
-  const probed = useRef<{ status: number; embed: string | null } | null>(null);
 
-  const settle = (next: Media) => {
-    if (next.kind !== 'stream' || next.fallback) settled.set(video.id, next);
+  const fail = () => {
+    if (media.kind !== 'stream') return;
+    const next = afterStream(video);
+    settled.set(video.id, next);
     setMedia(next);
-  };
-
-  const fail = async () => {
-    if (busy.current || media.kind !== 'stream') return;
-    busy.current = true;
-    try {
-      // The main stream failed: ask why, once. A healthy answer gets one more try of the same address.
-      if (!media.fallback && isMegaStream(video) && media.src === video.streamUrl) {
-        if (!probed.current) probed.current = await probe(video);
-        if (probed.current.status === 200 && media.attempt === 0) {
-          setMedia({ ...media, attempt: 1 });
-          return;
-        }
-      }
-      // 1. The bundled copy (C10).
-      if (!media.fallback && video.fallbackUrl) {
-        settle({ kind: 'stream', src: video.fallbackUrl, attempt: 0, fallback: true });
-        return;
-      }
-      // 2. MEGA's own player: only from a 503 probe answer for a file link.
-      const embed = probed.current?.embed;
-      if (embed) {
-        settle({ kind: 'embed', src: embed, mega: true });
-        return;
-      }
-      // 3. The message.
-      settle({ kind: 'failed' });
-    } finally {
-      busy.current = false;
-    }
   };
 
   // No 'playing' and no picture within 8 s of opening counts as a failure. A paused stream that has data (autoplay refused) is not a failure.
@@ -185,7 +149,7 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
     const t = window.setTimeout(() => {
       const v = el.current;
       if (playedOnce.current || (v && v.readyState >= 2)) return;
-      void fail();
+      fail();
     }, NO_PLAY_MS);
     return () => window.clearTimeout(t);
     // fail reads the current media; the timer restarts with each new source
@@ -195,21 +159,39 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
   useEffect(() => {
     if (media.kind !== 'embed') return;
     // An embed whose load event never comes (blocked, offline) must not leave the poster standing in for it forever.
-    const t = window.setTimeout(() => setEmbedReady(true), 2000);
+    const t = window.setTimeout(() => setEmbedReady(true), media.mega ? EMBED_READY_MS.mega : EMBED_READY_MS.other);
     return () => window.clearTimeout(t);
   }, [media]);
 
   if (media.kind === 'embed') {
     return (
-      <iframe
-        className="player-embed"
-        data-ready={embedReady ? '' : undefined}
-        src={media.src}
-        title={`${video.title}, ${video.brand}`}
-        allow={media.mega ? 'autoplay; fullscreen' : 'autoplay; encrypted-media; picture-in-picture; fullscreen'}
-        referrerPolicy="strict-origin-when-cross-origin"
-        onLoad={() => setEmbedReady(true)}
-      />
+      <>
+        {!embedReady && <span className="player-loading" role="status" aria-label="Loading video" />}
+        <iframe
+          className="player-embed"
+          data-ready={embedReady ? '' : undefined}
+          src={media.src}
+          title={`${video.title}, ${video.brand}`}
+          allow={media.mega ? 'autoplay; fullscreen' : 'autoplay; encrypted-media; picture-in-picture; fullscreen'}
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+          onLoad={() => setEmbedReady(true)}
+        />
+      </>
+    );
+  }
+
+  if (media.kind === 'watch') {
+    return (
+      <div className="player-failed player-watch-out" role="status">
+        <p className="player-failed-text">This video plays on MEGA.</p>
+        <div className="watch-links player-failed-links">
+          <a href={media.href} target="_blank" rel="noopener noreferrer" className="watch-link">
+            <LabelRoll>Watch on MEGA</LabelRoll>
+            <ArrowDisc kind="out" />
+          </a>
+        </div>
+      </div>
     );
   }
 
@@ -226,7 +208,6 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
             className="btn btn-light btn-sm"
             onClick={() => {
               settled.delete(video.id);
-              probed.current = null;
               onRetry();
             }}
           >
@@ -240,7 +221,7 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
 
   return (
     <video
-      key={`${media.src}#${media.attempt}`}
+      key={media.src}
       ref={el}
       className="player-video"
       src={media.src}
@@ -252,7 +233,7 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
       onPlaying={() => {
         playedOnce.current = true;
       }}
-      onError={() => void fail()}
+      onError={fail}
     />
   );
 }

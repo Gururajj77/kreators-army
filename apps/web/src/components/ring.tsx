@@ -22,7 +22,8 @@ import { canAutoplay, finePointer, useMotionOk, useRunning } from '../lib/motion
 import { spring } from '../lib/spring';
 import { videoToken } from './frames';
 
-/** Degrees a second, while nothing holds it. 60 s a turn at 12 cards, as the reference. */
+/** Degrees a second at the base slot count, while nothing holds it: 60 s a turn at 12 cards, as the reference. When fitSlots adds slots the ring's
+ *  radius grows with them, so the turn slows in step (SPEED * base / n) and the cards cross the front at the same pace on every width. */
 const SPEED = 6;
 /** Hold after a press, a focus-out or a touch (ms). */
 const HOLD_PRESS = 3000;
@@ -33,6 +34,9 @@ const DRAG = 0.12;
 const TICK = 250;
 /** A clip plays only on a card this close to the front. */
 const CLIP_ARC = 40;
+const CLIP_HOVER_MS = 100;
+const STREAM_HOVER_MS = 300;
+const STREAM_LOOP_AT = 5; // seconds: a bundled file previews its first 5 s, looped
 /** At most this many real items. */
 const MAX_ITEMS = 18;
 /** At most this many slots, clones included (a 2560 px stage needs about 25 at the library's size). */
@@ -45,7 +49,8 @@ const PAD = 8;
 /**
  * Which item slot `k` of `n` shows. The items first, in order. Then the clones: with fewer than twice as many slots as items, each extra slot
  * copies the item half a turn away from it, so a copy never sits near its original (a wide stage shows more than half the ring at once, so the
- * two copies may both show, but at opposite sides); with twice as many or more, the items repeat in turn, so the copies are evenly spaced.
+ * two copies may both show, but at opposite sides); with twice as many or more, the items repeat in whole rounds (n is then a multiple of the
+ * item count, see cleanWrap), so every copy is exactly one round of items from the next.
  */
 export function ringItem(k: number, len: number, n: number): number {
   if (k < len || len <= 0) return k;
@@ -53,10 +58,11 @@ export function ringItem(k: number, len: number, n: number): number {
   return k % len;
 }
 
-/** A wrap-around that never puts two copies of one item side by side: only the repeating deal (n >= 2 len) can, when it leaves one over. */
-const cleanWrap = (len: number, n: number) => n < 2 * len || len <= 1 || n % len !== 1;
+/** A slot count whose copies are spread evenly: the half-turn deal (n < 2 len) always is; the repeating deal only in whole rounds, since a partial
+ *  last round brings an item back early across the wrap (5 items in 12 slots: ... D E A B | A B C ...). */
+export const cleanWrap = (len: number, n: number) => n < 2 * len || len <= 1 || n % len === 0;
 
-/** The number of slots for `len` items: the items alone when there are enough, else the smallest count >= min whose wrap-around never puts two copies of one item side by side. */
+/** The number of slots for `len` items: the items alone when there are enough, else the smallest count >= min whose copies are evenly spread (cleanWrap). */
 export function ringSlots(len: number, min: number): number {
   if (len <= 0) return 0;
   if (len >= min) return Math.min(len, MAX_ITEMS);
@@ -127,14 +133,17 @@ export function ringReach(n: number, { cw, ch, gap, lift, width }: RingFit): num
   return best;
 }
 
-/** The fewest slots, from `base` up, for which every card shows whole on the stage at every angle (see ringReach). */
+/** The fewest evenly spread slots (cleanWrap), from `base` up, for which every card shows whole on the stage at every angle (see ringReach).
+ *  A stage not laid out yet (0 wide or high, e.g. inside display: none) keeps `base`; if nothing up to MAX_FIT fits, the largest clean count. */
 export function fitSlots(len: number, base: number, fit: RingFit): number {
   if (len <= 0 || base <= 0) return 0;
+  if (!(fit.width > 0 && fit.height > 0)) return base;
   for (let n = base; n <= MAX_FIT; n++) {
     if (!cleanWrap(len, n)) continue;
     if (2 * ringReach(n, fit) + 2 * PAD <= fit.height) return n;
   }
-  return Math.max(base, MAX_FIT - (cleanWrap(len, MAX_FIT) ? 0 : 1));
+  for (let n = MAX_FIT; n > base; n--) if (cleanWrap(len, n)) return n;
+  return base;
 }
 
 /** The angle equal to `target` (mod 360) that is nearest to `a`. */
@@ -166,7 +175,7 @@ export interface CardRingProps<T> {
   /** The real items, in order. */
   items: T[];
   itemKey: (item: T) => string;
-  /** The card: one element with className "cring-card" (a <button> or <a> when interactive). */
+  /** The card: one element with className "cring-card" (a <button> when interactive; a link would need its own Space key in the toolbar). */
   renderCard: (item: T, state: CardRingState) => ReactNode;
   /** The toolbar's accessible name (interactive only). */
   label: string;
@@ -176,8 +185,13 @@ export interface CardRingProps<T> {
   minCards?: number;
   /** An outside pause (the player dialog is open). */
   paused?: boolean;
-  /** A stored hover clip for the item, played on the front card only (desktop, motion allowed, no Save-Data, one video on the page). */
+  /** A stored hover clip for the item, played on the hovered card, else the front card (desktop, motion allowed, no Save-Data, one video on the page). */
   clipOf?: (item: T) => string | null | undefined;
+  /**
+   * (hover7) A muted bundled file for an item with no stored clip (only when the API allows it; never MEGA, which previews its stored clip only):
+   * played on the hovered card only, after a 300 ms rest, never by itself on the front card. Looped at 5 s.
+   */
+  streamOf?: (item: T) => string | null | undefined;
   onItemFocus?: (item: T) => void;
   className?: string;
 }
@@ -204,12 +218,7 @@ function useRoving(len: number, onMove: (k: number) => void) {
     else if (e.key === 'ArrowLeft') next = (k - 1 + len) % len;
     else if (e.key === 'Home') next = 0;
     else if (e.key === 'End') next = len - 1;
-    else if (e.key === ' ' && e.target instanceof HTMLAnchorElement) {
-      // A link has no Space of its own; in a toolbar it should act like its neighbours.
-      e.preventDefault();
-      e.target.click();
-      return;
-    } else return;
+    else return;
     e.preventDefault();
     setActive(next);
     const card = e.currentTarget.querySelector<HTMLElement>(`.cring-slot[data-k="${next}"] .cring-card`);
@@ -262,7 +271,7 @@ function FlatRow<T>({ items, itemKey, renderCard, label, onItemFocus, className 
 
 // ---------- The ring ----------
 
-function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 12, paused = false, clipOf, onItemFocus, className }: CardRingProps<T>) {
+function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 12, paused = false, clipOf, streamOf, onItemFocus, className }: CardRingProps<T>) {
   const real = items.slice(0, MAX_ITEMS);
   const len = real.length;
   const base = ringSlots(len, minCards);
@@ -296,9 +305,10 @@ function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 
   const clipVideo = useRef<HTMLVideoElement | null>(null);
   const playingK = useRef(-1);
   const hoverK = useRef(-1);
+  const hoverWait = useRef(0);
   const owner = useRef<object>({});
   const failed = useRef(new Set<string>());
-  const clipsOn = interactive && Boolean(clipOf) && canAutoplay();
+  const clipsOn = interactive && Boolean(clipOf || streamOf) && canAutoplay();
 
   const write = useCallback((v: number) => {
     if (ring.current) ring.current.style.transform = `rotateY(${v.toFixed(3)}deg)`;
@@ -352,6 +362,7 @@ function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 
     if (v) {
       v.onplaying = null;
       v.onerror = null;
+      v.ontimeupdate = null;
       v.pause();
       v.removeAttribute('src');
       v.load();
@@ -413,18 +424,29 @@ function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 
     // The clip: the hovered card, else the front card within ±CLIP_ARC, if it has a clip. One video on the page (videoToken).
     if (!clipsOn) return;
     const may = running && !paused && document.visibilityState !== 'hidden';
-    const urlOf = (k: number) => {
+    // A stored clip for the hovered or the front card; a bundled file for the hovered card only.
+    const sourceOf = (k: number, hovered: boolean) => {
       const item = real[ringItem(k, len, n)];
-      const url = item === undefined ? null : clipOf?.(item);
-      return url && !failed.current.has(url) ? url : null;
+      if (item === undefined) return null;
+      const clipUrl = clipOf?.(item);
+      if (clipUrl && !failed.current.has(clipUrl)) return { url: clipUrl, stream: false };
+      const streamUrl = hovered ? streamOf?.(item) : null;
+      return streamUrl && !failed.current.has(streamUrl) ? { url: streamUrl, stream: true } : null;
     };
     let want = -1;
     let force = false;
+    let source: { url: string; stream: boolean } | null = null;
     if (may) {
-      if (hoverK.current >= 0 && urlOf(hoverK.current)) {
+      const hovered = hoverK.current >= 0 ? sourceOf(hoverK.current, true) : null;
+      const front = !hovered && frontK >= 0 && frontD <= CLIP_ARC ? sourceOf(frontK, false) : null;
+      if (hovered) {
         want = hoverK.current;
         force = true;
-      } else if (frontK >= 0 && frontD <= CLIP_ARC && urlOf(frontK)) want = frontK;
+        source = hovered;
+      } else if (front) {
+        want = frontK;
+        source = front;
+      }
     }
     if (want === playingK.current) return;
     stopClip();
@@ -433,7 +455,7 @@ function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 
       return;
     }
     const box = clipEls.current.get(want);
-    const url = urlOf(want);
+    const url = source?.url;
     if (!box || !url || !videoToken.take(owner.current, lose, force)) return;
     playingK.current = want;
     const v = document.createElement('video');
@@ -454,13 +476,18 @@ function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 
       failed.current.add(url);
       if (clipVideo.current === v) stopClip();
     };
+    if (source?.stream) {
+      v.ontimeupdate = () => {
+        if (v.currentTime >= STREAM_LOOP_AT) v.currentTime = 0;
+      };
+    }
     v.src = url;
     box.append(v);
     clipVideo.current = v;
     void v.play().catch(() => {
       if (clipVideo.current === v) stopClip();
     });
-  }, [a, n, step, clipsOn, running, paused, real, len, clipOf, stopClip, lose]);
+  }, [a, n, step, clipsOn, running, paused, real, len, clipOf, streamOf, stopClip, lose]);
 
   const tickRef = useRef(tick);
   tickRef.current = tick;
@@ -500,12 +527,12 @@ function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 
       const dt = Math.min(now - last, 100);
       last = now;
       const s = speed.get();
-      if (!paused && !seek.current && !why.current.drag && s > 0.0005) a.set(a.get() + (SPEED * dt * s) / 1000);
+      if (!paused && !seek.current && !why.current.drag && s > 0.0005) a.set(a.get() + (SPEED * (base / n) * dt * s) / 1000);
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [running, paused, n, a, speed]);
+  }, [running, paused, n, base, a, speed]);
 
   // ----- Bring a card to the front -----
   const toFront = useCallback(
@@ -539,6 +566,7 @@ function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 
   const onPointerLeave = (e: ReactPointerEvent) => {
     if (e.pointerType !== 'mouse') return;
     why.current.hover = false;
+    window.clearTimeout(hoverWait.current);
     hoverK.current = -1;
     reevaluate();
     tickRef.current();
@@ -547,11 +575,20 @@ function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 
     if (e.pointerType !== 'mouse') return;
     const k = slotOf(e.target);
     const next = k ?? -1;
-    if (next !== hoverK.current) {
+    window.clearTimeout(hoverWait.current);
+    if (next === hoverK.current) return;
+    // (hover7) A short rest before a hovered card plays (100 ms for a stored clip, 300 ms for the stream), so a pointer sweeping across the ring
+    // starts nothing; moving off the cards stops at once.
+    const item = next >= 0 ? real[ringItem(next, len, n)] : undefined;
+    const delay = next < 0 ? 0 : item !== undefined && clipOf?.(item) ? CLIP_HOVER_MS : STREAM_HOVER_MS;
+    const apply = () => {
       hoverK.current = next;
       tickRef.current();
-    }
+    };
+    if (delay === 0) apply();
+    else hoverWait.current = window.setTimeout(apply, delay);
   };
+  useEffect(() => () => window.clearTimeout(hoverWait.current), []);
   const onPointerDown = (e: ReactPointerEvent) => {
     if (e.pointerType !== 'touch') return;
     dragged.current = false;
@@ -657,7 +694,7 @@ function Ring3D<T>({ items, itemKey, renderCard, label, interactive, minCards = 
   const slots = Array.from({ length: n }, (_, k) => {
     const item = real[ringItem(k, len, n)] as T;
     const clone = k >= len;
-    const url = clipsOn ? clipOf?.(item) : null;
+    const url = clipsOn ? clipOf?.(item) || streamOf?.(item) : null;
     const clip = url ? (
       <span
         className="cring-clip-box"

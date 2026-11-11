@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatViews, isMegaStream, isValidPosterUrl, parseVideoRef, previewSrc, probeSrc, videoEmbedUrl, videoPoster } from './videos.ts';
+import { formatViews, isMegaEmbed, isValidPosterUrl, megaPlayerUrls, parseVideoRef, playerEmbedSrc, previewSrc, videoEmbedUrl, videoPoster } from './videos.ts';
 
 const ID = 'dQw4w9WgXcQ';
 
@@ -77,27 +77,29 @@ describe('formatViews', () => {
   });
 });
 
-describe('v2 stream helpers', () => {
-  const mega = { streamUrl: '/media/v/seed-fyndflow.mp4?v=0123abcd' };
-  const file = { streamUrl: '/media/ansh-mehra.mp4' };
-  const embed = { streamUrl: null };
+describe('MEGA embed helpers (pub8)', () => {
+  const K = 'xAb8Winxbew-6pdl9CyAHKrBNegZbIL-l0uw6PrYs3w';
+  const FK = 'AbCdEfGhIjKlMnOpQrStUv';
 
-  it('tells a MEGA stream from a bundled file', () => {
-    expect(isMegaStream(mega)).toBe(true);
-    expect(isMegaStream(file)).toBe(false);
-    expect(isMegaStream(embed)).toBe(false);
+  it('a file link has MEGA\'s embed; a file in a folder has MEGA\'s page; a folder has neither', () => {
+    expect(megaPlayerUrls({ kind: 'file', handle: 'RoDe0001', key43: K })).toEqual({ embedUrl: `https://mega.nz/embed/RoDe0001#${K}`, watchUrl: null });
+    expect(megaPlayerUrls({ kind: 'folder-file', folderHandle: 'FoLdEr01', folderKey22: FK, nodeHandle: 'NoDe0001' })).toEqual({ embedUrl: null, watchUrl: `https://mega.nz/folder/FoLdEr01#${FK}/file/NoDe0001` });
+    expect(megaPlayerUrls({ kind: 'folder', folderHandle: 'FoLdEr01', folderKey22: FK })).toEqual({ embedUrl: null, watchUrl: null });
   });
 
-  it('previews MEGA bounded to 6 s, a bundled file as it is, and never an embed', () => {
-    expect(previewSrc(mega)).toBe('/media/v/seed-fyndflow.mp4?v=0123abcd&preview=6');
-    expect(previewSrc({ streamUrl: '/media/v/x.mp4' })).toBe('/media/v/x.mp4?preview=6');
-    expect(previewSrc(file)).toBe('/media/ansh-mehra.mp4');
-    expect(previewSrc(embed)).toBeNull();
+  it('only a clean MEGA embed counts, and only it gets MEGA\'s autoplay option', () => {
+    const embed = `https://mega.nz/embed/RoDe0001#${K}`;
+    expect(isMegaEmbed(embed)).toBe(true);
+    expect(isMegaEmbed(`${embed}!1a`)).toBe(false);
+    expect(isMegaEmbed('https://mega.nz.evil.test/embed/RoDe0001#' + K)).toBe(false);
+    expect(isMegaEmbed(null)).toBe(false);
+    expect(playerEmbedSrc(embed)).toBe(`${embed}!1a`);
+    expect(playerEmbedSrc('https://embed.wave.video/AbCdEf123')).toBe('https://embed.wave.video/AbCdEf123');
   });
 
-  it('probes only MEGA streams', () => {
-    expect(probeSrc(mega)).toBe('/media/v/seed-fyndflow.mp4?v=0123abcd&probe=1');
-    expect(probeSrc(file)).toBeNull();
-    expect(probeSrc(embed)).toBeNull();
+  it('a stream preview is a bundled file only, never the old MEGA stream or an embed', () => {
+    expect(previewSrc({ streamUrl: '/media/ansh-mehra.mp4' })).toBe('/media/ansh-mehra.mp4');
+    expect(previewSrc({ streamUrl: '/media/v/x.mp4?v=0123abcd' })).toBeNull();
+    expect(previewSrc({ streamUrl: null })).toBeNull();
   });
 });

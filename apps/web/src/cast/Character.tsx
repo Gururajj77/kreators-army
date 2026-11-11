@@ -1,5 +1,6 @@
 import { useEffect, useId, useImperativeHandle, useInsertionEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
-import { castById, type CastId } from '../lib/content';
+import { castById, type CastId, type CastLineKey } from '../lib/content';
+import { attachHover } from './hover';
 import { BODY_COLOR, FlatBody, RestFace, insertCoreDefs } from './rest';
 import type { Actor, CastAction, LookTarget, PlayOptions } from './director';
 import type { LiveProps } from './live';
@@ -43,6 +44,11 @@ export interface CharacterProps {
   ref?: Ref<CharacterHandle>;
   /** Rendered inside the character's box, after the figure: a speech bubble (CastBubble) sits here, above the head. */
   children?: ReactNode;
+  /**
+   * The lines a hover, a focus or a tap shows, in turn. Default: the CastBubble children's own lines, else the character's general lines (cast/hover.ts).
+   * Every character answers a hover with a bubble and its move; there is no switch for it.
+   */
+  lines?: readonly CastLineKey[];
 }
 
 export interface CharacterHandle {
@@ -103,6 +109,7 @@ export function Character({
   style,
   ref,
   children,
+  lines,
 }: CharacterProps) {
   const actor = useRef<Actor | null>(null);
   const box = useRef<HTMLSpanElement>(null);
@@ -148,6 +155,23 @@ export function Character({
   }, []);
 
   useImperativeHandle(ref, () => handle, [handle]);
+
+  // Hover, focus and tap open a bubble and play the move, every time (cast/hover.ts). The rig is asked for on the first hover if it is not here yet.
+  const linesNow = useRef(lines);
+  linesNow.current = lines;
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    return attachHover({
+      box: el,
+      who,
+      lines: () => linesNow.current,
+      react: () => {
+        if (actor.current && rig) rig.perform(actor.current, 'signature', { source: 'hover' });
+        else if (!still) void loadRig();
+      },
+    });
+  }, [who, still]);
 
   const onActor = (a: Actor | null) => {
     actor.current = a;
@@ -196,6 +220,11 @@ export function Character({
         </span>
       )}
       {children}
+      {/* The hover bubble for a character with no line of its own here. Filled and shown by cast/hover.ts, never by React. */}
+      <span className="cast-bubble bubble" data-own="" data-who={who} style={{ '--dot': BODY_COLOR[who] } as CSSProperties} aria-hidden>
+        <span className="bubble-label">{castById(who).name}</span>
+        <span className="bubble-text" />
+      </span>
     </span>
   );
 }

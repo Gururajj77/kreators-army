@@ -1,9 +1,10 @@
-import { lazy, useEffect, type ComponentType, type LazyExoticComponent } from 'react';
+import { Suspense, lazy, useEffect, type ComponentType, type LazyExoticComponent } from 'react';
 import { createBrowserRouter, RouterProvider, type RouteObject } from 'react-router';
 import { Backdrop } from './components/backdrop/Backdrop';
 import { NotFound } from './screens/NotFound';
 import { Home } from './site/Home';
 import { Layout, RouteError } from './site/Layout';
+import { LibraryShell } from './site/LibraryShell';
 
 type PageModule = { default: ComponentType };
 
@@ -70,7 +71,8 @@ const router = createBrowserRouter([
         errorElement: <RouteError />,
         children: [
           { path: '/', element: <Home /> },
-          { path: '/video-library', element: page('VideoLibrary') },
+          // Its own fallback, the library's shell: the generic skeleton is shorter than the library, so the footer jumped when the chunk landed.
+          { path: '/video-library', element: <Suspense fallback={<LibraryShell />}>{page('VideoLibrary')}</Suspense> },
           { path: '/how-we-work', element: page('HowWeWork') },
           { path: '/trial', element: page('Trial') },
           { path: '/pricing', element: page('Pricing') },

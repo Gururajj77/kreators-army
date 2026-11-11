@@ -1,6 +1,6 @@
 import { INTEGRATION_OPTIONS, MUST_HAVE_OPTIONS, OBJECTIVE_OPTIONS, type Video } from '@kreators/shared';
 import { ArrowRight, DoorOpen, FileSignature, Frame, type LucideIcon } from 'lucide-react';
-import { useRef, type CSSProperties } from 'react';
+import { useMemo, useRef, type CSSProperties } from 'react';
 import { Link } from 'react-router';
 import { Character, type CharacterHandle } from '../../cast';
 import { BRAND_GUIDE_COVERS, BRAND_GUIDE_TITLE } from '../../components/brief/copy';
@@ -11,6 +11,7 @@ import { Street } from '../../components/street';
 import { Cta, HeroCopy, PrimaryCta, Reveal, SectionHead, Seo } from '../../components/ui';
 import { EditTimeline } from '../../components/visuals';
 import { HERO, PILOT_FOOTNOTE, PILOT_STEPS } from '../../lib/content';
+import { useVideos } from '../../lib/queries';
 
 // content §3.3; layout visual §2.3, V2-SPEC 5.4. The street under the hero with Bolu on its footpath; three plates; the brief's six cards with their
 // options as display-only chips (labels from shared brief.ts, the same list the form and the inbox read); what trial videos may be used for, beside a
@@ -203,6 +204,7 @@ const SAMPLE = {
   embedUrl: null,
   posterUrl: HERO.poster,
   previewOk: false,
+  previewUrl: null,
   durationMs: null,
   links: { instagram: null, youtube: null },
 } as Video;
@@ -215,7 +217,19 @@ const RULES = [
   'Either of us may step back if a conflict of interest or competitive overlap comes up. If we spot one, we may ask for trial content to be removed from active use.',
 ];
 
+/**
+ * (hover7) The phone plays on hover like every video on the site: the poster's own reel (HERO.firstId), its stored clip only (pub8: a MEGA reel never
+ * streams here; a bundled one may preview its own file). No clip: the poster stays. The frame stays the decorative sample (no brand, no links, no
+ * player), so no real library row is presented as trial work.
+ */
+function useSample(): Video {
+  const { data } = useVideos();
+  const hero = data?.find((v) => v.id === HERO.firstId);
+  return useMemo(() => (hero ? { ...SAMPLE, source: hero.source, streamUrl: hero.streamUrl, previewOk: hero.previewOk, previewUrl: hero.previewUrl } : SAMPLE), [hero]);
+}
+
 function TrialContent() {
+  const sample = useSample();
   const side = useRef<HTMLDivElement>(null);
   const tiko = useRef<CharacterHandle>(null);
   const cast = useCastLine();
@@ -234,7 +248,7 @@ function TrialContent() {
           </Reveal>
         </div>
         <div ref={side} className="tr-content-side" data-bubble-bounds="">
-          <VideoFrame video={SAMPLE} variant="phone" width="var(--tr-phone)" className="tr-phone">
+          <VideoFrame video={sample} variant="phone" width="var(--tr-phone)" className="tr-phone" preview="hover">
             <span className="chip tr-eval">For evaluation</span>
           </VideoFrame>
           <span className="tr-tiko" aria-hidden>

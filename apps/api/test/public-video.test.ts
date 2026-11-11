@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { sha256Hex } from '../src/mega/protocol';
 import { posterUrl, problemsFor, toAdminVideo, toPublicVideo, type PublicRow, type VideoRow } from '../src/videoRows';
 
 // Synthetic keys (never a real link).
 const K = 'xAb8Winxbew-6pdl9CyAHKrBNegZbIL-l0uw6PrYs3w';
 const FK = 'AbCdEfGhIjKlMnOpQrStUv';
+const K2 = 'Zz9y8XwVuTsRqPoNmLkJiHgFeDcBa_-0123456789ab';
 const NODE_KEY = 'zCrPnjartIGIkPYb7mUuosmoCbN6lZa-uO4KOEk8ox0';
 const META_OK = JSON.stringify({ w: 720, h: 1280, rot: 0, dur: 49000, kbps: 3100, vc: 'avc1.64001f', ac: 'mp4a.40.2', moov: 'start', frag: false, prev: { 3: 400000, 6: 900000, 10: 1500000 } });
 const META_4K = JSON.stringify({ w: 2160, h: 3840, rot: 0, dur: 49883, kbps: 23344, vc: 'avc1.640033', ac: 'mp4a.40.2', moov: 'start', frag: false, prev: { 3: 9e6, 6: 19643049, 10: 3e7 } });
@@ -49,9 +49,8 @@ describe('toPublicVideo (V2-SPEC 2.10)', () => {
     expect((await toPublicVideo({ ...rows.bundled!, preview_sha: 'fedcba9876543210', preview_mime: 'video/webm' })).previewUrl).toBe('/media/pv/seed-rode/fedcba9876543210.webm');
   });
 
-  it('a MEGA row: same-origin stream with the version tag, bundled fallback, stored poster, measured preview, links', async () => {
+  it('a MEGA file link: MEGA\'s own embed, no stream through this site, bundled copy kept, stored poster, no stream preview', async () => {
     const v = await toPublicVideo(rows.mega!);
-    const tag = await sha256Hex(`https://mega.nz/file/RoDe0001#${K}`, 8);
     expect(v).toEqual({
       id: 'seed-fyndflow',
       title: 'Street interview',
@@ -61,43 +60,51 @@ describe('toPublicVideo (V2-SPEC 2.10)', () => {
       aspect: 'vertical',
       views: 60000,
       featured: true,
-      streamUrl: `/media/v/seed-fyndflow.mp4?v=${tag}`,
+      streamUrl: null,
       fallbackUrl: '/media/fyndflow.mp4',
-      embedUrl: null,
+      embedUrl: `https://mega.nz/embed/RoDe0001#${K}`,
+      watchUrl: null,
       posterUrl: '/media/p/seed-fyndflow/0123456789abcdef.webp',
-      previewOk: true,
+      previewOk: false,
       previewUrl: null,
       durationMs: 49000,
       links: { instagram: 'https://www.instagram.com/reel/CxYz123abc/', youtube: 'https://www.youtube.com/shorts/dQw4w9WgXcQ' },
-      source: 'file',
-      ref: `/media/v/seed-fyndflow.mp4?v=${tag}`,
+      source: 'mega',
+      ref: `https://mega.nz/embed/RoDe0001#${K}`,
     });
   });
 
-  it('a MEGA row whose key is still in the secret: tag of "secret:<handle>", no preview until sniffed', async () => {
-    const v = await toPublicVideo(rows.megaSecret!);
-    expect(v.streamUrl).toBe(`/media/v/seed-circlestore-1.mp4?v=${await sha256Hex('secret:NmU3lZjR', 8)}`);
-    expect(v.previewOk).toBe(false);
-    expect(v.fallbackUrl).toBe('/media/circlestore-1.mp4');
-    expect(v.posterUrl).toBe('/media/circlestore-1.jpg');
+  it('a MEGA row whose key is still in the secret: the embed is built from the secret line with the same handle', async () => {
+    const links = `old one https://mega.nz/file/OtHeR001#${K}\nhttps://mega.nz/file/NmU3lZjR#${K2}`;
+    const v = await toPublicVideo(rows.megaSecret!, links);
+    expect(v).toMatchObject({ streamUrl: null, embedUrl: `https://mega.nz/embed/NmU3lZjR#${K2}`, watchUrl: null, source: 'mega', previewOk: false, fallbackUrl: '/media/circlestore-1.mp4', posterUrl: '/media/circlestore-1.jpg' });
+    // No secret (or no matching line): nothing MEGA to play; the bundled copy is what v1 tabs get.
+    expect(await toPublicVideo(rows.megaSecret!)).toMatchObject({ streamUrl: null, embedUrl: null, watchUrl: null, source: 'file', ref: '/media/circlestore-1.mp4', fallbackUrl: '/media/circlestore-1.mp4' });
+    expect(await toPublicVideo(rows.megaSecret!, `https://mega.nz/file/OtHeR001#${K}`)).toMatchObject({ embedUrl: null });
   });
 
-  it('the 4K file never previews; a file in a folder streams by its own id', async () => {
-    expect((await toPublicVideo(rows.heavy!)).previewOk).toBe(false);
+  it('a file in a shared folder has no MEGA embed: MEGA\'s own page instead; a link for another handle plays nothing', async () => {
     const f = await toPublicVideo(rows.folderFile!);
-    expect(f.streamUrl).toMatch(/^\/media\/v\/folder\.mp4\?v=[0-9a-f]{8}$/);
-    expect(f.previewOk).toBe(true);
+    expect(f).toMatchObject({ streamUrl: null, embedUrl: null, watchUrl: `https://mega.nz/folder/FoLdEr01#${FK}/file/NoDe0001`, previewOk: false, source: 'mega', ref: `https://mega.nz/folder/FoLdEr01#${FK}/file/NoDe0001` });
+    const wrong = await toPublicVideo({ ...rows.mega!, mega_handle: 'OtHeR001' });
+    expect(wrong).toMatchObject({ embedUrl: null, watchUrl: null, streamUrl: null });
+  });
+
+  it('a stored hover clip is the only preview a MEGA entry has, whatever its file facts say', async () => {
+    expect((await toPublicVideo(rows.heavy!)).previewOk).toBe(false);
+    expect((await toPublicVideo({ ...rows.mega!, mega_meta: META_OK })).previewOk).toBe(false);
   });
 
   it('a bundled file streams itself and previews', async () => {
     const v = await toPublicVideo(rows.bundled!);
-    expect(v).toMatchObject({ streamUrl: '/media/rode.mp4', fallbackUrl: null, embedUrl: null, previewOk: true, source: 'file', ref: '/media/rode.mp4', posterUrl: '/media/rode.jpg' });
+    expect(v).toMatchObject({ streamUrl: '/media/rode.mp4', fallbackUrl: null, embedUrl: null, watchUrl: null, previewOk: true, source: 'file', ref: '/media/rode.mp4', posterUrl: '/media/rode.jpg' });
   });
 
   it('a YouTube-only entry plays the nocookie embed with YouTube\'s thumbnail; wave keeps its player', async () => {
     expect(await toPublicVideo(rows.youtube!)).toMatchObject({
       streamUrl: null,
       embedUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&playsinline=1',
+      watchUrl: null,
       posterUrl: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
       previewOk: false,
       source: 'youtube',
@@ -106,17 +113,15 @@ describe('toPublicVideo (V2-SPEC 2.10)', () => {
     expect(await toPublicVideo(rows.wave!)).toMatchObject({ streamUrl: null, embedUrl: 'https://embed.wave.video/AbCdEf123', posterUrl: null, source: 'wave', ref: 'https://embed.wave.video/AbCdEf123' });
   });
 
-  it('the JSON of every kind holds no mega.nz, no mega_ name, no key, no folder handle and no import id', async () => {
-    const json = JSON.stringify(await Promise.all(Object.values(rows).map((r) => toPublicVideo({ ...r, import_id: 'imp_20261110_abcdef' } as PublicRow))));
-    expect(json).not.toContain('mega.nz');
+  it('no address points at the Worker\'s old MEGA stream, and the JSON holds no mega_ name, no node key and no import id', async () => {
+    const json = JSON.stringify(await Promise.all(Object.values(rows).map((r) => toPublicVideo({ ...r, import_id: 'imp_20261110_abcdef', mega_key: NODE_KEY } as PublicRow, `https://mega.nz/file/NmU3lZjR#${K2}`))));
+    expect(json).not.toContain('/media/v/');
+    expect(json).not.toContain('/media/mega-');
     expect(json).not.toContain('mega_');
-    expect(json).not.toContain(K);
-    expect(json).not.toContain(FK);
     expect(json).not.toContain(NODE_KEY);
-    expect(json).not.toContain('FoLdEr01');
     expect(json).not.toContain('imp_');
-    // A handle appears only inside a poster or stream path of its own row, never as a field: here, never at all.
-    expect(json).not.toMatch(/RoDe0001|NmU3lZjR|HeAvY001|NoDe0001/);
+    // MEGA addresses appear only as the two public forms (the founder accepted that an embed carries its file key).
+    for (const m of json.match(/https:\/\/mega\.nz\/[^"]*/g) ?? []) expect(m).toMatch(/^https:\/\/mega\.nz\/(embed\/[\w-]{8}#[\w-]{43}|folder\/[\w-]{8}#[\w-]{22}\/file\/[\w-]{8})$/);
   });
 });
 
@@ -169,7 +174,7 @@ describe('admin rows: problems and the admin shape', () => {
     const v = await toAdminVideo(admin({ mega_handle: 'RoDe0001', mega_url: `https://mega.nz/file/RoDe0001#${K}`, source: 'mega', ...facts, mega_codec: 'avc1+mp4a', mega_checked_at: '2026-11-10 10:00:00', mega_meta: META_4K }));
     expect(v.mega).toMatchObject({ handle: 'RoDe0001', kind: 'file', keyIn: 'library', grade: 'too-heavy', playable: true, previewOk: false, embedUrl: `https://mega.nz/embed/RoDe0001#${K}`, checkedAt: '2026-11-10T10:00:00.000Z' });
     expect(v.mega?.meta).toMatchObject({ width: 2160, height: 3840, codec: 'avc1+mp4a', fastStart: true });
-    expect(v.streamUrl).toMatch(/^\/media\/v\/v1\.mp4\?v=[0-9a-f]{8}$/);
+    expect(v.streamUrl).toBeNull();
     expect(v.updatedAt).toBe('2026-11-10 10:00:00.123');
   });
 });

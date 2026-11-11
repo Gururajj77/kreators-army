@@ -314,7 +314,7 @@ export default function Pricing() {
 
       <section className="section band-alt pr-includes">
         <div className="wrap">
-          <SectionHead title="Every package includes" />
+          <SectionHead title="Every package&nbsp;includes" />
           <Reveal className="pr-includes-in">
             <PackageIncludes />
           </Reveal>

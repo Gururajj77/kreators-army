@@ -694,7 +694,7 @@
     font-variation-settings: 'opsz' 32;
     line-height: 46px;
     letter-spacing: -0.012em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .why-bento {
@@ -732,7 +732,7 @@
   .why-copy-body {
     margin: 12px 0 0;
     color: var(--muted);
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .why-copy-foot {
@@ -792,6 +792,12 @@
     font-size: 14px;
     line-height: 20px;
     letter-spacing: -0.006em;
+    transition: opacity 160ms var(--ease-out);
+  }
+
+  /* The character's bubble rises over the role line: the role steps back while a line shows, so the two never print over each other. */
+  .army-tile:has(.cast-bubble[data-show], .cast-bubble[data-hover]:not([data-yield])) .army-role {
+    opacity: 0;
   }
 
   .army-stand {
@@ -962,7 +968,7 @@
     font-variation-settings: 'opsz' 32;
     line-height: 46px;
     letter-spacing: -0.012em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .why-head h2 b {
@@ -1415,7 +1421,7 @@
     font-size: 21px;
     line-height: 29px;
     letter-spacing: -0.012em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .t-card figcaption {
@@ -1551,7 +1557,7 @@
     font-weight: 600;
     line-height: 34px;
     letter-spacing: -0.014em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .price-quote figcaption {

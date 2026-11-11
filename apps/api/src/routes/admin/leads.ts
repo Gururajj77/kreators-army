@@ -1,12 +1,12 @@
 /**
  * Enquiries (admin brief 4.3 L1 to L5, 4.9). /leads.csv is registered before /leads/:id.
- *   L1 GET    /leads?status=&kind=&q=&cursor=&limit=   -> AdminLeadList
+ *   L1 GET    /leads?status=&kind=&completion=&q=&cursor=&limit=   -> AdminLeadList (completion: complete | partial, form7)
  *   L2 GET    /leads/:id                               -> { lead }
  *   L3 PATCH  /leads/:id   { status?, note? }          -> { lead }
  *   L4 DELETE /leads/:id                               -> 204 (permanent; only from Archived)
- *   L5 GET    /leads.csv?status=&kind=&from=&to=       -> text/csv with a BOM and the formula guard
+ *   L5 GET    /leads.csv?status=&kind=&completion=&from=&to=       -> text/csv with a BOM and the formula guard
  */
-import { briefLabel, cleanText, LEAD_KINDS, LEAD_STATUSES, type AdminLead, type AdminLeadList, type LeadStatus, type TrialBrief } from '@kreators/shared';
+import { BRIEF_STEP_TITLES, briefLabel, cleanText, LEAD_COMPLETIONS, LEAD_KINDS, LEAD_STATUSES, type AdminLead, type AdminLeadList, type LeadCompletion, type LeadStatus, type TrialBrief } from '@kreators/shared';
 import { Hono } from 'hono';
 import type { AppEnv } from '../../env';
 import { HttpError, readJson } from '../../http';
@@ -27,9 +27,24 @@ interface LeadRow {
   status: LeadStatus;
   status_at: string | null;
   note: string;
+  completion: LeadCompletion;
+  step_reached: number | null;
+  steps: string | null;
+  updated_at: string | null;
 }
 
-const COLUMNS = 'id, name, email, phone, service, message, created_at, kind, brand, brief, status, status_at, note';
+const COLUMNS = 'id, name, email, phone, service, message, created_at, kind, brand, brief, status, status_at, note, completion, step_reached, steps, updated_at';
+
+function stepsOf(raw: string | null): Record<string, string> {
+  if (!raw) return {};
+  try {
+    const v: unknown = JSON.parse(raw);
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
+    return Object.fromEntries(Object.entries(v as Record<string, unknown>).filter((e): e is [string, string] => /^[1-6]$/.test(e[0]) && typeof e[1] === 'string'));
+  } catch {
+    return {};
+  }
+}
 
 function toLead(r: LeadRow): AdminLead {
   let brief: TrialBrief | null = null;
@@ -40,7 +55,25 @@ function toLead(r: LeadRow): AdminLead {
       brief = null;
     }
   }
-  return { id: r.id, name: r.name, email: r.email, phone: r.phone, service: r.service, message: r.message, createdAt: r.created_at, kind: r.kind, brand: r.brand, brief, status: r.status, statusAt: r.status_at, note: r.note };
+  return {
+    id: r.id,
+    name: r.name,
+    email: r.email,
+    phone: r.phone,
+    service: r.service,
+    message: r.message,
+    createdAt: r.created_at,
+    kind: r.kind,
+    brand: r.brand,
+    brief,
+    status: r.status,
+    statusAt: r.status_at,
+    note: r.note,
+    completion: r.completion ?? 'complete',
+    stepReached: r.step_reached ?? null,
+    steps: stepsOf(r.steps),
+    updatedAt: r.updated_at ?? null,
+  };
 }
 
 /** The shared WHERE for the list and the CSV. Values are bound; `q` is matched with instr, never LIKE. */
@@ -58,6 +91,12 @@ function filters(query: (k: string) => string | undefined): { where: string[]; b
     if (!LEAD_KINDS.includes(kind as 'trial')) throw new HttpError(400, 'bad-request', 'kind must be trial or question.', { field: 'kind' });
     where.push('kind = ?');
     binds.push(kind);
+  }
+  const completion = query('completion');
+  if (completion && completion !== 'all') {
+    if (!LEAD_COMPLETIONS.includes(completion as LeadCompletion)) throw new HttpError(400, 'bad-request', 'completion must be complete, partial or all.', { field: 'completion' });
+    where.push('completion = ?');
+    binds.push(completion);
   }
   const q = query('q')?.trim();
   if (q) {
@@ -95,20 +134,21 @@ leads.get('/leads', async (c) => {
   const sql = `SELECT ${COLUMNS} FROM leads ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY created_at DESC, id DESC LIMIT ?`;
   const [list, counts] = await db.batch<LeadRow | { status: LeadStatus; n: number }>([
     db.prepare(sql).bind(...binds, limit + 1),
-    db.prepare('SELECT status, COUNT(*) AS n FROM leads GROUP BY status'),
+    db.prepare('SELECT status, completion, COUNT(*) AS n FROM leads GROUP BY status, completion'),
   ]);
   const rows = list!.results as LeadRow[];
   const more = rows.length > limit;
   const page = rows.slice(0, limit);
   const last = page.at(-1);
   const byStatus = Object.fromEntries(LEAD_STATUSES.map((s) => [s, 0])) as Record<LeadStatus, number>;
-  for (const r of counts!.results as { status: LeadStatus; n: number }[]) byStatus[r.status] = r.n;
-  return c.json<AdminLeadList>({ leads: page.map(toLead), nextCursor: more && last ? `${last.created_at}|${last.id}` : null, counts: byStatus });
+  const partial = Object.fromEntries(LEAD_STATUSES.map((s) => [s, 0])) as Record<LeadStatus, number>;
+  for (const r of counts!.results as { status: LeadStatus; completion: LeadCompletion; n: number }[]) (r.completion === 'partial' ? partial : byStatus)[r.status] += r.n;
+  return c.json<AdminLeadList>({ leads: page.map(toLead), nextCursor: more && last ? `${last.created_at}|${last.id}` : null, counts: byStatus, partial });
 });
 
 // ---------------------------------------------------------------- L5 CSV (before /leads/:id)
 
-const CSV_COLUMNS = ['created_at', 'status', 'kind', 'name', 'email', 'phone', 'brand', 'website', 'agency', 'package', 'videos', 'brands', 'objective', 'integration', 'must_haves', 'viewer_response', 'reference_links', 'brand_guide_url', 'message', 'note'];
+const CSV_COLUMNS = ['created_at', 'status', 'kind', 'name', 'email', 'phone', 'brand', 'website', 'agency', 'package', 'videos', 'brands', 'objective', 'integration', 'must_haves', 'viewer_response', 'reference_links', 'brand_guide_url', 'message', 'note', 'completion', 'stopped_at_step'];
 
 /** Every cell quoted with " doubled; a cell that starts with =, +, -, @, a tab or a carriage return gets a leading '. */
 export function csvCell(value: unknown): string {
@@ -151,6 +191,8 @@ leads.get('/leads.csv', async (c) => {
       b?.brandGuideUrl ?? '',
       l.message,
       l.note,
+      l.completion,
+      l.completion !== 'partial' ? '' : l.kind === 'question' ? 'before sending' : l.stepReached ? `${l.stepReached}: ${BRIEF_STEP_TITLES[l.stepReached as 1] ?? ''}` : '',
     ];
     lines.push(cells.map(csvCell).join(','));
   }

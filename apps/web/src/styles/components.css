@@ -238,7 +238,7 @@
     font-size: 21px;
     line-height: 29px;
     letter-spacing: -0.012em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   @media (max-width: 734px) {
@@ -1897,6 +1897,13 @@
   .faqi-a-in > p {
     max-width: 68ch;
     margin: 0;
+  }
+
+  /* Answers run to ten lines on a phone, past balance's limit (tieLast keeps the last two words together either way). */
+  @media (max-width: 734px) {
+    .faqi-a-in > p {
+      text-wrap-style: pretty;
+    }
   }
 
   :root:not([data-still]) .faqi[open] .faqi-a-in > p {

@@ -20,5 +20,5 @@ videos.get('/', async (c) => {
     ({ results } = await c.env.DB.prepare(`SELECT ${cols} FROM videos v LEFT JOIN posters p ON p.video_id = v.id ${WHERE}`).all<PublicRow>());
   }
   c.header('Cache-Control', 'public, max-age=60');
-  return c.json<VideoListResponse>({ videos: await Promise.all(results.map(toPublicVideo)) });
+  return c.json<VideoListResponse>({ videos: await Promise.all(results.map((r) => toPublicVideo(r, c.env.MEGA_LINKS))) });
 });

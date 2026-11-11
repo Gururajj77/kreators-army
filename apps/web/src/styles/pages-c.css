@@ -1622,7 +1622,7 @@
     font-size: 21px;
     line-height: 29px;
     letter-spacing: -0.012em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .read-meta {
@@ -1641,7 +1641,7 @@
     font-size: 21px;
     line-height: 32px;
     letter-spacing: -0.012em;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
   .read-prose h2 {
@@ -1656,6 +1656,12 @@
   .read-prose p {
     margin: 0 0 1em;
     text-wrap: pretty;
+  }
+
+  /* A post's paragraphs are short: balanced into even lines. The ones past six lines, where balance stops, keep their last two words
+     together through tieLast (lib/typo.ts). The legal pages keep pretty. */
+  .read-prose-post p {
+    text-wrap: balance;
   }
 
   .read-prose a {

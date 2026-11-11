@@ -1,7 +1,8 @@
 // (pv) One video in, a hover clip and a thumbnail out, all in the admin's browser (the Worker has no ffmpeg).
 //
-// 1. The stream plays in one hidden <video> (same-origin, so the canvas is never tainted); Chrome and Safari on a Mac decode H.264
-//    and HEVC in hardware.
+// 1. The video plays in one hidden <video> from a same-origin source, so the canvas is never tainted: (admin8) a MEGA file is read and
+//    decrypted by this page and served to the element through the admin's service worker (megaSource.ts), or a blob: URL where there is
+//    none; a bundled file plays from its own /media path. Chrome and Safari on a Mac decode H.264 and HEVC in hardware.
 // 2. A start is chosen about a quarter in (at least 2 s), skipping near-black, near-white and flat frames with a 48 px luma check.
 // 3. Frames are taken at 15 fps for CLIP_S plus a short tail by playing at 2x and keeping presented frames (requestVideoFrameCallback):
 //    one pass through the bytes. Measured on a 1440x2560 HEVC file at 20 Mbps with the index at the end, through the Worker and the
@@ -14,6 +15,8 @@
 // 5. WebCodecs encodes H.264 (High, then Main, then Baseline) into an MP4 with the index first, keyframe at the start, no audio;
 //    VP9 in WebM where the browser cannot encode H.264. Over the cap, it is encoded again at a lower bitrate.
 // The muxers load here, in the admin chunk, only when the first clip is made.
+
+import { MEGA_SAYS, type MegaError } from './mega';
 
 export const FPS = 15;
 /** Seconds of loop. */
@@ -30,7 +33,8 @@ const BITRATES = [640_000, 420_000, 260_000];
 export class ClipError extends Error {
   constructor(
     message: string,
-    readonly code: 'no-webcodecs' | 'decode' | 'hevc' | 'timeout' | 'load' | 'encode' | 'too-large' | 'stopped' | 'no-stream',
+    /** 'quota': MEGA's transfer limit (the runner waits an hour). 'gone': MEGA says the file is gone, removed, blocked, or the key is wrong. */
+    readonly code: 'no-webcodecs' | 'decode' | 'hevc' | 'timeout' | 'load' | 'encode' | 'too-large' | 'stopped' | 'no-stream' | 'quota' | 'gone',
   ) {
     super(message);
     this.name = 'ClipError';
@@ -146,28 +150,11 @@ function mediaError(el: HTMLVideoElement): ClipError {
   return new ClipError("The stream didn't load. MEGA may be busy or over its quota; try again later.", 'load');
 }
 
-const MEGA_SAYS: Record<string, string> = {
-  'over-quota': "MEGA's transfer quota is used up for now. Retry in an hour or two.",
-  busy: 'MEGA is busy. Retry in a minute.',
-  'not-found': 'MEGA says this file is gone.',
-  removed: 'MEGA says this file was removed.',
-  blocked: 'MEGA has blocked this file.',
-  'bad-key': "The MEGA link's key doesn't open this file.",
-  'bad-link': "The MEGA link isn't valid.",
-  upstream: "MEGA didn't answer properly. Retry later.",
-};
-
-/** The stream's own answer to ?probe=1 (MEGA streams only), as a failure with a reason, or null when it says the stream is fine. */
-async function whyNot(streamUrl: string): Promise<ClipError | null> {
-  if (!/^\/media\/v\//.test(new URL(streamUrl, location.href).pathname)) return null;
-  try {
-    const r = await fetch(`${streamUrl}${streamUrl.includes('?') ? '&' : '?'}probe=1`, { cache: 'no-store', credentials: 'same-origin' });
-    if (r.ok) return null;
-    const kind = r.headers.get('X-Mega-Error') ?? '';
-    return new ClipError(MEGA_SAYS[kind] ?? `The stream didn't load (HTTP ${r.status}).`, 'load');
-  } catch {
-    return new ClipError("The stream didn't load. Check the connection and retry.", 'load');
-  }
+/** A MEGA failure as the runner's error: the transfer limit waits an hour, a file that is gone fails for good, the rest can be retried. */
+export function clipErrorFromMega(e: MegaError): ClipError {
+  if (e.kind === 'over-quota') return new ClipError(MEGA_SAYS['over-quota'], 'quota');
+  if (e.kind === 'not-found' || e.kind === 'removed' || e.kind === 'blocked' || e.kind === 'bad-key') return new ClipError(MEGA_SAYS[e.kind], 'gone');
+  return new ClipError(MEGA_SAYS[e.kind], 'load');
 }
 
 async function seek(el: HTMLVideoElement, t: number, signal: AbortSignal, ms = 30000): Promise<void> {
@@ -254,6 +241,8 @@ export interface MakeOptions {
   wantThumb: boolean;
   /** The file's codec as MEGA's header said ('hvc1...'), for a clearer error. */
   codecHint?: string | null;
+  /** (admin8) The source's latest MEGA failure, asked when the element fails (megaSource.ts PlayableSource.why). */
+  why?: () => MegaError | null;
   onStep?: (step: string, progress: number) => void;
 }
 
@@ -304,8 +293,11 @@ export async function makeMedia(streamUrl: string, opts: MakeOptions): Promise<M
     try {
       await waitFor(el, ['loadedmetadata'], 45000, signal, 'loading');
     } catch (e) {
-      // An error answer (MEGA over quota, a removed file) reaches the element as "unsupported": ask the stream why.
-      if (e instanceof ClipError && e.code !== 'stopped') throw (await whyNot(streamUrl)) ?? e;
+      // A failed MEGA read (over quota, a removed file) reaches the element as "unsupported": ask the source why.
+      if (e instanceof ClipError && e.code !== 'stopped') {
+        const why = opts.why?.();
+        throw why ? clipErrorFromMega(why) : e;
+      }
       throw e;
     }
     const W = el.videoWidth;

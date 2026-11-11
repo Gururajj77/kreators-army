@@ -7,9 +7,9 @@ import { quoteBatch } from '@kreators/shared';
 // ---------- The site, its people and how to reach them ----------
 
 export interface Phone {
-  /** As printed: '+91 74114 71505'. */
+  /** As printed: '+91 90191 71505'. */
   display: string;
-  /** For tel: links: '+917411471505'. */
+  /** For tel: links: '+919019171505'. */
   tel: string;
   /** This number takes WhatsApp (the footer and Contact show it as WhatsApp). */
   whatsapp: boolean;
@@ -22,11 +22,11 @@ export const SITE = {
   email: 'kreatorsarmy@gmail.com',
   /** Terms only: the proprietor's address for agreements and invoices (D4). */
   legalEmail: 'brandingbum@gmail.com',
-  /** D3. Delete an entry and it disappears everywhere (whatsappHref returns null without a WhatsApp line). */
-  phones: [
-    { display: '+91 74114 71505', tel: '+917411471505', whatsapp: true, contactOnly: false },
-    { display: '+91 90191 71505', tel: '+919019171505', whatsapp: false, contactOnly: true },
-  ] as Phone[],
+  /**
+   * D3. Delete an entry and it disappears everywhere (whatsappHref returns null without a WhatsApp line). The founder's one number takes
+   * both WhatsApp and calls, so it is shown once, as "WhatsApp / Call".
+   */
+  phones: [{ display: '+91 90191 71505', tel: '+919019171505', whatsapp: true, contactOnly: false }] as Phone[],
   city: 'Bengaluru, India',
   owner: { name: 'BrandingBum', url: 'https://brandingbum.com/' },
   operatorLine: 'Managed and owned by BrandingBum, Bengaluru.',
@@ -36,6 +36,9 @@ export const SITE = {
 
 /** The WhatsApp line, or undefined when the founder has removed it. */
 export const whatsappPhone = (): Phone | undefined => SITE.phones.find((p) => p.whatsapp);
+
+/** The number to call where there is room for one (footer, FAQ, the form's thanks): the first not kept for Contact only. */
+export const callPhone = (): Phone | undefined => SITE.phones.find((p) => !p.contactOnly);
 
 export type FormatSlug = 'founders' | 'events' | 'retail';
 const FORMAT_NAME: Record<FormatSlug, string> = { founders: 'Founders', events: 'Events', retail: 'Retail' };
@@ -98,18 +101,29 @@ export const SOCIALS = [
   { label: 'TikTok', url: 'https://www.tiktok.com/@brandingbum' },
 ];
 
-/** "Trusted by". Hack Daily is not added until the founder confirms it (D5); "Circle" in the doc is CircleStore.in (D8). */
-export const BRANDS: { name: string; logo?: string }[] = [
-  { name: 'FyndFlow', logo: '/logos/fyndflow.jpg' },
-  { name: 'CircleStore.in', logo: '/logos/circlestore.jpg' },
-  { name: 'Waxys.in' },
-  { name: 'Rode Mic India', logo: '/logos/rode.jpg' },
-  { name: 'BrandingBum' },
-  { name: 'Ansh Mehra', logo: '/logos/ansh-mehra.jpg' },
-  { name: '8Club', logo: '/logos/8club.jpg' },
-];
+/** Each brand's one logo, keyed by its one exact name (the founder: one name per brand, no variants). Official marks, 256 px squares
+ * (sources in .work/v2/logos/mapping.json). A brand not listed here, or spelled differently in the video rows, gets the letter disc. */
+export const BRAND_LOGOS: Record<string, string> = {
+  FyndFlow: '/logos/fyndflow.jpg',
+  Offlyn: '/logos/offlyn.jpg',
+  Waxys: '/logos/waxys.jpg',
+  BreadBerry: '/logos/breadberry.jpg',
+  Clotrio: '/logos/clotrio.jpg',
+  Hackdaily: '/logos/hackdaily.jpg',
+  Orgaheal: '/logos/orgaheal.jpg',
+  CircleStore: '/logos/circlestore.jpg',
+  '8Club': '/logos/8club.jpg',
+  Rode: '/logos/rode.jpg',
+  'Ansh Mehra': '/logos/ansh-mehra.jpg',
+};
 
-export const brandLogo = (name: string) => BRANDS.find((b) => b.name === name)?.logo;
+/** "Trusted by". Hackdaily is not added until the founder confirms it (D5). */
+export const BRANDS: { name: string; logo?: string }[] = ['FyndFlow', 'CircleStore', 'Waxys', 'Rode', 'BrandingBum', 'Ansh Mehra', '8Club'].map((name) => ({
+  name,
+  logo: BRAND_LOGOS[name],
+}));
+
+export const brandLogo = (name: string): string | undefined => BRAND_LOGOS[name];
 
 // ---------- Track record (live-site claims, kept with "Past results, not a promise.", D6) ----------
 
@@ -552,7 +566,7 @@ export const FORMATS: Record<FormatSlug, FormatPageContent> = {
     cards: [
       { name: 'Launches and pop-ups', body: 'First reactions from the first people to see or try what you made.' },
       { name: 'Meetups and community nights', body: 'Real conversations with the people who turned up, like our meetup work with Ansh Mehra.' },
-      { name: 'Shows and tours', body: 'Short recaps that bring people who missed it into the room, like our work with Rode Mic India.' },
+      { name: 'Shows and tours', body: 'Short recaps that bring people who missed it into the room, like our work with Rode.' },
     ],
     metaDescription: 'Vox pop interviews at launches, meetups and shows, turned into short-form video by Kreators.Army.',
     videoIds: ['seed-ansh-mehra', 'seed-rode'],

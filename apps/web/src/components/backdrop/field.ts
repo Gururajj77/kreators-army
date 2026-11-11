@@ -1,9 +1,10 @@
 // The field's moving parts, outside React. Nothing here re-renders anything: one rAF-throttled frame reads the scroll and the pointer and writes
 // transforms on the fixed .bd layer (styles/backdrop.css):
-//   .bd-plate   the metal: slides up as the page scrolls (it is 2.5 screens tall), so the dominant hue shifts from navy to oxblood to green
-//   .bd-light   the pointer light: a soft round window that brightens the metal behind it. It follows a fine pointer (on touch it drifts with the
-//               scroll), so the light travels across the relief
-//   .bd-halo    the focus light: the same kind of window, scaled to the card, frame, CTA or control that is hovered or keyboard-focused, while
+//   .bd-plate   the colour behind the glass: slides up as the page scrolls (it is 2.5 screens tall), so the dominant hue shifts from navy to
+//               oxblood to green. It also sways sideways with the scroll and leans toward a fine pointer, so colour slides through the fixed
+//               flutes and their streaks shimmer
+//   .bd-bloom   the pointer light: a soft round glow behind the flutes. It follows a fine pointer (on touch it drifts with the scroll)
+//   .bd-halo    the focus light: the same kind of glow, scaled to the card, frame, CTA or control that is hovered or keyboard-focused, while
 //               .bd-veil calms the rest
 // Only transforms and a few attributes change, on a handful of composited layers. Never started under still (Backdrop decides).
 
@@ -46,19 +47,29 @@ function litTarget(node: EventTarget | null): HTMLElement | null {
 
 const px = (n: number) => `${Math.round(n)}px`;
 
+/** The plate's sideways sway over a whole page, as a share of the screen's width: one sine, out and back. */
+const SWAY = 0.025;
+/** How far the plate leans toward a fine pointer at the screen's edge, and how much of the way it closes each frame (settles in about 0.9 s). */
+const LEAN = 32;
+const LEAN_EASE = 0.08;
+
 export function startField(root: HTMLElement, { fine }: { fine: boolean }): () => void {
   const plate = root.querySelector<HTMLElement>('.bd-plate');
-  const light = root.querySelector<HTMLElement>('.bd-light');
+  const light = root.querySelector<HTMLElement>('.bd-bloom');
   const halo = root.querySelector<HTMLElement>('.bd-halo');
   if (!plate || !light || !halo) return () => undefined;
 
   let raf = 0;
   let mx = -1;
   let my = -1;
+  // The lean: where it is, and where the pointer asks it to be (0 when the pointer leaves, and always on touch).
+  let lean = 0;
+  let leanTo = 0;
   let hovered: HTMLElement | null = null;
   let focused: HTMLElement | null = null;
   let shown: HTMLElement | null = null;
   let lastPlate = NaN;
+  let lastPlateX = NaN;
   let lastLx = NaN;
   let lastLy = NaN;
   // While the page scrolls the halo rests (no layout read on a scroll frame); it lights again once the scroll settles.
@@ -105,12 +116,18 @@ export function startField(root: HTMLElement, { fine }: { fine: boolean }): () =
     // layout.
     const rect = target && !scrolling && target.isConnected ? target.getBoundingClientRect() : null;
 
-    // The plate slides from its top (navy) to its bottom (green) over the whole page.
+    // The plate slides from its top (navy) to its bottom (green) over the whole page, sways sideways once out and back as it goes, and leans
+    // toward a fine pointer. The flutes stay put, so the colour slides through them.
     const sp = Math.min(1, Math.max(0, y / Math.max(1, docH - vh)));
     const py = Math.round(-sp * Math.max(0, plateH - vh));
-    if (py !== lastPlate) {
+    lean += (leanTo - lean) * LEAN_EASE;
+    if (Math.abs(leanTo - lean) < 0.3) lean = leanTo;
+    else schedule();
+    const pxX = Math.round(Math.sin(sp * 2 * Math.PI) * SWAY * vw + lean);
+    if (py !== lastPlate || pxX !== lastPlateX) {
       lastPlate = py;
-      plate.style.transform = `translate3d(0, ${py}px, 0)`;
+      lastPlateX = pxX;
+      plate.style.transform = `translate3d(${pxX}px, ${py}px, 0)`;
     }
 
     // The pointer light. Touch has no hover, so the light wanders slowly across the screen as the page scrolls.
@@ -161,6 +178,7 @@ export function startField(root: HTMLElement, { fine }: { fine: boolean }): () =
     if (e.pointerType !== 'mouse') return;
     mx = e.clientX;
     my = e.clientY;
+    leanTo = (mx / Math.max(1, window.innerWidth) - 0.5) * 2 * LEAN;
     if (!root.hasAttribute('data-light')) root.setAttribute('data-light', '');
     schedule();
   };
@@ -168,6 +186,7 @@ export function startField(root: HTMLElement, { fine }: { fine: boolean }): () =
     if (e.relatedTarget === null && e.pointerType === 'mouse') {
       root.removeAttribute('data-light');
       hovered = null;
+      leanTo = 0;
       schedule();
     }
   };

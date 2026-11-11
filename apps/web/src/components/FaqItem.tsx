@@ -1,5 +1,6 @@
 import { useRef, type SyntheticEvent } from 'react';
 import type { Faq } from '../lib/content';
+import { tieLast } from '../lib/typo';
 
 /**
  * One question and its answer (M5e): a plus that turns 45° into a cross on --spring-bouncy, the open row's tint fading in, the answer's first line
@@ -19,7 +20,7 @@ export function FaqItem({ faq, open, name, onOpen, id }: { faq: Faq; open?: bool
       </summary>
       <div className="faqi-a">
         <div className="faqi-a-in">
-          <p ref={answer}>{faq.a}</p>
+          <p ref={answer}>{tieLast(faq.a)}</p>
         </div>
       </div>
     </details>

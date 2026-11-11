@@ -59,17 +59,23 @@ function Reach() {
             <CopyButton text={SITE.email} />
           </dd>
         </div>
-        {wa && waPhone && (
+        {wa && waPhone ? (
+          // The one number takes both WhatsApp and calls: one row, not two.
           <div className="reach-row">
-            <dt>WhatsApp</dt>
-            <dd>
-              <a href={wa} target="_blank" rel="noreferrer" className="reach-link">
+            <dt>WhatsApp / Call</dt>
+            <dd className="reach-calls">
+              <a href={`tel:${waPhone.tel}`} className="reach-link">
                 {waPhone.display}
+              </a>
+              <span className="reach-sep" aria-hidden>
+                {' · '}
+              </span>
+              <a href={wa} target="_blank" rel="noreferrer" className="reach-link">
+                WhatsApp
               </a>
             </dd>
           </div>
-        )}
-        {SITE.phones.length > 0 && (
+        ) : SITE.phones.length > 0 && (
           <div className="reach-row">
             <dt>Call</dt>
             <dd className="reach-calls">
@@ -117,7 +123,7 @@ export default function Contact() {
     <section className="contact">
       <Seo
         title="Request a trial video"
-        description="Send Kreators.Army your trial brief or a question. Email, WhatsApp and the guided brief form."
+        description="Send Kreators.Army your trial brief or a question. Email, phone and the guided brief form."
         canonical="/contact"
       />
       <div className="ground" aria-hidden />

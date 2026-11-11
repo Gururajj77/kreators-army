@@ -16,6 +16,7 @@ import type {
   ImportCommitResponse,
   ImportDryRunRequest,
   ImportPreview,
+  LeadCompletion,
   LeadKind,
   LeadStatus,
   MegaInspect,
@@ -167,6 +168,8 @@ export async function unlock(passkey: string): Promise<UnlockResult> {
 export interface LeadFilters {
   status?: LeadStatus | 'all';
   kind?: LeadKind;
+  /** (form7) Sent enquiries, or the ones the form saved before the visitor stopped. */
+  completion?: LeadCompletion;
   q?: string;
   cursor?: string;
   limit?: number;
@@ -224,7 +227,7 @@ export const adminApi = {
   updateLead: (id: string, patch: { status?: LeadStatus; note?: string }) =>
     adminFetch<{ lead: AdminLead }>(`/leads/${encodeURIComponent(id)}`, { method: 'PATCH', json: patch }).then((r) => r.lead),
   deleteLead: (id: string) => adminFetch<void>(`/leads/${encodeURIComponent(id)}`, { method: 'DELETE' }),
-  leadsCsvUrl: (f: { status?: LeadStatus | 'all'; kind?: LeadKind }) => `/api/admin/leads.csv${leadQuery(f)}`,
+  leadsCsvUrl: (f: { status?: LeadStatus | 'all'; kind?: LeadKind; completion?: LeadCompletion }) => `/api/admin/leads.csv${leadQuery(f)}`,
 };
 
 /** Query keys (admin brief 5.1). */

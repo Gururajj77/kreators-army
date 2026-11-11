@@ -5,7 +5,7 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncEx
 import { useSearchParams } from 'react-router';
 import { Character, type CharacterHandle } from '../cast';
 import { CastBubble, useCastLine } from '../components/chat';
-import { Coverflow, DeckCard, toneOf, useSeenBrands } from '../components/frames';
+import { DeckCard, previewSource, toneOf, useSeenBrands } from '../components/frames';
 import { CardRing } from '../components/ring';
 import { ChipRail } from '../components/tabs';
 import { Cta, RollNumber, Seo } from '../components/ui';
@@ -14,11 +14,13 @@ import { PRIMARY_ACTION, brandLogo, contactHref } from '../lib/content';
 import { motionOk } from '../lib/motionOk';
 import { useVideos } from '../lib/queries';
 import { spring } from '../lib/spring';
+import { FIRST_ROWS, LibraryIntro, guessCols } from './LibraryShell';
 import { chipLabel, facetDefs, facets as facetsOf, passes, sortVideos, sortsFor, suggest, tokens, withoutWordsOf, type Facet, type SortDef, type Suggestion } from '../lib/videoFind';
 
 // The video library (V2-SPEC 5.7, content §3.6, visual §2.6). The brands are story rings (M6): a ring is a filter, set in the address, and turns grey
 // once a video of that brand has been opened. The glass bar holds the count, the search (with suggestions) and the sort on top, and below them the chip
-// rails. Featured videos get a coverflow while some, not all, are featured. The finding rules (facets, sorts, search) live in lib/videoFind.ts.
+// rails. The grid shows two full rows first, then four more as the visitor nears the end (or presses "View more"); featured videos lead under "Our
+// picks". The finding rules (facets, sorts, search) live in lib/videoFind.ts.
 //
 // Everything lives in the address, set with `replace` and no scroll jump:
 //   brand     brand names, comma separated (the rings)
@@ -39,8 +41,12 @@ const FILTER_KEYS = ['brand', 'date', 'shape', 'category', 'platform', 'reach', 
 
 /** Tiles animate their swap on a filter change only while this many or fewer are in play (M5h). */
 const ANIMATE_MAX = 24;
-/** At most this many in the featured row. */
-const FEATURED_MAX = 7;
+/** Each reveal (the visitor nearing the end, or "View more") adds this many rows. */
+const MORE_ROWS = 4;
+/** How far below the screen the end of the grid may be when the next rows load. */
+const MORE_MARGIN = '0px 0px 600px 0px';
+/** The revealed rows, kept in the history entry, so Back and Forward return to as many tiles as were showing (for the same filters). */
+const HISTORY_ROWS = 'kreatorsLibRows';
 
 const PHONE = '(max-width: 734px)';
 const subscribePhone = (fn: () => void) => {
@@ -51,6 +57,23 @@ const subscribePhone = (fn: () => void) => {
 const useIsPhone = () => useSyncExternalStore(subscribePhone, () => matchMedia(PHONE).matches, () => false);
 
 const videoWord = (n: number) => (n === 1 ? 'video' : 'videos');
+
+/** How many rows were showing, and for which address (without ?v): what the grid reveals, and what Back and Forward bring back. */
+interface Reveal {
+  key: string;
+  rows: number;
+  /** The polite line after a reveal: "Showing 16 of 40 videos". */
+  said: string;
+}
+
+function savedReveal(): Reveal | null {
+  try {
+    const saved = (window.history.state as Record<string, unknown> | null)?.[HISTORY_ROWS] as Partial<Reveal> | undefined;
+    return saved && typeof saved.key === 'string' && typeof saved.rows === 'number' && saved.rows >= FIRST_ROWS ? { key: saved.key, rows: saved.rows, said: '' } : null;
+  } catch {
+    return null;
+  }
+}
 
 // ---------- The brand ring (library-slider-cta-spec §2): one card per brand on a slowly turning ring, each a filter ----------
 
@@ -115,6 +138,11 @@ function BrandRing({ brands, counts, videos, selected, onToggle, paused }: { bra
       minCards={12}
       paused={paused}
       clipOf={(b) => lead.get(b)?.previewUrl}
+      streamOf={(b) => {
+        const v = lead.get(b);
+        const source = v ? previewSource(v) : null;
+        return source && !source.clip ? source.src : null;
+      }}
       renderCard={(b, { tabIndex, clip, slot, slots }) => {
         const video = lead.get(b);
         const poster = video?.posterUrl;
@@ -136,7 +164,7 @@ function BrandRing({ brands, counts, videos, selected, onToggle, paused }: { bra
             data-tone={ringTone(slot, slots)}
             onClick={() => onToggle(b)}
           >
-            {poster ? <img src={poster} alt="" loading="lazy" decoding="async" draggable={false} /> : <BrandDisc brand={b} seen={wasSeen} size="lg" />}
+            {poster ? <img src={poster} alt="" loading="eager" fetchPriority="low" decoding="async" draggable={false} /> : <BrandDisc brand={b} seen={wasSeen} size="lg" />}
             {clip}
             {poster && <span className="lib-ring-scrim" aria-hidden />}
             <span className="lib-ring-label">
@@ -442,8 +470,9 @@ function FilterBar({ facets, onFacet, sorts, sort, onSort, q, onSearch, suggesti
 
 // ---------- States ----------
 
-/** Plain skeletons first, so a fast load shows nothing else. After 400 ms Gola holds the first tile and claps until the videos arrive. No bubble. */
-function LoadingGrid() {
+/** Two rows of plain skeletons first (the rows the grid will show), so a fast load shows nothing else. After 400 ms Gola holds the first tile and claps until the videos arrive. No bubble. */
+function LoadingGrid({ cols }: { cols: number }) {
+  const count = FIRST_ROWS * cols;
   const [late, setLate] = useState(false);
   useEffect(() => {
     const t = window.setTimeout(() => setLate(true), 400);
@@ -459,10 +488,10 @@ function LoadingGrid() {
           <div className="tile-skeleton tile-host">
             <GolaClap />
           </div>
-          <TileSkeletons count={7} />
+          <TileSkeletons count={count - 1} />
         </>
       ) : (
-        <TileSkeletons count={8} />
+        <TileSkeletons count={count} />
       )}
     </div>
   );
@@ -719,10 +748,6 @@ export function VideoLibrary() {
   const next = index >= 0 ? filtered[index + 1] : undefined;
   const show = (id: string | null) => update({ v: id });
 
-  // Featured (M14): only while some, not all, are featured, and only on the unfiltered library, where "our picks" means something.
-  const featured = videos.filter((v) => v.featured);
-  const showFeatured = !hasFilters && featured.length >= 1 && featured.length < videos.length;
-
   // Anything that moves a tile changes this; opening a video does not. Tiles only measure when it changes.
   const signature = `${filtered.map((v) => v.id).join()}|${chips.length}`;
   const animate = filtered.length <= ANIMATE_MAX;
@@ -730,6 +755,112 @@ export function VideoLibrary() {
   const n = filtered.length;
   const fill = [4, 3, 2].map((cols) => (cols - (n % cols)) % cols);
   const ready = !isPending && !isError;
+
+  // ---- Two full rows, then more. The columns are the grid's own (measured, so they follow the CSS at every width and on resize). Any change of the
+  // filters, the sort or the search goes back to two rows; opening a video does not.
+  const [cols, setCols] = useState(guessCols);
+  useLayoutEffect(() => {
+    const el = grid.current;
+    const measure = () => {
+      const next = el ? getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length : guessCols();
+      if (next > 0) setCols(next);
+    };
+    measure();
+    const ro = el ? new ResizeObserver(measure) : null;
+    if (el) ro?.observe(el);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [ready]);
+
+  const viewKey = useMemo(() => {
+    const p = new URLSearchParams(paramsKey);
+    p.delete('v');
+    p.sort();
+    return p.toString();
+  }, [paramsKey]);
+  const [reveal, setReveal] = useState<Reveal>(() => {
+    const saved = savedReveal();
+    return saved?.key === viewKey ? saved : { key: viewKey, rows: FIRST_ROWS, said: '' };
+  });
+  const current = reveal.key === viewKey;
+  const rows = current ? reveal.rows : FIRST_ROWS;
+  const shown = Math.min(n, rows * cols);
+  const left = n - shown;
+  const revealSaid = current ? reveal.said : '';
+
+  // Kept in the history entry (the router's own replace drops it, so it is written again after each one).
+  useEffect(() => {
+    try {
+      const state = (window.history.state ?? {}) as Record<string, unknown>;
+      const had = state[HISTORY_ROWS] as Partial<Reveal> | undefined;
+      if (had?.key === viewKey && had.rows === rows) return;
+      window.history.replaceState({ ...state, [HISTORY_ROWS]: { key: viewKey, rows } }, '');
+    } catch {
+      // No history state: Back simply shows two rows.
+    }
+  }, [viewKey, rows, paramsKey]);
+
+  const moreRef = useRef<HTMLDivElement>(null);
+  const focusFrom = useRef<number | null>(null);
+  const more = (focus: boolean) => {
+    if (left <= 0) return;
+    // Loading on its own while the button has the focus (a keyboard visitor tabbed to it, which scrolled it near) hands the focus on too.
+    if (focus || moreRef.current?.contains(document.activeElement)) focusFrom.current = shown;
+    const nextRows = rows + MORE_ROWS;
+    const nextShown = Math.min(n, nextRows * cols);
+    setReveal({ key: viewKey, rows: nextRows, said: `Showing ${nextShown} of ${n} ${videoWord(n)}` });
+  };
+  const moreLatest = useRef(more);
+  moreLatest.current = more;
+
+  // "View more" hands the focus to the first new tile, where the button was.
+  useLayoutEffect(() => {
+    const from = focusFrom.current;
+    if (from === null) return;
+    focusFrom.current = null;
+    const cell = grid.current?.querySelectorAll<HTMLElement>(':scope > .lib-cell')[from];
+    cell?.querySelector<HTMLElement>('button, a[href], [tabindex]:not([tabindex="-1"])')?.focus();
+  }, [shown]);
+
+  // The next rows load as the end of the grid nears the screen, once the visitor has scrolled (a tall screen never opens on more than two rows).
+  // Armed by a scroll down after the last filter change: a filter that shortens the page (the browser pulling the page up) or the page as it opens
+  // never loads more by itself, so every new set of filters starts on its two rows.
+  const [armedFor, setArmedFor] = useState<string | null>(null);
+  const scrolled = armedFor === viewKey;
+  // New filters start over: two rows, and not armed (set while rendering, the way React keeps state in step with a changed prop).
+  if (reveal.key !== viewKey) {
+    setReveal({ key: viewKey, rows: FIRST_ROWS, said: '' });
+    setArmedFor(null);
+  }
+  useEffect(() => {
+    if (scrolled) return;
+    let last = window.scrollY;
+    const on = () => {
+      const y = window.scrollY;
+      if (y > last + 4) setArmedFor(viewKey);
+      last = y;
+    };
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, [scrolled, viewKey]);
+  useEffect(() => {
+    const el = moreRef.current;
+    if (!scrolled || !el || left <= 0) return;
+    // A fresh observer after every reveal reports at once, so a fast scroll that is still near the end keeps loading.
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && moreLatest.current(false), { rootMargin: MORE_MARGIN });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [scrolled, shown, left > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A video beyond the shown rows (a deep link, or the player's next) brings its row in, so closing the player lands on its tile.
+  useEffect(() => {
+    if (index < shown) return;
+    const need = Math.ceil((index + 1) / cols);
+    setReveal((r) => ({ key: viewKey, rows: Math.max(need, r.key === viewKey ? r.rows : FIRST_ROWS), said: '' }));
+  }, [index, shown, cols, viewKey]);
 
   // The count is announced once the visitor pauses, not on every key.
   const [said, setSaid] = useState<number | null>(null);
@@ -758,15 +889,7 @@ export function VideoLibrary() {
 
       <header className="lib-head">
         <div className="ground" aria-hidden />
-        <div className="wrap lib-head-in">
-          <div className="lib-head-copy">
-            <p className="eyebrow">Video library</p>
-            <h1 className="display">
-              Watch the <span className="g-word">work</span>
-            </h1>
-            <p className="lead">Real street interviews for real brands. Play any video here, or open it where it was posted.</p>
-          </div>
-        </div>
+        <LibraryIntro />
         <div className="lib-ring-wrap" data-ready={ready ? '' : undefined} data-none={isError || (ready && ringBrands.length === 0) ? '' : undefined}>
           {ready && ringBrands.length > 0 && <BrandRing brands={ringBrands} counts={ringCounts} videos={videos} selected={brands} onToggle={toggleBrand} paused={Boolean(openVideo)} />}
         </div>
@@ -813,38 +936,43 @@ export function VideoLibrary() {
           </div>
         )}
 
-        {ready && showFeatured && (
-          <div className="lib-featured">
-            <Coverflow videos={featured.slice(0, FEATURED_MAX)} onOpen={(video) => show(video.id)} label="Featured videos" />
-          </div>
-        )}
-
         {isError ? (
           <LibraryError onRetry={() => void refetch()} />
         ) : isPending ? (
-          <LoadingGrid />
+          <LoadingGrid cols={cols} />
         ) : (
           <>
             <LayoutGroup id="lib-grid">
               <div ref={grid} className="lib-grid">
                 {animate ? (
                   <AnimatePresence initial={false} mode="popLayout" onExitComplete={exitsDone}>
-                    {filtered.map((v, i) => (
+                    {filtered.slice(0, shown).map((v, i) => (
                       <m.div key={v.id} className="lib-cell" layout="position" layoutDependency={signature} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={spring.snappy}>
                         <VideoTile video={v} eager={i < 4} onOpen={(video) => show(video.id)} sticker date />
                       </m.div>
                     ))}
                   </AnimatePresence>
                 ) : (
-                  filtered.map((v, i) => (
+                  filtered.slice(0, shown).map((v, i) => (
                     <div key={v.id} className="lib-cell">
                       <VideoTile video={v} eager={i < 4} onOpen={(video) => show(video.id)} sticker date />
                     </div>
                   ))
                 )}
-                {n > 0 && <LibraryEnd fill={fill} videos={filtered.slice(0, 3)} />}
+                {n > 0 && left === 0 && <LibraryEnd fill={fill} videos={filtered.slice(0, 3)} />}
               </div>
             </LayoutGroup>
+            {left > 0 && (
+              <div ref={moreRef} className="lib-more">
+                <Cta kind="ghost" className="lib-more-btn" onClick={() => more(true)}>
+                  View more<span aria-hidden> · </span>
+                  {left} left
+                </Cta>
+              </div>
+            )}
+            <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+              {revealSaid}
+            </p>
             <AnimatePresence mode="popLayout">
               {n === 0 && (
                 <LibraryEmpty

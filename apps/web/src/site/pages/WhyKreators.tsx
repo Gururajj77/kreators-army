@@ -31,7 +31,8 @@ function LivePhoto({ video, playing, position, src }: { video: Video | undefined
   const box = useRef<HTMLDivElement>(null);
   const pv = usePreview(video, { mode: 'active', active: playing, root: box });
   return (
-    <div ref={box} className="vs-photo" data-playing={pv.playing ? '' : undefined}>
+    // (hover7) A hover plays it too, wherever the divider rests (usePreview's 'active' mode takes a hover).
+    <div ref={box} className="vs-photo" data-playing={pv.playing ? '' : undefined} {...pv.bind}>
       <img src={src} alt="" loading="lazy" draggable={false} style={{ objectPosition: position }} />
       {pv.node}
     </div>
@@ -425,10 +426,10 @@ export default function WhyKreators() {
             <blockquote className="wk-quote-text">
               <p>
                 The strongest vox pop campaigns don't come from asking more questions or making every video look completely different. They come from a clear objective, the right reaction mechanism, strong interactions with
-                real people, enough variety on the ground, and the strongest moments built in the edit.
+                real people, enough variety on the ground, and the strongest moments built in the&nbsp;edit.
               </p>
             </blockquote>
-            <p className="wk-quote-who">From working with brands such as Hack Daily, Circle and others across consumer categories.</p>
+            <p className="wk-quote-who">From working with brands such as Hackdaily, CircleStore and others across consumer categories.</p>
             </Tile>
           </Reveal>
         </div>
@@ -438,7 +439,7 @@ export default function WhyKreators() {
       <section className="section wk-inc-section">
         <div className="wrap wk-inc">
           <div className="wk-inc-head">
-            <SectionHead center={false} title="Every package includes" lead="The same people and production in every package, whatever its size." />
+            <SectionHead center={false} title="Every package&nbsp;includes" lead="The same people and production in every package, whatever its size." />
             <Reveal>
               <Link to="/pricing" className="wk-inc-link">
                 See pricing →

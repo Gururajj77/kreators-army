@@ -2,10 +2,11 @@
 // "Agency"), then the brief in its own order with the shared labels, "Not shared yet." for what was skipped, and for a question only the question.
 // Reply by email, WhatsApp when the phone has 10 or more digits, status moves, a note that saves on blur and after 1 s idle, and permanent delete
 // from Archived only. Every value is rendered as text; links only for http(s), always with rel="noopener noreferrer".
-import { briefLabel, isHttpUrl, type AdminLead, type AdminLeadList, type LeadStatus } from '@kreators/shared';
+// (form7) A partial lead (saved as the visitor went, never sent) says where they stopped and shows its answers step by step, each with when it was saved.
+import { BRIEF_STEP_TITLES, briefLabel, isHttpUrl, type AdminLead, type AdminLeadList, type LeadStatus } from '@kreators/shared';
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { Archive, ArrowLeft, Inbox, Mail, Phone, Trash2, UserCheck } from 'lucide-react';
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { CopyButton } from '../components/ui';
 import { AdminApiError, adminApi, keys } from './api';
@@ -39,6 +40,15 @@ function SafeLink({ url }: { url: string }) {
     </a>
   );
 }
+
+/** (form7) "Stopped at step 3: Brand integration" for a partial trial brief; a question has no steps. */
+export function stopLabel(lead: Pick<AdminLead, 'kind' | 'stepReached'>): string {
+  if (lead.kind === 'question') return 'Stopped before sending';
+  const n = (lead.stepReached ?? 1) as keyof typeof BRIEF_STEP_TITLES;
+  return `Stopped at step ${n}: ${BRIEF_STEP_TITLES[n] ?? ''}`;
+}
+
+const BRIEF_STEPS = [1, 2, 3, 4, 5] as const;
 
 /** wa.me wants digits only; a 10-digit number is Indian, so 91 goes first. Null under 10 digits. */
 export function whatsappOf(phone: string): string | null {
@@ -120,6 +130,8 @@ export function LeadDetail({ lead: initial, back, onGone }: { lead: AdminLead; b
 
   const b = lead.brief;
   const trial = lead.kind === 'trial';
+  const partial = lead.completion === 'partial';
+  const reached = lead.stepReached ?? 1;
   const subject = trial ? 'Your Kreators.Army trial brief' : 'Your question to Kreators.Army';
   const mailto = `mailto:${encodeURIComponent(lead.email)}?subject=${encodeURIComponent(subject)}`;
   const wa = lead.phone ? whatsappOf(lead.phone) : null;
@@ -128,6 +140,61 @@ export function LeadDetail({ lead: initial, back, onGone }: { lead: AdminLead; b
   const pkgText = [lead.service || pkg, b?.brands && b.brands > 1 ? `for ${b.brands} brands` : ''].filter(Boolean).join(' ');
   const objective = b?.objective ? `${briefLabel('objective', b.objective)}${b.objective === 'other' && b.objectiveOther ? `: ${b.objectiveOther}` : ''}` : '';
   const integration = b?.integration ? `${briefLabel('integration', b.integration)}${b.integration === 'other' && b.integrationOther ? `: ${b.integrationOther}` : ''}` : '';
+
+  // The brief's answers grouped by the form step that asks them: one flat list for a sent brief, step by step for a partial one.
+  const byStep: Record<(typeof BRIEF_STEPS)[number], ReactNode> = {
+    1: (
+      <Item key="pkg" label="Package interest" empty={!pkgText}>
+        {pkgText}
+      </Item>
+    ),
+    2: (
+      <Item key="objective" label="Objective" empty={!objective}>
+        {objective}
+      </Item>
+    ),
+    3: (
+      <Item key="integration" label="Brand integration" empty={!integration}>
+        {integration}
+      </Item>
+    ),
+    4: (
+      <Fragment key="musts">
+        <Item label="Must-haves" empty={!b?.mustHaves.length}>
+          <ul className="adm-musts">
+            {b?.mustHaves.map((m) => (
+              <li key={m} className="adm-chip" data-tone="grey">
+                {briefLabel('mustHave', m)}
+                {m === 'other' && b.mustHavesOther ? `: ${b.mustHavesOther}` : ''}
+              </li>
+            ))}
+          </ul>
+        </Item>
+        <Item label="After watching, what should people think, feel or do?" empty={!b?.viewerResponse}>
+          <p className="adm-pre">{b?.viewerResponse}</p>
+        </Item>
+      </Fragment>
+    ),
+    5: (
+      <Fragment key="refs">
+        <Item label="References" empty={!b?.referenceLinks.length}>
+          <ul className="adm-refs">
+            {b?.referenceLinks.map((u) => (
+              <li key={u}>
+                <SafeLink url={u} />
+              </li>
+            ))}
+          </ul>
+        </Item>
+        <Item label="Brand guide" empty={!b?.brandGuideUrl}>
+          {b?.brandGuideUrl && <SafeLink url={b.brandGuideUrl} />}
+        </Item>
+        <Item label="Anything else" empty={!lead.message}>
+          <p className="adm-pre">{lead.message}</p>
+        </Item>
+      </Fragment>
+    ),
+  };
 
   return (
     <article className="adm-lead" aria-labelledby={headId}>
@@ -142,15 +209,28 @@ export function LeadDetail({ lead: initial, back, onGone }: { lead: AdminLead; b
           <p className="adm-lead-meta">
             <StatusChip tone={trial ? 'blue' : 'grey'}>{trial ? 'Trial brief' : 'Question'}</StatusChip>
             <StatusChip tone={lead.status === 'new' ? 'green' : 'grey'}>{lead.status === 'new' ? 'New' : lead.status === 'contacted' ? 'Contacted' : 'Archived'}</StatusChip>
-            <span title={exactTime(lead.createdAt)}>Received {relativeTime(lead.createdAt)}</span>
+            {partial ? (
+              <>
+                <StatusChip tone="amber">{stopLabel(lead)}</StatusChip>
+                <span title={exactTime(lead.updatedAt ?? lead.createdAt)}>Not sent · last saved {relativeTime(lead.updatedAt ?? lead.createdAt)}</span>
+              </>
+            ) : (
+              <span title={exactTime(lead.createdAt)}>Received {relativeTime(lead.createdAt)}</span>
+            )}
           </p>
         </div>
         <dl className="adm-lead-contact">
           <div>
             <dt>Email</dt>
             <dd className="adm-lead-email">
-              <span className="adm-break">{lead.email}</span>
-              <CopyButton text={lead.email} className="adm-copy" />
+              {lead.email ? (
+                <>
+                  <span className="adm-break">{lead.email}</span>
+                  <CopyButton text={lead.email} className="adm-copy" />
+                </>
+              ) : (
+                <span className="adm-muted">{NOT_SHARED}</span>
+              )}
             </dd>
           </div>
           {lead.phone && (
@@ -177,9 +257,11 @@ export function LeadDetail({ lead: initial, back, onGone }: { lead: AdminLead; b
       </header>
 
       <div className="adm-lead-actions">
-        <a className="btn btn-sm btn-ink" href={mailto}>
-          <Mail className="size-4" aria-hidden /> Reply by email
-        </a>
+        {lead.email && (
+          <a className="btn btn-sm btn-ink" href={mailto}>
+            <Mail className="size-4" aria-hidden /> Reply by email
+          </a>
+        )}
         {wa && (
           <a className="btn btn-sm btn-ghost" href={wa} target="_blank" rel="noopener noreferrer">
             <Phone className="size-4" aria-hidden /> WhatsApp
@@ -208,45 +290,26 @@ export function LeadDetail({ lead: initial, back, onGone }: { lead: AdminLead; b
         )}
       </div>
 
-      {trial ? (
+      {trial && partial ? (
+        <div className="adm-steps">
+          {BRIEF_STEPS.map((n) => {
+            const saved = lead.steps[String(n)];
+            return (
+              <section key={n} className="adm-step" aria-labelledby={`${headId}-s${n}`}>
+                <h3 id={`${headId}-s${n}`} className="adm-step-title">
+                  Step {n}: {BRIEF_STEP_TITLES[n]}
+                  <span className="adm-step-when" title={saved ? exactTime(saved) : undefined}>
+                    {saved ? `Saved ${relativeTime(saved)}` : n <= reached ? 'Opened, nothing saved' : 'Not reached'}
+                  </span>
+                </h3>
+                <dl className="adm-brief">{byStep[n]}</dl>
+              </section>
+            );
+          })}
+        </div>
+      ) : trial ? (
         <dl className="adm-brief">
-          <Item label="Package interest" empty={!pkgText}>
-            {pkgText}
-          </Item>
-          <Item label="Objective" empty={!objective}>
-            {objective}
-          </Item>
-          <Item label="Brand integration" empty={!integration}>
-            {integration}
-          </Item>
-          <Item label="Must-haves" empty={!b?.mustHaves.length}>
-            <ul className="adm-musts">
-              {b?.mustHaves.map((m) => (
-                <li key={m} className="adm-chip" data-tone="grey">
-                  {briefLabel('mustHave', m)}
-                  {m === 'other' && b.mustHavesOther ? `: ${b.mustHavesOther}` : ''}
-                </li>
-              ))}
-            </ul>
-          </Item>
-          <Item label="After watching, what should people think, feel or do?" empty={!b?.viewerResponse}>
-            <p className="adm-pre">{b?.viewerResponse}</p>
-          </Item>
-          <Item label="References" empty={!b?.referenceLinks.length}>
-            <ul className="adm-refs">
-              {b?.referenceLinks.map((u) => (
-                <li key={u}>
-                  <SafeLink url={u} />
-                </li>
-              ))}
-            </ul>
-          </Item>
-          <Item label="Brand guide" empty={!b?.brandGuideUrl}>
-            {b?.brandGuideUrl && <SafeLink url={b.brandGuideUrl} />}
-          </Item>
-          <Item label="Anything else" empty={!lead.message}>
-            <p className="adm-pre">{lead.message}</p>
-          </Item>
+          {BRIEF_STEPS.map((n) => byStep[n])}
         </dl>
       ) : (
         <dl className="adm-brief">

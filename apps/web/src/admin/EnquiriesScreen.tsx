@@ -1,7 +1,8 @@
 // Owner: A4 Admin. The enquiries inbox (admin brief 5.6 with V2-SPEC 4.2, C16, C17): status tabs New · Contacted · Archived as a TabBar, the kind filter
 // All · Trial briefs · Questions as a Segment, search, and Export CSV with the current filters. Two panes on desktop; on phones the list, then the detail
-// on its own page (/admin/enquiries/:id).
-import type { AdminLead, AdminLeadList, LeadKind, LeadStatus } from '@kreators/shared';
+// on its own page (/admin/enquiries/:id). (form7) A second Segment, All · Complete · Partial: partial leads are briefs the visitor stopped before
+// sending, saved step by step, each with "Stopped at step N: <title>".
+import type { AdminLead, AdminLeadList, LeadCompletion, LeadKind, LeadStatus } from '@kreators/shared';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, FileText, MessageCircle, Search } from 'lucide-react';
 import { useDeferredValue, useEffect, useState } from 'react';
@@ -10,7 +11,7 @@ import { Segment, TabBar, TabPanel } from '../components/tabs';
 import { Seo } from '../components/ui';
 import { adminApi, keys, retryOnce, AdminApiError } from './api';
 import { EmptyState, When } from './bits';
-import { LeadDetail } from './LeadDetail';
+import { LeadDetail, stopLabel } from './LeadDetail';
 
 const STATUSES: { id: LeadStatus; label: string }[] = [
   { id: 'new', label: 'New' },
@@ -18,6 +19,7 @@ const STATUSES: { id: LeadStatus; label: string }[] = [
   { id: 'archived', label: 'Archived' },
 ];
 type KindFilter = 'all' | LeadKind;
+type DoneFilter = 'all' | LeadCompletion;
 
 export function EnquiriesScreen() {
   const qc = useQueryClient();
@@ -27,6 +29,7 @@ export function EnquiriesScreen() {
   const openId = match?.params.id ?? null;
   const status = (STATUSES.some((s) => s.id === params.get('status')) ? params.get('status') : 'new') as LeadStatus;
   const kind = (params.get('kind') === 'trial' || params.get('kind') === 'question' ? params.get('kind') : 'all') as KindFilter;
+  const done = (params.get('completion') === 'complete' || params.get('completion') === 'partial' ? params.get('completion') : 'all') as DoneFilter;
   const [q, setQ] = useState(params.get('q') ?? '');
   const query = useDeferredValue(q.trim().slice(0, 60));
 
@@ -37,7 +40,7 @@ export function EnquiriesScreen() {
     setParams(p, { replace: true });
   };
 
-  const filters = { status, kind: kind === 'all' ? undefined : kind, q: query || undefined };
+  const filters = { status, kind: kind === 'all' ? undefined : kind, completion: done === 'all' ? undefined : done, q: query || undefined };
   const list = useInfiniteQuery({
     queryKey: keys.leads(filters),
     queryFn: ({ pageParam }) => adminApi.leads({ ...filters, cursor: pageParam ?? undefined, limit: 50 }),
@@ -47,13 +50,17 @@ export function EnquiriesScreen() {
   });
   const leads = list.data?.pages.flatMap((p) => p.leads) ?? [];
   const counts = list.data?.pages[0]?.counts;
+  const partialCounts = list.data?.pages[0]?.partial;
 
   // Keep the shell's "Enquiries (n)" in step with what this screen sees.
   useEffect(() => {
-    if (counts) qc.setQueryData<AdminLeadList>(keys.leads({ counts: true }), (old) => (old ? { ...old, counts } : { leads: [], nextCursor: null, counts }));
-  }, [counts, qc]);
+    if (counts)
+      qc.setQueryData<AdminLeadList>(keys.leads({ counts: true }), (old) =>
+        old ? { ...old, counts } : { leads: [], nextCursor: null, counts, partial: partialCounts ?? { new: 0, contacted: 0, archived: 0 } },
+      );
+  }, [counts, partialCounts, qc]);
 
-  const csv = adminApi.leadsCsvUrl({ status, kind: kind === 'all' ? undefined : kind });
+  const csv = adminApi.leadsCsvUrl({ status, kind: kind === 'all' ? undefined : kind, completion: done === 'all' ? undefined : done });
   const search = params.toString() ? `?${params.toString()}` : '';
   const order = STATUSES.findIndex((s) => s.id === status);
 
@@ -81,7 +88,7 @@ export function EnquiriesScreen() {
     );
   } else if (!leads.length) {
     listBody =
-      query || kind !== 'all' ? (
+      query || kind !== 'all' || done !== 'all' ? (
         <div className="adm-state">
           <p className="adm-state-title">No enquiries match.</p>
         </div>
@@ -141,6 +148,18 @@ export function EnquiriesScreen() {
             { value: 'question', label: 'Questions' },
           ]}
         />
+        <Segment
+          label="Sent or partial"
+          size="sm"
+          className="adm-done"
+          value={done}
+          onChange={(v) => setParam('completion', v === 'all' ? null : v)}
+          options={[
+            { value: 'all', label: 'All' },
+            { value: 'complete', label: 'Complete' },
+            { value: 'partial', label: partialCounts?.[status] ? `Partial (${partialCounts[status]})` : 'Partial' },
+          ]}
+        />
         <label className="adm-search adm-search-sm">
           <Search className="size-4" aria-hidden />
           <span className="sr-only">Search enquiries by name, email, brand or phone</span>
@@ -173,21 +192,37 @@ export function EnquiriesScreen() {
 
 function LeadRow({ lead, current, to }: { lead: AdminLead; current: boolean; to: string }) {
   const pkg = lead.service || (lead.brief?.package ? '' : '');
+  const partial = lead.completion === 'partial';
   return (
     <li>
-      <Link to={to} className="adm-lead-row" data-unread={lead.status === 'new' ? '' : undefined} aria-current={current ? 'page' : undefined} preventScrollReset>
+      <Link
+        to={to}
+        className="adm-lead-row"
+        data-unread={lead.status === 'new' && !partial ? '' : undefined}
+        data-partial={partial ? '' : undefined}
+        aria-current={current ? 'page' : undefined}
+        preventScrollReset
+      >
         <span className="adm-lead-kind" aria-hidden title={lead.kind === 'trial' ? 'Trial brief' : 'Question'}>
           {lead.kind === 'trial' ? <FileText className="size-4" /> : <MessageCircle className="size-4" />}
         </span>
         <span className="adm-lead-main">
           <span className="adm-lead-name">{lead.name || 'No name'}</span>
-          <span className="adm-lead-sub">{lead.kind === 'trial' ? lead.brand || lead.email : lead.email}</span>
+          <span className="adm-lead-sub">{lead.kind === 'trial' ? lead.brand || lead.email || lead.phone : lead.email || lead.phone}</span>
+          {partial && (
+            <span className="adm-chip adm-lead-stop" data-tone="amber">
+              {stopLabel(lead)}
+            </span>
+          )}
         </span>
         <span className="adm-lead-side">
-          <When value={lead.createdAt} className="adm-lead-when" />
+          <When value={partial ? (lead.updatedAt ?? lead.createdAt) : lead.createdAt} className="adm-lead-when" />
           {pkg && <span className="adm-chip adm-lead-pkg" data-tone="grey">{pkg}</span>}
         </span>
-        <span className="sr-only">{lead.kind === 'trial' ? ', trial brief' : ', question'}</span>
+        <span className="sr-only">
+          {lead.kind === 'trial' ? ', trial brief' : ', question'}
+          {partial ? ', not sent' : ''}
+        </span>
       </Link>
     </li>
   );

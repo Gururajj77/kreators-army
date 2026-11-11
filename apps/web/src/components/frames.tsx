@@ -1,8 +1,8 @@
 // Every video on the site sits in an object (visual §1.2): a phone, a card, a chat-reply bubble, a polaroid or a story ring. The poster comes first.
-// A muted preview plays from the same-origin stream only on desktop, one at a time, under one rule (usePreview, V2-SPEC 3.4). The browser never sees
-// MEGA: a MEGA entry's stream is the Worker's own address by video id (streamUrl), and its preview the same address with ?preview=6, which the Worker
-// bounds. Paths come from the API (shared previewSrc), never from this file. (pv) A video with a stored hover clip (`previewUrl`, a few seconds,
-// small, made by the admin's "Thumbnails & previews" pass) plays that clip instead, looped, whatever `previewOk` says.
+// A muted preview plays only on desktop, one at a time, under one rule (usePreview, V2-SPEC 3.4). (pub8) A MEGA entry never streams through this
+// site: its only preview is its stored hover clip (`previewUrl`, a few seconds, small, made in the founder's browser by the admin's
+// "Thumbnails & previews" pass), looped. No clip: the poster stays (no <video> at all). A bundled file with `previewOk` still
+// previews itself, as in v1. Paths come from the API (shared previewSrc), never from this file.
 
 import { formatViews, previewSrc, type Video } from '@kreators/shared';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
@@ -176,7 +176,7 @@ const HOVER_DELAY = 300; // R6
 // A stored clip is small and usually already in the cache (previewWarm), so it needs only enough of a wait to ignore a pointer sweeping
 // across the grid: with the first frame decoded in about 40 ms it starts within ~150 ms of the hover.
 const CLIP_HOVER_DELAY = 100;
-const LOOP_AT = 5; // seconds (C12): the Worker bounds ?preview=6, so loop before the bound
+const LOOP_AT = 5; // seconds (C12): a bundled file previews its first 5 s, looped
 const STALL_LIMIT = 1500;
 
 const idle = (fn: () => void): (() => void) => {
@@ -190,8 +190,9 @@ const idle = (fn: () => void): (() => void) => {
 
 export interface PreviewOptions {
   /**
-   * 'hover': a mouse resting on the frame for 300 ms starts it, leaving stops it. 'active': it runs while `active` is true and the frame is at least half
-   * in view, after the browser is idle (the hero's front card, the thread's newest reply, the work reel, the coverflow centre). 'none': never.
+   * 'hover': a mouse resting on the frame (100 ms for a stored clip, 300 ms for the bounded stream) starts it, leaving stops it. 'active': it runs while
+   * `active` is true and the frame is at least half in view, after the browser is idle (the hero's front card, the thread's newest reply, the work
+   * reel), and a hover starts it too (hover7: every video on the site plays on hover). 'none': never.
    */
   mode: 'hover' | 'active' | 'none';
   active?: boolean;
@@ -210,10 +211,10 @@ export interface Preview {
   stop: () => void;
 }
 
-/** What a muted preview of `video` plays: its stored clip, else the bounded stream when the API allows it, else nothing. */
+/** What a muted preview of `video` plays: its stored clip, else a bundled file when the API allows it, else nothing (never MEGA, never an embed). */
 export function previewSource(video: Video): { src: string; clip: boolean } | null {
   if (video.previewUrl) return { src: video.previewUrl, clip: true };
-  const stream = video.previewOk ? previewSrc(video) : null;
+  const stream = video.previewOk && video.source !== 'mega' ? previewSrc(video) : null;
   return stream ? { src: stream, clip: false } : null;
 }
 
@@ -222,9 +223,9 @@ export const previewAllowed = (video: Video | null | undefined): video is Video 
 
 /**
  * The one rule for every video that plays by itself:
- * 1. only with canAutoplay() (fine pointer, motion allowed, no Save-Data), a stored clip or `previewOk` with a preview address, and the video token;
+ * 1. only with canAutoplay() (fine pointer, motion allowed, no Save-Data), a stored clip or a bundled file with `previewOk`, and the video token;
  * 2. a muted, inline <video> shown only once it is `playing`, so the poster never blinks;
- * 3. a stored clip loops by itself (it is made to loop); a stream loops at 5 s by seeking to 0;
+ * 3. a stored clip loops by itself (it is made to loop); a bundled file loops at 5 s by seeking to 0;
  * 4. a `waiting` that lasts 1.5 s, or an error, ends it (and it does not try again in this mount);
  * 5. leaving, scrolling out, Pause animations or another video taking the token: pause(), drop the src, load() to abort the fetch, unmount.
  */
@@ -237,6 +238,8 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
   const wait = useRef(0);
   const stall = useRef(0);
   const failed = useRef(false);
+  // A mouse is resting on the frame: an 'active' frame that is no longer `active` keeps a preview the visitor asked for.
+  const hovering = useRef(false);
   const still = useStill((s) => s.still);
   const source = video ? previewSource(video) : null;
   const src = source?.src ?? null;
@@ -297,7 +300,7 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
   // 'active': after idle, when the slot is free; retry whenever it frees up.
   useEffect(() => {
     if (mode !== 'active' || !active || !inView || still || !previewAllowed(video)) {
-      if (mode === 'active' && videoToken.holds(owner.current)) stop();
+      if (mode === 'active' && videoToken.holds(owner.current) && !(hovering.current && inView && !still)) stop();
       return;
     }
     let cancelIdle = idle(() => start(false));
@@ -316,31 +319,36 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
 
   useEffect(() => () => window.clearTimeout(wait.current), []);
 
+  // An 'active' frame that is playing by itself goes on playing when the pointer leaves it.
+  const keepsRunning = () => mode === 'active' && active && inView && !still;
+  const hoverable = mode === 'hover' || mode === 'active';
   const bind = {
     onPointerEnter: (e: ReactPointerEvent) => {
-      if (mode !== 'hover' || e.pointerType !== 'mouse' || !previewAllowed(video)) return;
+      if (!hoverable || e.pointerType !== 'mouse' || !previewAllowed(video)) return;
+      hovering.current = true;
       if (clip) warmClip(src, 'hover');
       window.clearTimeout(wait.current);
       wait.current = window.setTimeout(() => start(true), clip ? CLIP_HOVER_DELAY : HOVER_DELAY);
     },
     onPointerLeave: () => {
-      if (mode !== 'hover') return;
+      if (!hoverable) return;
+      hovering.current = false;
       window.clearTimeout(wait.current);
       // A frame that still has the keyboard's focus keeps its preview.
-      if (root.current?.matches(':focus-visible')) return;
+      if (root.current?.matches(':focus-visible') || keepsRunning()) return;
       if (on || videoToken.holds(owner.current)) stop();
     },
     // (pv) Keyboard focus previews like a hover (focus-visible only: a click's focus is followed by the player).
     onFocus: (e: ReactFocusEvent) => {
-      if (mode !== 'hover' || !previewAllowed(video) || !e.currentTarget.matches(':focus-visible')) return;
+      if (!hoverable || !previewAllowed(video) || !e.currentTarget.matches(':focus-visible')) return;
       if (clip) warmClip(src, 'hover');
       window.clearTimeout(wait.current);
       wait.current = window.setTimeout(() => start(true), clip ? CLIP_HOVER_DELAY : HOVER_DELAY);
     },
     onBlur: () => {
-      if (mode !== 'hover') return;
+      if (!hoverable) return;
       window.clearTimeout(wait.current);
-      if (root.current?.matches(':hover')) return;
+      if (root.current?.matches(':hover') || keepsRunning()) return;
       if (on || videoToken.holds(owner.current)) stop();
     },
   };
@@ -391,7 +399,7 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
 export type FrameVariant = 'phone' | 'card' | 'bubble' | 'polaroid' | 'ring';
 
 export interface VideoFrameProps {
-  /** The public Video: reads posterUrl, previewUrl, streamUrl (through previewSrc), previewOk, embedUrl, links, views, brand, title. */
+  /** The public Video: reads posterUrl, previewUrl, streamUrl (through previewSrc, bundled files only), previewOk, links, views, brand, title. */
   video: Video;
   variant: FrameVariant;
   /** Sets --fw. Height follows the shape: 9:16 (phone 280:580), 16:9 for a landscape card, a circle for a ring. */
@@ -484,6 +492,16 @@ export function VideoFrame({
   const interactive = Boolean(onOpen) && !still;
   const mode = still ? 'none' : (preview ?? (interactive ? 'hover' : 'none'));
   const pv = usePreview(video, { mode, active, root: rootRef });
+  // What a hover plays here (hover7): 'clip', 'stream', or 'none' (no clip yet and no safe stream: the frame only lifts and shows a small play glyph,
+  // so a hover never feels broken). Unset when the frame never previews.
+  const pvSource = mode === 'none' ? null : previewSource(video);
+  const pvKind = mode === 'none' ? undefined : pvSource ? (pvSource.clip ? 'clip' : 'stream') : 'none';
+  // Phones and polaroids carry no play disc of their own unless they open the player (the deck's "Watch with sound"): a small glyph says "this plays".
+  const hint = pvKind && (variant === 'polaroid' || (variant === 'phone' && !interactive)) ? (
+    <span className="vframe-hint" aria-hidden>
+      <Play className="size-3.5 fill-current" />
+    </span>
+  ) : null;
   const leanable = lean && (variant === 'phone' || variant === 'polaroid');
   const tiltFx = useLean(leanable && !still);
   const poster = video.posterUrl;
@@ -512,6 +530,7 @@ export function VideoFrame({
       'data-playing': pv.playing ? '' : undefined,
       'data-video-tile': tileAttr && interactive ? video.id : undefined,
       'data-variant': tileVariant,
+      'data-pv': pvKind,
       ...pv.bind,
     };
     if (interactive) {
@@ -616,12 +635,14 @@ export function VideoFrame({
         <span className="vframe-foot">
           <BrandPill brand={video.brand} />
         </span>
+        {hint}
         {children}
       </span>
     ) : (
       <span className="vframe-polaroid-media" data-video-tile={interactive ? video.id : undefined}>
         {img}
         {pv.node}
+        {hint}
         {children}
       </span>
     );
@@ -705,13 +726,15 @@ const EXIT = { x: 150, y: -12, rotate: 14, scale: 0.96, opacity: 0 };
 const DWELL = 4500;
 
 /**
- * The deck's videos (V2-SPEC 3.4): `firstId` first, then the next published videos by sort order with featured ones first, `count` in all.
+ * The deck's videos (V2-SPEC 3.4): `firstId` first, then the next published videos by sort order, `count` in all. Videos with a thumbnail lead
+ * (the founder's imported library starts without them, and a deck of blank cards reads as broken), featured ones first within each group.
  * The API already returns them in sort order; this keeps that order within each group.
  */
 export function deckOrder(videos: Video[], firstId: string, count = 4): Video[] {
   const first = videos.find((v) => v.id === firstId);
   const rest = videos.filter((v) => v.id !== firstId);
-  const ordered = [...rest.filter((v) => v.featured), ...rest.filter((v) => !v.featured)];
+  const rank = (v: Video) => (v.posterUrl ? 0 : 2) + (v.featured ? 0 : 1);
+  const ordered = rest.map((v, i) => ({ v, i })).sort((a, b) => rank(a.v) - rank(b.v) || a.i - b.i).map((x) => x.v);
   return (first ? [first, ...ordered] : ordered).slice(0, count);
 }
 
@@ -847,6 +870,9 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
           cards.map((v, slot) => {
             const out = v.id === leaving;
             const isFront = slot === 0 && !out;
+            // (hover7) The two back cards you can see play on hover too: decorative frames (no button, nothing focusable), so they are only
+            // aria-hidden, not inert, which would also drop their pointer events. The leaving card and the hidden fourth stay inert.
+            const peek = !isFront && !out && slot > 0 && slot < 3;
             const target = out ? EXIT : SLOTS[Math.min(slot, 3)];
             return (
               <m.div
@@ -867,13 +893,13 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
                   onDragEnd(e, info);
                 }}
                 aria-hidden={isFront ? undefined : true}
-                inert={isFront ? undefined : true}
+                inert={isFront || peek ? undefined : true}
               >
                 <VideoFrame
                   video={v.id === front?.id && !v.posterUrl ? { ...v, posterUrl: poster } : v}
                   variant="phone"
-                  onOpen={onOpen}
-                  preview={armed ? 'active' : 'none'}
+                  onOpen={isFront ? onOpen : undefined}
+                  preview={!armed ? 'none' : isFront ? 'active' : 'hover'}
                   active={isFront && live}
                   eager={slot < 2}
                   label={`Watch the ${v.brand} street interview with sound`}

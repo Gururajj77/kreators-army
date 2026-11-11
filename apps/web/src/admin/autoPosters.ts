@@ -1,8 +1,10 @@
 // Owner: A4 Admin. "Make posters from the first second" (admin brief 5.5): in the browser, one video at a time with a single hidden
 // <video preload="metadata">: seek to 1.0 s, capture, run the poster encoder, upload with V9. Rows that already have a poster are skipped. At 720p each
-// costs about the moov plus one 4 MiB range. Drafts stream for the admin through their own streamUrl (same-origin, so the canvas is clean).
+// costs about the moov plus one 4 MiB range. (admin8) A MEGA file is read and decrypted by this page (mediaGen/megaSource.ts) and played from a
+// same-origin address, so the canvas is clean; a bundled file plays its streamUrl.
 import type { AdminVideo } from '@kreators/shared';
 import { adminApi } from './api';
+import { openSource, type PlayableSource } from './mediaGen/megaSource';
 import { captureFrame, seekTo } from './posterEncode';
 
 export interface PosterRun {
@@ -17,7 +19,7 @@ export async function makePosters(
   { onProgress, onMade, signal }: { onProgress: (done: number, total: number) => void; onMade?: (v: AdminVideo) => void; signal: AbortSignal },
 ): Promise<PosterRun> {
   const run: PosterRun = { made: 0, skipped: 0, failed: [], stopped: false };
-  const todo = videos.filter((v) => !v.poster?.stored && v.streamUrl);
+  const todo = videos.filter((v) => !v.poster?.stored && !v.deletedAt && (v.mega || v.streamUrl));
   run.skipped = videos.length - todo.length;
   const total = todo.length;
   onProgress(0, total);
@@ -41,8 +43,10 @@ export async function makePosters(
         run.stopped = true;
         break;
       }
+      let source: PlayableSource | null = null;
       try {
-        el.src = v.streamUrl!;
+        if (v.mega) source = await openSource({ video: v.id }, { signal, allowBlob: true });
+        el.src = source ? source.url : v.streamUrl!;
         el.load();
         await seekTo(el, 1.0, 45000);
         if (signal.aborted) {
@@ -63,6 +67,7 @@ export async function makePosters(
         el.pause();
         el.removeAttribute('src');
         el.load();
+        source?.release();
       }
       done++;
       onProgress(done, total);

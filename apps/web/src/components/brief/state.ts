@@ -1,15 +1,20 @@
 import {
   BRIEF_LIMITS,
+  BRIEF_STEP_TITLES,
+  LEAD_EMAIL,
   INTEGRATION_LABELS,
   MUST_HAVE_LABELS,
   OBJECTIVE_LABELS,
   PACKAGE_LABELS,
   emptyBrief,
   isHttpUrl,
+  isPhone,
+  validateBrief,
   type Integration,
   type MustHave,
   type Objective,
   type PackageChoice,
+  type LeadDraftInput,
   type TrialBrief,
 } from '@kreators/shared';
 import type { FormatSlug } from '../../lib/content';
@@ -190,15 +195,95 @@ export function save(s: Saved) {
 export function clear() {
   try {
     window.sessionStorage.removeItem(KEY);
+    window.sessionStorage.removeItem(DRAFT_KEY);
   } catch {
     // Nothing to clear.
   }
 }
 
+// ---------- Saved as they go (form7) ----------
+// Once step 1 has a valid email or phone, each completed step (and leaving the page) sends the answers so far to
+// /api/contact/draft, which keeps one partial lead per form session. The session's random id, and what was last sent so
+// nothing is sent twice, live in sessionStorage 'kreators-brief-draft'. Sending the form completes that same lead.
+
+const DRAFT_KEY = 'kreators-brief-draft';
+
+export interface DraftMeta {
+  id: string;
+  /** The last body sent, so an unchanged form is not sent again. */
+  sent: string;
+}
+
+export function loadDraftMeta(): DraftMeta | null {
+  try {
+    const m = JSON.parse(window.sessionStorage.getItem(DRAFT_KEY) ?? 'null') as Partial<DraftMeta> | null;
+    return m && typeof m.id === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(m.id) ? { id: m.id, sent: typeof m.sent === 'string' ? m.sent : '' } : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveDraftMeta(m: DraftMeta) {
+  try {
+    window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(m));
+  } catch {
+    // Without storage a reload starts a new draft; the old one stays as it was.
+  }
+}
+
+export function newDraftId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+}
+
+/** Saving starts only once there is a way to reach them: a valid email or a phone someone could call. */
+export const canSaveDraft = (d: Draft) => LEAD_EMAIL.test(d.email.trim()) || isPhone(d.phone);
+
+/**
+ * The answers so far as the draft endpoint takes them. Anything the API would refuse mid-typing (a half-typed email, a
+ * link without https://) is left out rather than sent, so a save never fails on what the visitor has not finished.
+ */
+export function draftBody(mode: Mode, draft: Draft, intent: Intent, step: Step, reached: Step, draftId: string, company: string): LeadDraftInput {
+  const email = draft.email.trim();
+  const base = {
+    draftId,
+    name: draft.name.trim().slice(0, 120),
+    email: LEAD_EMAIL.test(email) ? email : '',
+    phone: draft.phone.trim().slice(0, 40),
+    message: draft.message.trim().slice(0, 4000),
+    company,
+  };
+  if (mode === 'question') return { ...base, kind: 'question', brand: '', service: '', step: 1, reached: 1 };
+  const b = toBrief(draft, intent);
+  b.referenceLinks = b.referenceLinks.filter((l) => isHttpUrl(l));
+  if (b.brandGuideUrl && !isHttpUrl(b.brandGuideUrl)) b.brandGuideUrl = '';
+  b.website = b.website.slice(0, BRIEF_LIMITS.website);
+  b.objectiveOther = b.objectiveOther.slice(0, BRIEF_LIMITS.other);
+  b.integrationOther = b.integrationOther.slice(0, BRIEF_LIMITS.other);
+  b.mustHavesOther = b.mustHavesOther.slice(0, BRIEF_LIMITS.other);
+  b.viewerResponse = b.viewerResponse.slice(0, BRIEF_LIMITS.viewerResponse);
+  const checked = validateBrief(b);
+  return {
+    ...base,
+    kind: 'trial',
+    brand: draft.brand.trim().slice(0, 120),
+    service: serviceLabel(draft, intent),
+    ...(checked.ok ? { brief: checked.brief } : {}),
+    step,
+    reached,
+  };
+}
+
 // ---------- Checks ----------
 
 /** The same test the API uses. */
-export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL = LEAD_EMAIL;
+
+/** The step titles (shared with the admin inbox's "Stopped at step N"). */
+export const STEP_TITLES = BRIEF_STEP_TITLES;
 
 export const nameError = (v: string) => (v.trim() ? '' : 'Please add your name so we know who to reply to.');
 export const emailError = (v: string) => {

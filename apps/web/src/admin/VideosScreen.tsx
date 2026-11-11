@@ -303,11 +303,14 @@ export function VideosScreen() {
     }
   };
 
+  // (admin8) A MEGA video's link is its MEGA link (with its key: admin only); the site no longer streams MEGA through its own address.
+  const linkOf = (v: AdminVideo): string | null => v.mega?.url ?? (v.streamUrl ? new URL(v.streamUrl, window.location.origin).href : null);
   const copyLink = async (v: AdminVideo) => {
-    if (!v.streamUrl) return;
+    const link = linkOf(v);
+    if (!link) return;
     try {
-      await navigator.clipboard.writeText(new URL(v.streamUrl, window.location.origin).href);
-      toast('Stream link copied');
+      await navigator.clipboard.writeText(link);
+      toast(v.mega?.url ? 'MEGA link copied' : 'Stream link copied');
     } catch {
       toast("Couldn't copy. Your browser blocked it.", { tone: 'error' });
     }
@@ -315,7 +318,7 @@ export function VideosScreen() {
 
   const menuFor = (v: AdminVideo): MenuItem[] => [
     { label: 'Edit', icon: <Pencil className="size-4" aria-hidden />, onSelect: () => navigate(`/admin/videos/${encodeURIComponent(v.id)}${location.search}`) },
-    { label: 'Copy stream link', icon: <Copy className="size-4" aria-hidden />, onSelect: () => void copyLink(v), disabled: !v.streamUrl },
+    { label: v.mega ? 'Copy MEGA link' : 'Copy stream link', icon: <Copy className="size-4" aria-hidden />, onSelect: () => void copyLink(v), disabled: !linkOf(v) },
     { label: 'Move to top', icon: <ArrowUpToLine className="size-4" aria-hidden />, onSelect: () => reorder.moveTo(v.id, 'top'), disabled: !reorderOn },
     { label: 'Move to bottom', icon: <ArrowDownToLine className="size-4" aria-hidden />, onSelect: () => reorder.moveTo(v.id, 'bottom'), disabled: !reorderOn },
     { label: 'Delete', icon: <Trash2 className="size-4" aria-hidden />, onSelect: () => setConfirmDelete(v), danger: true },

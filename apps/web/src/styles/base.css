@@ -41,6 +41,24 @@
     -moz-osx-font-smoothing: grayscale;
     /* clip, never hidden: an overflow:hidden ancestor kills every sticky element under it. */
     overflow-x: clip;
+    /* No orphan words: short copy (headings, leads, cards, captions, labels, buttons) sets in even lines, a rectangle. It is inherited, so
+       long-form prose opts into pretty where it is styled (.read-prose, FAQ answers). The longhand leaves text-wrap-mode alone, so a nowrap
+       pill stays nowrap. Chrome balances up to six lines and wraps normally past that. */
+    text-wrap-style: balance;
+  }
+
+  /* The last two words of copy in a narrow column (tieLastSpan, lib/typo.ts): together on the last line when they fit, wrapped inside
+     their own box when they don't, never overflowing. */
+  .tie {
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  /* Typing is never rebalanced under the caret. */
+  input,
+  textarea,
+  [contenteditable] {
+    text-wrap-style: auto;
   }
 
   /* Browsers without view transitions fade the theme change this way instead. */

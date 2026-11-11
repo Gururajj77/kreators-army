@@ -10,6 +10,7 @@ import { Cta, HeroCopy, PrimaryCta, Reveal, Seo } from '../../components/ui';
 import { EditTimeline, InteractionChain } from '../../components/visuals';
 import { EDIT_PRIORITIES, INTERACTION_EXAMPLES, LOCK_LIST, MECHANISMS, VIDEO_JOBS, type CastLineKey } from '../../lib/content';
 import { finePointer, motionOk } from '../../lib/motionOk';
+import { tieLast } from '../../lib/typo';
 
 // content §3.2; layout visual §2.2, V2-SPEC 5.3. Fifteen sections of the founder's doc read as six calm stops. Desktop: a sticky "On this page" index in a
 // 240 px column (the page's one sticky element; no sticky stage). Phones: a sticky row of chapter chips under the nav with "Ch. n of 6". The cast
@@ -99,7 +100,7 @@ function TheIdea() {
         </ul>
         <p className="hww-body">
           The interviewer is free to follow an interesting answer and go deeper. Because we work with real strangers, we cannot guarantee that a particular
-          person will be funny, emotional, surprising or highly reactive. What we can do is deliberately create more chances for those moments to happen.
+          person will be funny, emotional, surprising or highly reactive. What we can do is deliberately create more chances for those moments to&nbsp;happen.
         </p>
       </div>
     </Chapter>
@@ -257,7 +258,7 @@ function StreetTileView({ tile, i }: { tile: StreetTile; i: number }) {
         </div>
         <div className="hww-tile-copy">
           <h3 className="h4">{tile.title}</h3>
-          <p>{tile.body}</p>
+          <p>{tieLast(tile.body, 18)}</p>
         </div>
       </div>
     </Reveal>
@@ -367,7 +368,7 @@ function LockList() {
               <circle cx="12" cy="12" r="11" />
               <path d="M7 12.4l3.3 3.3L17 9" />
             </svg>
-            <span>{item}</span>
+            <span>{tieLast(item, 18)}</span>
           </li>
         ))}
       </ul>
@@ -418,10 +419,10 @@ function Results() {
             <p>
               The strongest vox pop campaigns don't come from asking more questions or making every video look completely different. They come from a clear
               objective, the right reaction mechanism, strong interactions with real people, enough variety on the ground, and the strongest moments built in
-              the edit.
+              the&nbsp;edit.
             </p>
           </blockquote>
-          <figcaption>From working with brands such as Hack Daily, Circle and others across consumer categories.</figcaption>
+          <figcaption>From working with brands such as Hackdaily, CircleStore and others across consumer categories.</figcaption>
         </figure>
       </div>
     </Chapter>
