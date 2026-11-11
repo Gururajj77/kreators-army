@@ -12,7 +12,7 @@ import { useLineOnView } from './FormatPage';
 const ROLE_BODY: Record<CastId, string> = {
   bolu: 'Take the mic to the street and get real people answering on camera.',
   tiko: 'Go out with the anchors and capture real reactions, picture and sound.',
-  gola: 'Turn the best reactions into short videos for Reels, Shorts and TikTok.',
+  gola: 'Turn the best reactions into short videos for Reels and Shorts.',
   sochu: 'Design simple but powerful questions that trigger honest responses.',
 };
 

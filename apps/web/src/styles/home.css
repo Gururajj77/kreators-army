@@ -5,12 +5,22 @@
     /* A low band: the street is a backdrop under the deck, noticed second. */
     --street-h: clamp(240px, 30vh, 300px);
     /* The deck's height, as frames.css sizes it, so the cast can stand at the right distances from it. */
-    /* (home11) A touch smaller than before (540 at most, 100svh - 360): the deck and its views card now clear the nav and the fold with air. */
-    --hero-reel: clamp(420px, calc(100svh - 400px), 520px);
+    /* (hero12) About a fifth bigger than home11's (420 to 520, 100svh - 400): 600 at 1440 x 900, 640 at 1913 x 1000, 500 at 800 tall. The views card
+       now sits under the deck, so the deck takes the room the card used to float in above it. */
+    --hero-reel: clamp(480px, calc(100svh - 300px), 640px);
     --fw: calc(var(--hero-reel) * 280 / 580);
     /* One design pixel at the 280 x 580 phone the staging was drawn at. */
     --u: calc(var(--hero-reel) / 580);
-    --k: calc(var(--hero-reel) / 540);
+    /* (hero12) The four keep their home11 size (k was reel / 540 at the smaller deck): the deck grows, they do not. */
+    --k: calc(var(--hero-reel) / 640);
+    /* The views card under the deck: its height (52 px, as frames.css draws it), the air above it (clear of the back cards, which hang below the deck's
+       box once rotated) and below it (to the footpath's back edge), and the half width Bolu and Tiko keep clear of on either side (the card's half,
+       105 px with the widest count, plus 14 px of air). Bolu also keeps his mic clear: it reaches about 0.3 of his size past his right side. */
+    --views-h: 52px;
+    --views-gap: calc(24 * var(--u));
+    --views-lift: 4px;
+    --views-clear: 119px;
+    --bolu-off: calc(var(--views-clear) + var(--c-bolu) * 0.3);
     /* The four, a touch smaller than the first cut so they frame the deck without crowding it. */
     --c-bolu: calc(138 * var(--k));
     --c-tiko: calc(148 * var(--k));
@@ -169,28 +179,43 @@
     position: relative;
   }
 
-  /* (home11) --deck-x: the deck's centre in the stage. A little left of the middle on desktop, so Gola on the right stays inside the content edge and the
-     group reads centred against the copy. */
+  /* (hero12) --deck-x: the deck's centre in the stage. The middle, unless that would push Gola past the content edge: then as far right as the group
+     allows (the group's right half is the views card's clearance, Tiko, and the part of Gola that shows beside him). */
   .hero-stage {
-    --deck-x: 46%;
+    --deck-x: min(50%, calc(100% - var(--views-clear) - var(--c-tiko) + 38 * var(--k) - var(--c-gola)));
   }
 
+  /* (hero12) The deck stands on its views card, and the card on the footpath's back edge. The card is out of flow (it only arrives with /api/videos),
+     so the deck's place is fixed from the first paint: no shift when the card mounts. */
   .hero-deck {
     --reel-h: var(--hero-reel);
     position: absolute;
     z-index: 2;
     left: var(--deck-x);
-    bottom: var(--floor-back);
+    bottom: calc(var(--floor-back) + var(--views-lift) + var(--views-h) + var(--views-gap));
     translate: -50% 0;
   }
 
-  /* The views card floats above the deck, so the deck itself stands on the footpath. */
+  /* (hero12) The views card (the count and the step buttons) under the deck, centred to it, in front of the back cards. The brand pill steps off here:
+     the front card carries the same pill at its foot, right above. */
   .hero-deck .vdeck-views {
     position: absolute;
-    bottom: calc(100% + 22px);
+    z-index: 10;
+    top: calc(100% + var(--views-gap));
     left: 50%;
+    min-height: var(--views-h);
     margin: 0;
+    padding-left: 18px;
     translate: -50% 0;
+  }
+
+  .hero-deck .vdeck-views > .pill {
+    display: none;
+  }
+
+  /* A front card with no views shows no count: the buttons alone, evenly padded. */
+  .hero-deck .vdeck-views:not(:has(.vdeck-count)) {
+    padding-left: 4px;
   }
 
   .hero-char {
@@ -198,25 +223,26 @@
     z-index: 3;
   }
 
+  /* (hero12) Bolu and Tiko stand in front, either side of the views card; Sochu and Gola further back, half behind them. */
   .hero-bolu {
-    right: calc(100% - var(--deck-x) + var(--fw) / 2 - 24 * var(--u));
+    right: calc(100% - var(--deck-x) + var(--bolu-off));
     bottom: var(--floor-front);
   }
 
   .hero-tiko {
-    left: calc(var(--deck-x) + var(--fw) / 2 - 22 * var(--u));
+    left: calc(var(--deck-x) + var(--views-clear));
     bottom: var(--floor-front);
   }
 
   .hero-sochu {
     z-index: 1;
-    right: calc(100% - var(--deck-x) + var(--fw) / 2 + 120 * var(--u));
+    right: calc(100% - var(--deck-x) + var(--bolu-off) + var(--c-bolu) - 34 * var(--k));
     bottom: var(--floor-back);
   }
 
   .hero-gola {
     z-index: 1;
-    left: calc(var(--deck-x) + var(--fw) / 2 + 128 * var(--u));
+    left: calc(var(--deck-x) + var(--views-clear) + var(--c-tiko) - 38 * var(--k));
     bottom: var(--floor-back);
   }
 
@@ -248,6 +274,13 @@
 
   /* Small laptops and iPads in landscape: the headline steps down so it stays three lines, and the proof row tightens. */
   @media (max-width: 1240px) and (min-width: 1068px) {
+    /* (hero12) The stage is narrowest here: a deck a touch shorter (490 at 800 tall) and the four a touch smaller, so the group sits far enough right
+       that the left back card clears the proof row. */
+    .hero {
+      --hero-reel: clamp(470px, calc(100svh - 310px), 560px);
+      --k: calc(var(--hero-reel) / 680);
+    }
+
     .hero-copy h1 {
       font-size: 52px;
       line-height: 56px;
@@ -266,6 +299,8 @@
   /* Below 1068 the hero stacks: the copy, then a stage where the street runs full-bleed behind the deck and the cast. */
   @media (max-width: 1067px) {
     .hero {
+      /* (hero12) Tablets: 600 at most (home11's 520 plus a sixth), so the stacked hero does not run on. */
+      --hero-reel: clamp(480px, calc(100svh - 400px), 600px);
       min-height: 0;
     }
 
@@ -287,9 +322,10 @@
   @media (max-width: 734px) {
     .hero {
       --street-h: 240px;
-      --hero-reel: 340px;
-      --c-bolu: 100px;
-      --c-tiko: 92px;
+      /* (hero12) 400, up from 340. */
+      --hero-reel: 400px;
+      --c-bolu: 88px;
+      --views-clear: 115px;
     }
 
     .hero-copy {
@@ -379,30 +415,16 @@
       margin-top: 32px;
     }
 
-    /* Phones: the deck sits right of centre so the street shows on the left; Bolu on the left and Tiko on the right, the back two step off. */
-    .hero-deck {
-      left: 64%;
+    /* (hero12) Phones: the views card under the deck, centred to it; Bolu (with the mic) on the left of the card, the deck right of centre so he
+       has room and the street shows past him. A phone is too narrow for a second figure beside the card: Tiko steps off with the back two. */
+    .hero-stage {
+      --deck-x: calc(var(--bolu-off) + var(--c-bolu) - 6px);
     }
 
-    .hero-deck .vdeck-views {
-      left: auto;
-      right: 0;
-      translate: none;
-    }
-
+    .hero-tiko,
     .hero-sochu,
     .hero-gola {
       display: none;
-    }
-
-    .hero-bolu {
-      right: auto;
-      left: 2px;
-    }
-
-    .hero-tiko {
-      left: auto;
-      right: -6px;
     }
 
     .hero-bolu .cast-bubble {
@@ -421,6 +443,11 @@
   @media (max-width: 374px) {
     .proof-word {
       display: none;
+    }
+
+    /* (hero12) Bolu steps down so he and the views card still fit a 320 to 374 wide window. */
+    .hero {
+      --c-bolu: 76px;
     }
   }
 

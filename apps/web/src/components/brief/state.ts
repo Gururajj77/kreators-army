@@ -96,8 +96,6 @@ const PLATFORM_BY_SLUG: Record<string, string> = {
   'facebook-reels': 'Facebook Reels',
   'snapchat-spotlight': 'Snapchat Spotlight',
   'snapchat-spotlights': 'Snapchat Spotlight',
-  tiktok: 'TikTok',
-  'tiktok-clips': 'TikTok',
 };
 
 const slugOf = (s: string) =>

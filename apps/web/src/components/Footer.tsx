@@ -45,7 +45,7 @@ const GLANCE_MS = 1800;
 
 const pct = (n: number, of: number) => `${((n / of) * 100).toFixed(3)}%`;
 
-/** Four brand marks in one weight: lucide has no brand icons, so these are drawn here. All on a 24 px grid. */
+/** Three brand marks in one weight: lucide has no brand icons, so these are drawn here. All on a 24 px grid. */
 const SOCIAL_ICON: Record<string, ReactNode> = {
   Instagram: (
     <>
@@ -61,9 +61,6 @@ const SOCIAL_ICON: Record<string, ReactNode> = {
     <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12Zm1.78 13.02H3.56V9h3.56v11.45Z" />
   ),
   X: <path d="M17.75 2.5h3.07l-6.71 7.67L22 21.5h-6.18l-4.84-6.33-5.54 6.33H2.37l7.18-8.21L2 2.5h6.34l4.38 5.79 5.03-5.79Zm-1.08 17.2h1.7L7.4 4.2H5.57l11.1 15.5Z" />,
-  TikTok: (
-    <path d="M12.74 2h3.1c.17 1.6.74 2.74 1.74 3.57.82.68 1.86 1.12 3.2 1.24v3.13a8.5 8.5 0 0 1-4.78-1.47l-.03 6.84a6.4 6.4 0 0 1-1.92 4.73A6.5 6.5 0 0 1 9.32 22a6.38 6.38 0 0 1-4.64-1.97A6.47 6.47 0 0 1 2.9 15.2c.13-1.66.86-3.2 2.1-4.33A6.34 6.34 0 0 1 9.4 9.2c.5 0 .98.05 1.44.16l-.02 3.17a3.4 3.4 0 0 0-1.42-.3 3.3 3.3 0 0 0-3.32 3.1c-.06.96.26 1.84.9 2.5.62.65 1.46 1 2.36 1 .9.01 1.74-.34 2.37-.97.62-.62.97-1.46.97-2.36L12.74 2Z" />
-  ),
 };
 
 // ---------- The CTA's ring (library-slider-cta-spec §3): the site's own posters turning slowly behind the ask. Decoration only. ----------

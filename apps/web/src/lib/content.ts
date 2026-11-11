@@ -98,7 +98,6 @@ export const SOCIALS = [
   { label: 'Instagram', url: 'https://www.instagram.com/kreatorsdotagency' },
   { label: 'LinkedIn', url: 'https://www.linkedin.com/in/brandingbum' },
   { label: 'X', url: 'https://x.com/brandingbum' },
-  { label: 'TikTok', url: 'https://www.tiktok.com/@brandingbum' },
 ];
 
 /** Each brand's one logo, keyed by its one exact name (the founder: one name per brand, no variants). Official marks, 256 px squares
@@ -159,7 +158,6 @@ export const PLATFORMS = [
   { name: 'YouTube Shorts', body: 'Vertical cuts sized and paced for Shorts.' },
   { name: 'Facebook Reels', body: "The same batch, ready for Facebook's Reels." },
   { name: 'Snapchat Spotlight', body: 'Short, vertical cuts for Spotlight.' },
-  { name: 'TikTok', body: "Clips paced for TikTok's feed." },
 ];
 
 /** The strip's two-tone heading: `strong` in ink, `rest` muted. */
@@ -558,7 +556,7 @@ export const FORMATS: Record<FormatSlug, FormatPageContent> = {
       { name: 'Product in hand', body: 'People try the product in front of the person who made it and say what they think.' },
       { name: 'Question of the week', body: 'One sharp question from your category, asked again and again, built into a repeatable series.' },
     ],
-    metaDescription: 'Founder-led vox pop street interviews from Kreators.Army, built for Reels, Shorts and TikTok.',
+    metaDescription: 'Founder-led vox pop street interviews from Kreators.Army, built for Reels and Shorts.',
     videoIds: ['seed-fyndflow', 'seed-brandingbum'],
     ideas: ['Personal experiences', 'Product reactions', 'Debates and opposing opinions', 'Unexpected questions'],
     introLine: "We agree the introduction before the shoot, so people know who's asking.",
@@ -666,7 +664,7 @@ export const POSTS: Post[] = [
     title: 'Where to post your vox pop videos',
     summary: 'One shoot, cut for every short-form feed your customers already watch.',
     sections: [
-      { body: ['Vertical street interviews travel well because they already look like what the feed is full of. You can post them across Instagram, YouTube Shorts, TikTok and other platforms, including ads.'] },
+      { body: ['Vertical street interviews travel well because they already look like what the feed is full of. You can post them across Instagram, YouTube Shorts and other platforms, including ads.'] },
       ...PLATFORMS.map((p) => ({ heading: p.name, body: [p.body] })),
       { heading: "They're yours to post", body: ['Once usage rights transfer, on full payment, the videos go out on your own brand channels as long-term content assets.'] },
     ],

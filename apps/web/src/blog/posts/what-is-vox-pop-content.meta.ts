@@ -18,7 +18,12 @@ const meta: PostMeta = {
   datePublished: '2026-11-11',
   dateModified: '2026-11-11',
   readingMinutes: 27,
-  author: { kind: 'organization', name: 'Kreators.Army' },
+  author: {
+    kind: 'person',
+    name: 'Shubham Aggarwal',
+    role: 'Founder, Kreators.Army',
+    bio: 'Shubham Aggarwal founded Kreators.Army, the Bengaluru studio that takes a brand\'s question to the street and turns real, unscripted answers into short vox pop videos. These guides share the methods the team uses on its shoots.',
+  },
   category: 'Understand',
   hub: true,
   tags: ['vox pop', 'street interviews', 'basics', 'definitions'],

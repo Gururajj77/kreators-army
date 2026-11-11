@@ -16,7 +16,12 @@ const meta: PostMeta = {
   datePublished: '2026-11-11',
   dateModified: '2026-11-11',
   readingMinutes: 31,
-  author: { kind: 'organization', name: 'Kreators.Army' },
+  author: {
+    kind: 'person',
+    name: 'Shubham Aggarwal',
+    role: 'Founder, Kreators.Army',
+    bio: 'Shubham Aggarwal founded Kreators.Army, the Bengaluru studio that takes a brand\'s question to the street and turns real, unscripted answers into short vox pop videos. These guides share the methods the team uses on its shoots.',
+  },
   category: 'Plan',
   tags: ['strategy', 'street interviews', 'd2c', 'ads', 'playbooks'],
   hero: { brand: 'CircleStore', title: 'Trust Blindly' },
