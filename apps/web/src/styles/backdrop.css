@@ -1,7 +1,14 @@
 /* The field: one continuous background behind every public page (components/backdrop). A fixed, full-viewport layer under everything, so sections sit
-   on one surface and spacing, not colour blocks, separates them. Four soft brand-colour lights drift slowly (transform only, one composited layer each);
-   --sp, the scroll progress set by components/backdrop/field.ts, shifts their balance from the warm top of a page to the cooler middle and the orange
-   end. The pointer light, the focus halo and the veil move by transform and opacity alone. Under still or reduced motion it is a still gradient. */
+   on one surface and spacing, not colour blocks, separates them.
+
+   Round 4: a plate of very dark forged metal (scripts/backdrop-art.mjs draws it offline: domain-warped fBm and ridged veins, shaded as metal, with a
+   heat tint that runs navy, oxblood, bottle green down the plate; 2160 x 3600, AVIF with a WebP fallback). The plate is taller than the screen and slides up slowly as the page scrolls, so
+   the hue that dominates shifts from navy at the top of a page through oxblood to green at the end. Light comes from two soft round windows that
+   brighten the metal behind them, so the relief and the grain seem to catch the light: the pointer light (on touch it drifts with the scroll) and
+   the focus halo behind a hovered or keyboard-focused card, frame, CTA or control, while a veil calms the rest. The light theme uses a pale pewter
+   plate drawn from the same relief, so dark text keeps AA everywhere on it.
+   Everything that moves changes transform or opacity only. The plate image loads after the page (Backdrop.tsx); until then, or under Save-Data, the
+   plate is a still gradient in the same colours. Under still or reduced motion the plate stands still and the windows never show. */
 @layer components {
   /* The body's own colour would cover a z-index -1 layer; while the field is mounted it shows through. The html keeps --bg as the canvas. */
   :root[data-field] body {
@@ -9,199 +16,185 @@
   }
 
   .bd {
-    --sp: 0;
-    /* Each light: colour, strength. The palette leans warm at the top of a page and turns as the reader goes down it. */
-    --bd-1: rgb(251 212 63 / 0.34);
-    --bd-2: rgb(109 97 254 / 0.16);
-    --bd-3: rgb(71 195 73 / 0.13);
-    --bd-4: rgb(255 141 58 / 0.18);
-    --bd-light: rgb(255 255 255 / 0.85);
-    --bd-light-2: rgb(255 226 170 / 0.22);
-    --bd-halo: rgb(255 214 92 / 0.42);
-    --bd-halo-action: rgb(225 29 29 / 0.26);
-    --bd-veil: 0.4;
+    /* The plate is 2.5 screens tall: at the top of a page the navy third shows, at the end the green third. */
+    --plate-h: 250vh;
+    --plate-art: none;
+    /* Before the art arrives (and under Save-Data): the plate's colours as a still gradient. */
+    --plate-base: linear-gradient(180deg, #0f111d 0%, #0e1020 14%, #09090c 22%, #1d0c0e 34%, #1f0c0e 52%, #09090b 63%, #0d1611 76%, #0d1511 100%);
+    --plate-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -.92'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --plate-grain-o: 0.13;
+    /* The light: how much brighter the lit metal is, and the window's size. The halo (a hovered or focused element) is the stronger of the two, so
+       the element visibly lifts off the metal. */
+    --bd-lit: brightness(2.5) saturate(1.25);
+    --bd-halo-lit: brightness(3) saturate(1.3);
+    --bd-light-size: 900px;
+    --bd-light-o: 0.9;
+    --bd-veil: rgb(3 4 6 / 0.34);
     position: fixed;
     inset: 0;
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
     contain: strict;
-    background: var(--bg);
+    background: #08090c;
   }
 
-  [data-theme='dark'] .bd {
-    --bd-1: rgb(251 212 63 / 0.09);
-    --bd-2: rgb(109 97 254 / 0.24);
-    --bd-3: rgb(71 195 73 / 0.08);
-    --bd-4: rgb(255 141 58 / 0.11);
-    --bd-light: rgb(165 155 255 / 0.15);
-    --bd-light-2: rgb(165 155 255 / 0.05);
-    --bd-halo: rgb(150 140 255 / 0.4);
-    --bd-halo-action: rgb(255 70 60 / 0.22);
-    --bd-veil: 0.5;
+  .bd[data-art] {
+    --plate-art: var(--plate-dark);
   }
 
-  .bd-blob {
-    position: absolute;
-    left: var(--x);
-    top: var(--y);
-    width: var(--s);
-    height: var(--s);
-    margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
-    border-radius: 50%;
-    background: radial-gradient(closest-side, var(--c), color-mix(in oklab, var(--c) 50%, transparent) 45%, transparent);
-    /* The slow shift down the page: each light rises a little (parallax) and fades in or out with --sp. */
-    translate: 0 calc(var(--sp) * var(--rise));
-    opacity: var(--o);
-    will-change: transform;
-    animation: bd-drift var(--dur) ease-in-out infinite alternate;
+  /* Light theme: cool pewter, same relief. Its luminance stays between 0.75 and 0.92, so the muted text (#5f5d58) keeps 5:1 or better on it. */
+  :root:not([data-theme='dark']) .bd {
+    --plate-base: linear-gradient(180deg, #e7e9ef 0%, #e8e9ed 30%, #eae9ec 55%, #e6e9eb 80%, #e6e9ec 100%);
+    --plate-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.6 -.92'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --plate-grain-o: 0.08;
+    --bd-lit: brightness(1.09) contrast(1.1);
+    --bd-halo-lit: brightness(1.12) contrast(1.16);
+    --bd-light-o: 1;
+    --bd-veil: rgb(236 236 238 / 0.4);
+    background: #e6e8ec;
   }
 
-  /* Yellow, top left: the hero's warmth, fading as the page goes on. */
-  .bd-blob[data-b='1'] {
-    --c: var(--bd-1);
-    --x: 14%;
-    --y: 10%;
-    --s: 78vmax;
-    --rise: -18vh;
-    --dx: 9vw;
-    --dy: 7vh;
-    --dur: 34s;
-    --o: calc(1 - var(--sp) * 0.75);
+  :root:not([data-theme='dark']) .bd[data-art] {
+    --plate-art: var(--plate-light);
   }
 
-  /* Purple, top right: the constant. */
-  .bd-blob[data-b='2'] {
-    --c: var(--bd-2);
-    --x: 86%;
-    --y: 22%;
-    --s: 70vmax;
-    --rise: 22vh;
-    --dx: -11vw;
-    --dy: 9vh;
-    --dur: 41s;
-    --o: 1;
-    animation-delay: -12s;
-  }
-
-  /* Green, low left: grows through the middle of a page. */
-  .bd-blob[data-b='3'] {
-    --c: var(--bd-3);
-    --x: 18%;
-    --y: 88%;
-    --s: 64vmax;
-    --rise: -26vh;
-    --dx: 12vw;
-    --dy: -8vh;
-    --dur: 47s;
-    --o: calc(0.35 + var(--sp) * 0.65);
-    animation-delay: -20s;
-  }
-
-  /* Orange, low right: the end of a page, warming toward the footer. */
-  .bd-blob[data-b='4'] {
-    --c: var(--bd-4);
-    --x: 84%;
-    --y: 92%;
-    --s: 66vmax;
-    --rise: -30vh;
-    --dx: -8vw;
-    --dy: -10vh;
-    --dur: 53s;
-    --o: calc(0.2 + var(--sp) * 0.8);
-    animation-delay: -31s;
-  }
-
-  @keyframes bd-drift {
-    from {
-      transform: translate3d(0, 0, 0) scale(1);
-    }
-    to {
-      transform: translate3d(var(--dx), var(--dy), 0) scale(1.14);
-    }
-  }
-
-  /* The pointer light (touch: the scroll moves it). Its own layer; only its transform changes. */
-  .bd-light {
+  /* The plate. Under the art, the still gradient; the art (::before) fades in over it once loaded; the grain (::after) sits on top. */
+  .bd-plate {
     position: absolute;
     left: 0;
     top: 0;
-    width: 820px;
-    height: 820px;
-    margin: -410px 0 0 -410px;
-    border-radius: 50%;
-    background: radial-gradient(closest-side, var(--bd-light), var(--bd-light-2) 42%, transparent);
+    width: 100%;
+    height: var(--plate-h);
+    background: var(--plate-base);
+    will-change: transform;
+  }
+
+  .bd-plate::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    /* Cover: the plate (3:5) is always at least as wide as the screen, so it never repeats and shows no seam. On a screen wider than 1.5:1 the
+       plate's top and bottom ends are trimmed equally; each end's hue still holds. */
+    background-image: var(--plate-art);
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    background-size: cover;
     opacity: 0;
+    transition: opacity 900ms var(--ease-out);
+  }
+
+  .bd[data-art] .bd-plate::before {
+    opacity: 1;
+  }
+
+  :root[data-still] .bd-plate::before {
+    transition: none;
+  }
+
+  /* Fine grain on the metal itself (a few hundred bytes of SVG noise, drawn once): it moves with the plate and sparkles in the light. It arrives
+     with the art, so the first paint never waits on rendering the noise. */
+  .bd[data-art] .bd-plate::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--plate-grain);
+    opacity: var(--plate-grain-o);
+  }
+
+  /* The light: soft round windows that brighten the metal behind them (a backdrop filter: brightness and colour only, no blur), shaped by a radial
+     mask, so the relief and the grain under a window catch the light. No copy of the plate, so nothing here is a picture for Largest Contentful
+     Paint. A browser without backdrop filters simply shows no light. */
+  .bd-light,
+  .bd-halo {
+    position: absolute;
+    left: 0;
+    top: 0;
+    -webkit-backdrop-filter: var(--bd-lit);
+    backdrop-filter: var(--bd-lit);
+    opacity: 0;
+  }
+
+  /* The pointer light (touch: the scroll moves it). field.ts moves it by transform. */
+  .bd-light {
+    width: var(--bd-light-size);
+    height: var(--bd-light-size);
+    -webkit-mask-image: radial-gradient(closest-side, #000 20%, rgb(0 0 0 / 0.62) 45%, rgb(0 0 0 / 0.2) 72%, transparent);
+    mask-image: radial-gradient(closest-side, #000 20%, rgb(0 0 0 / 0.62) 45%, rgb(0 0 0 / 0.2) 72%, transparent);
     transition: opacity 700ms var(--ease-out);
     will-change: transform;
   }
 
-  .bd[data-light] .bd-light {
-    opacity: 1;
+  /* Only on the art: before it there is no relief to catch the light, and the first paint stays free of the filter. */
+  .bd[data-art][data-light] .bd-light {
+    opacity: var(--bd-light-o);
   }
 
   @media (max-width: 734px) {
-    .bd-light {
-      width: 560px;
-      height: 560px;
-      margin: -280px 0 0 -280px;
+    .bd {
+      --bd-light-size: 620px;
     }
   }
 
-  /* Focus: the field calms everywhere (the veil) while a halo lights the hovered or focused element from behind. */
+  /* Focus: the field calms everywhere (the veil) while the halo brightens the metal around the hovered or focused element. */
   .bd-veil {
     position: absolute;
     inset: 0;
-    background: var(--bg);
+    background: var(--bd-veil);
     opacity: 0;
     transition: opacity 420ms var(--ease-out);
   }
 
   .bd[data-focus] .bd-veil {
-    opacity: var(--bd-veil);
+    opacity: 1;
   }
 
+  /* A 100 px window scaled to the element by field.ts. */
   .bd-halo {
-    position: absolute;
-    left: 0;
-    top: 0;
     width: 100px;
     height: 100px;
-    margin: -50px 0 0 -50px;
-    border-radius: 50%;
-    background: radial-gradient(closest-side, var(--bd-halo) 55%, color-mix(in oklab, var(--bd-halo) 45%, transparent) 78%, transparent);
-    opacity: 0;
+    transform-origin: 0 0;
+    -webkit-backdrop-filter: var(--bd-halo-lit);
+    backdrop-filter: var(--bd-halo-lit);
+    -webkit-mask-image: radial-gradient(closest-side, #000 52%, rgb(0 0 0 / 0.45) 76%, transparent);
+    mask-image: radial-gradient(closest-side, #000 52%, rgb(0 0 0 / 0.45) 76%, transparent);
     transition: opacity 320ms var(--ease-out);
     will-change: transform, opacity;
-  }
-
-  .bd[data-tone='action'] .bd-halo {
-    --bd-halo: var(--bd-halo-action);
   }
 
   .bd[data-focus] .bd-halo {
     opacity: 1;
   }
 
-  /* A hidden tab stops the drift outright. */
-  .bd[data-paused] .bd-blob {
-    animation-play-state: paused;
+  /* While an element is lit the halo is the light: the pointer light steps back, so the two never stack (2.5 x 3 over the same metal would lift
+     the text beside a hovered CTA below AA). */
+  .bd[data-art][data-light][data-focus] .bd-light {
+    opacity: 0;
   }
 
-  /* Still or reduced motion: the same gradient, standing still. The light, the veil and the halo never start (no listeners either). */
-  :root[data-still] .bd-blob {
-    animation: none;
-    will-change: auto;
+  /* The primary CTA's halo on the dark metal: warmed toward the red of the button. */
+  [data-theme='dark'] .bd[data-tone='action'] .bd-halo {
+    -webkit-backdrop-filter: var(--bd-halo-lit) sepia(0.35) hue-rotate(-28deg) saturate(1.5);
+    backdrop-filter: var(--bd-halo-lit) sepia(0.35) hue-rotate(-28deg) saturate(1.5);
   }
 
+  /* Still or reduced motion: the plate stands at the top and the light, the veil and the halo never show (no listeners either). */
   :root[data-still] :is(.bd-light, .bd-veil, .bd-halo) {
     display: none;
   }
 
-  /* More contrast asked for: a calmer field. */
+  :root[data-still] .bd-plate {
+    will-change: auto;
+  }
+
+  /* More contrast asked for: no light, a plainer plate. */
   @media (prefers-contrast: more) {
-    .bd-blob {
-      opacity: calc(var(--o) * 0.5);
+    :is(.bd-light, .bd-halo) {
+      display: none;
+    }
+
+    .bd-plate {
+      opacity: 0.55;
     }
   }
 

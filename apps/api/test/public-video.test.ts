@@ -42,6 +42,13 @@ const rows: Record<string, PublicRow> = {
 };
 
 describe('toPublicVideo (V2-SPEC 2.10)', () => {
+  it('(pv) a stored hover clip gives previewUrl at its versioned address, whatever previewOk says', async () => {
+    const v = await toPublicVideo({ ...rows.heavy!, preview_sha: '0123456789abcdef', preview_mime: 'video/mp4' });
+    expect(v.previewOk).toBe(false);
+    expect(v.previewUrl).toBe('/media/pv/heavy/0123456789abcdef.mp4');
+    expect((await toPublicVideo({ ...rows.bundled!, preview_sha: 'fedcba9876543210', preview_mime: 'video/webm' })).previewUrl).toBe('/media/pv/seed-rode/fedcba9876543210.webm');
+  });
+
   it('a MEGA row: same-origin stream with the version tag, bundled fallback, stored poster, measured preview, links', async () => {
     const v = await toPublicVideo(rows.mega!);
     const tag = await sha256Hex(`https://mega.nz/file/RoDe0001#${K}`, 8);
@@ -59,6 +66,7 @@ describe('toPublicVideo (V2-SPEC 2.10)', () => {
       embedUrl: null,
       posterUrl: '/media/p/seed-fyndflow/0123456789abcdef.webp',
       previewOk: true,
+      previewUrl: null,
       durationMs: 49000,
       links: { instagram: 'https://www.instagram.com/reel/CxYz123abc/', youtube: 'https://www.youtube.com/shorts/dQw4w9WgXcQ' },
       source: 'file',

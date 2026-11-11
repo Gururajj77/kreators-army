@@ -22,6 +22,8 @@ const DROP_FIRST: ColKey[] = ['updated', 'platform', 'category', 'uploaded', 'po
 /** In the bin the date is when it was deleted (the 30 days run from it): it goes last. */
 const DROP_FIRST_BIN: ColKey[] = ['platform', 'category', 'uploaded', 'posted', 'updated'];
 const GAP = 10;
+/** (sel) The multi-select checkbox column, first. */
+const CHECK = 32;
 const MIN_TITLE = 200;
 const STORE = 'ka-admin-hidden-columns';
 
@@ -60,8 +62,8 @@ export function useColumns(ref: RefObject<HTMLElement | null>, bin: boolean): Co
 
   const { shown, squeezed } = useMemo(() => {
     const menu = bin ? 260 : 44;
-    // The list's own padding (6 + 6) and the row's (8 + 12).
-    const room = (ks: ColKey[]) => width - 32 - (40 + 36 + menu) - ks.reduce((s, k) => s + COLUMNS.find((c) => c.key === k)!.width, 0) - GAP * (ks.length + 3);
+    // The list's own padding (6 + 6) and the row's (8 + 12); the checkbox (sel), the handle, the poster and the menu.
+    const room = (ks: ColKey[]) => width - 32 - (CHECK + 40 + 36 + menu) - ks.reduce((s, k) => s + COLUMNS.find((c) => c.key === k)!.width, 0) - GAP * (ks.length + 4);
     let ks = COLUMNS.filter((c) => !hidden.has(c.key)).map((c) => c.key);
     const out = new Set<ColKey>();
     for (const k of bin ? DROP_FIRST_BIN : DROP_FIRST) {
@@ -75,7 +77,7 @@ export function useColumns(ref: RefObject<HTMLElement | null>, bin: boolean): Co
   }, [hidden, width, bin]);
 
   const template = useMemo(
-    () => ['40px', '36px', 'minmax(0, 1fr)', ...COLUMNS.filter((c) => shown.has(c.key)).map((c) => `${c.width}px`), bin ? 'minmax(0, 260px)' : '44px'].join(' '),
+    () => [`${CHECK}px`, '40px', '36px', 'minmax(0, 1fr)', ...COLUMNS.filter((c) => shown.has(c.key)).map((c) => `${c.width}px`), bin ? 'minmax(0, 260px)' : '44px'].join(' '),
     [shown, bin],
   );
 

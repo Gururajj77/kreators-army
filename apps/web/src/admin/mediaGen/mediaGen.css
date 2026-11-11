@@ -1,0 +1,154 @@
+/* (pv) "Thumbnails & previews" (admin/mediaGen). Imported by MediaGenControl.tsx only, so it splits with the admin chunk. Admin tokens only. */
+@layer components {
+  .mg-open {
+    position: relative;
+  }
+
+  .mg-badge {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 11px;
+    background: var(--adm-warn-bg);
+    color: var(--adm-warn);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 22px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mg-panel {
+    width: min(640px, calc(100vw - 32px));
+  }
+
+  .mg-lede {
+    margin: 8px 0 16px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .mg-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 16px;
+  }
+
+  .mg-counts > div {
+    flex: 1 1 140px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .mg-counts dt {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .mg-counts dd {
+    margin: 2px 0 0;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 30px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mg-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+  }
+
+  .mg-status {
+    margin: 16px 0 8px;
+    font-size: 14px;
+  }
+
+  .mg-jobs {
+    max-height: min(44vh, 420px);
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    list-style: none;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .mg-job {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 12px;
+    align-items: center;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .mg-job + .mg-job {
+    box-shadow: inset 0 1px 0 var(--line);
+  }
+
+  .mg-job-title {
+    overflow: hidden;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mg-job-note {
+    grid-column: 1;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .mg-job[data-status='done'] .mg-job-note {
+    color: var(--adm-ok);
+  }
+
+  .mg-job-error {
+    color: var(--adm-err);
+  }
+
+  .mg-retry {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    min-height: 44px;
+  }
+
+  .mg-bar {
+    grid-column: 1 / -1;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: var(--line);
+  }
+
+  .mg-bar > span {
+    display: block;
+    height: 100%;
+    background: var(--ink);
+    transition: width 200ms linear;
+  }
+
+  :root[data-still] .mg-bar > span {
+    transition: none;
+  }
+
+  .mg-check {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .mg-check input {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+  }
+}

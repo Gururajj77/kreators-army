@@ -1,12 +1,16 @@
 import { m } from 'motion/react';
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import type { Video } from '@kreators/shared';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useLocation, useMatches } from 'react-router';
 import { Character, cascade, castLookAt, loadRig, type CastId, type CharacterHandle } from '../cast';
 import { CLOSING, FOOTER_CAST_ORDER, FOOTER_GROUPS, OWN_ACTION_ROUTES, SITE, SOCIALS, whatsappHref, whatsappPhone, type FormatSlug } from '../lib/content';
+import { useMotionOk } from '../lib/motionOk';
+import { useVideos } from '../lib/queries';
 import { spring } from '../lib/spring';
 import { useStill } from '../lib/store';
 import { Street } from './street';
-import { Cta, PrimaryCta, whenSeen } from './ui';
+import { CardRing } from './ring';
+import { Cta, PrimaryCta, Reveal, whenSeen } from './ui';
 import { WORDMARK } from './wordmark';
 
 /** The word is cropped here, in viewBox units: below the baseline, partway down the tail of the y, which dives behind the ground band. */
@@ -50,6 +54,100 @@ const SOCIAL_ICON: Record<string, ReactNode> = {
     <path d="M12.74 2h3.1c.17 1.6.74 2.74 1.74 3.57.82.68 1.86 1.12 3.2 1.24v3.13a8.5 8.5 0 0 1-4.78-1.47l-.03 6.84a6.4 6.4 0 0 1-1.92 4.73A6.5 6.5 0 0 1 9.32 22a6.38 6.38 0 0 1-4.64-1.97A6.47 6.47 0 0 1 2.9 15.2c.13-1.66.86-3.2 2.1-4.33A6.34 6.34 0 0 1 9.4 9.2c.5 0 .98.05 1.44.16l-.02 3.17a3.4 3.4 0 0 0-1.42-.3 3.3 3.3 0 0 0-3.32 3.1c-.06.96.26 1.84.9 2.5.62.65 1.46 1 2.36 1 .9.01 1.74-.34 2.37-.97.62-.62.97-1.46.97-2.36L12.74 2Z" />
   ),
 };
+
+// ---------- The CTA's ring (library-slider-cta-spec §3): the site's own posters turning slowly behind the ask. Decoration only. ----------
+
+/** Fewer posters than this: no ring, the band is words and buttons. */
+const RING_MIN_POSTERS = 4;
+const RING_MAX = 12;
+
+/** How many slots the ring fills to: 12, or twice the posters when there are fewer than 6, so a poster shows at most twice (its two copies half a
+ *  turn apart) instead of three times across the wall. */
+function ringFill(posters: number): number {
+  return Math.min(RING_MAX, posters * 2);
+}
+
+/** Videos with a poster: featured first, then by views, then dealt round the brands so neighbours differ. Up to RING_MAX. */
+function ringPosters(videos: Video[]): Video[] {
+  const sorted = videos.filter((v) => v.posterUrl).sort((x, y) => Number(y.featured) - Number(x.featured) || (y.views || 0) - (x.views || 0));
+  const byBrand = new Map<string, Video[]>();
+  for (const v of sorted) {
+    const list = byBrand.get(v.brand);
+    if (list) list.push(v);
+    else byBrand.set(v.brand, [v]);
+  }
+  const out: Video[] = [];
+  while (out.length < RING_MAX && byBrand.size > 0) {
+    for (const [brand, list] of byBrand) {
+      const v = list.shift();
+      if (v) out.push(v);
+      if (list.length === 0) byBrand.delete(brand);
+      if (out.length >= RING_MAX) break;
+    }
+  }
+  return out;
+}
+
+function FooterRingCards() {
+  const { data, isError } = useVideos();
+  const cards = useMemo(() => ringPosters(data ?? []), [data]);
+  if (isError || (data && cards.length < RING_MIN_POSTERS)) return <span data-ring-empty hidden />;
+  if (!data) return null;
+  return (
+    <CardRing
+      className="ft-ring"
+      items={cards}
+      itemKey={(v) => v.id}
+      label=""
+      interactive={false}
+      minCards={ringFill(cards.length)}
+      renderCard={(v) => (
+        <div className="cring-card">
+          <img src={v.posterUrl ?? undefined} alt="" loading="lazy" decoding="async" draggable={false} />
+        </div>
+      )}
+    />
+  );
+}
+
+/** The ring's place in the band. The videos are asked for only once the band is within 1200 px of the screen; until they arrive the place keeps its height. */
+function FooterRing() {
+  const ok = useMotionOk();
+  const slot = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = slot.current;
+    if (!el || near) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setNear(true);
+      return;
+    }
+    // A page's own content arrives in a lazy chunk; until it has, the footer sits near the top and would look near. So the watch starts a moment
+    // after the load.
+    let io: IntersectionObserver | null = null;
+    let timer = 0;
+    const watch = () => {
+      io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && setNear(true), { rootMargin: '1200px 0px' });
+      io.observe(el);
+    };
+    const arm = () => {
+      timer = window.setTimeout(watch, 1200);
+    };
+    if (document.readyState === 'complete') arm();
+    else window.addEventListener('load', arm, { once: true });
+    return () => {
+      window.removeEventListener('load', arm);
+      window.clearTimeout(timer);
+      io?.disconnect();
+    };
+  }, [near, ok]);
+  if (!ok) return null;
+  return (
+    <div ref={slot} className="ft-ring-slot" aria-hidden>
+      {near && <FooterRingCards />}
+    </div>
+  );
+}
 
 /** Pause animations: the one switch for everything that moves on its own. If the device already asks for reduced motion, the switch cannot turn motion back on and says so. */
 function PauseSwitch() {
@@ -130,24 +228,35 @@ export function Footer() {
 
   return (
     <footer className="ft band-dark">
+      {asks && (
+        <section className="ft-band-cta" aria-labelledby="ft-cta-title">
+          <Reveal variant="rise" className="wrap ft-cta-copy">
+            <p className="eyebrow ft-eyebrow">
+              <span className="ft-eyebrow-dot" aria-hidden />
+              {CLOSING.eyebrow}
+            </p>
+            <h2 id="ft-cta-title" className="h2-sm ft-title">
+              {CLOSING.title.replace('vox pop', 'vox\u00a0pop')}
+            </h2>
+            <p className="ft-copy">{CLOSING.body}</p>
+          </Reveal>
+          {/* The library opens with its own ring, so its footer has none. */}
+          {path !== '/video-library' && <FooterRing />}
+          <div className="wrap ft-actions-row">
+            <div className="ft-actions" onPointerEnter={(e) => e.pointerType === 'mouse' && lookAtAction(e.currentTarget)}>
+              <PrimaryCta chrome />
+              {path !== '/video-library' && (
+                <Cta to="/video-library" kind="ghost" arrow>
+                  {CLOSING.secondary}
+                </Cta>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
       <div className="ft-body wrap">
         <div className="ft-top">
           <div className="ft-lead">
-            {asks && (
-              <div className="ft-ask">
-                <p className="eyebrow ft-eyebrow">{CLOSING.eyebrow}</p>
-                <h2 className="h2-sm ft-title">{CLOSING.title.replace('vox pop', 'vox\u00a0pop')}</h2>
-                <p className="ft-copy">{CLOSING.body}</p>
-                <div className="ft-actions" onPointerEnter={(e) => e.pointerType === 'mouse' && lookAtAction(e.currentTarget)}>
-                  <PrimaryCta chrome />
-                  {path !== '/video-library' && (
-                    <Cta to="/video-library" kind="ghost" arrow>
-                      {CLOSING.secondary}
-                    </Cta>
-                  )}
-                </div>
-              </div>
-            )}
             <div className="ft-reach">
               <ul className="ft-contacts">
                 <li>

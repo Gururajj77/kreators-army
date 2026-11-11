@@ -26,6 +26,7 @@ import { Seo } from '../components/ui';
 import { motionOk } from '../lib/motionOk';
 import { AdminApiError, adminApi, keys } from './api';
 import { ConfirmDialog, Modal, Switch, type CloseReason } from './bits';
+import { attachQueryClient, enqueue as makeMedia } from './mediaGen/runner';
 import { MegaField, type MegaCheck } from './MegaField';
 import { PosterPicker } from './PosterPicker';
 import { posterNote, type EncodedPoster } from './posterEncode';
@@ -463,6 +464,12 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
       }
       setBase(saved);
       mergeVideo(qc, saved);
+      // (pv) A new video, or a new stream for this one: its hover preview (and a thumbnail where it has none, or an automatic one) is made in
+      // the background, one at a time with any other run ("Thumbnails & previews" on the Videos screen shows it).
+      if (saved.streamUrl && saved.streamUrl !== base?.streamUrl && !saved.deletedAt) {
+        attachQueryClient(qc);
+        makeMedia([saved], { mode: isNew || !saved.preview ? 'missing' : 'regenerate' });
+      }
       const f = toForm(saved);
       setInitial(f);
       setForm(f);
@@ -537,6 +544,7 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
     embedUrl: null,
     posterUrl,
     previewOk: false,
+    previewUrl: null,
     durationMs: null,
     links: { instagram: parseInstagram(form.instagram).ok ? form.instagram : null, youtube: parseYouTube(form.youtube).ok ? form.youtube : null },
     source: 'file',

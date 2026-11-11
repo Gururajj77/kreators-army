@@ -518,6 +518,8 @@ export function EditCell({
           aria-busy={state?.kind === 'saving' || undefined}
           title={tooltip ?? (text && !isGlyph ? text : undefined)}
           onClick={(e) => {
+            // (sel) Shift, Cmd or Ctrl + click selects the row instead (the row handles it); it never opens the editor.
+            if (e.shiftKey || e.metaKey || e.ctrlKey) return;
             e.stopPropagation();
             inline.start(video, field);
           }}

@@ -30,6 +30,11 @@ export interface Video {
   posterUrl: string | null;
   /** Muted previews (hover, hero deck, thread reply, work reel) are allowed. Device rules still apply in the browser. */
   previewOk: boolean;
+  /**
+   * A stored hover clip (a few seconds, silent, small), '/media/pv/<id>/<sha16>.<mp4|webm>', or null. When set, every muted preview
+   * plays it instead of the stream, whatever `previewOk` says. Device rules still apply in the browser.
+   */
+  previewUrl: string | null;
   durationMs: number | null;
   links: { instagram: string | null; youtube: string | null };
   /** @deprecated v1 tabs only; removed one release after v2. A stream reads 'file' with `ref` = `streamUrl`. */

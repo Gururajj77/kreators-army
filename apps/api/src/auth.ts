@@ -166,6 +166,7 @@ export async function limitState(db: D1Database, hash: string, now: number, reco
 
 const JSON_TYPE = /^application\/json\s*(;|$)/i;
 const IMAGE_TYPE = /^image\/(webp|jpeg|png)\s*(;|$)/i;
+const VIDEO_TYPE = /^video\/(mp4|webm)\s*(;|$)/i;
 const isWrite = (method: string) => method !== 'GET' && method !== 'HEAD';
 
 function hasBody(req: Request): boolean {
@@ -173,11 +174,12 @@ function hasBody(req: Request): boolean {
   return (len !== null && len !== '0') || req.headers.has('Transfer-Encoding') || req.headers.has('Content-Type');
 }
 
-/** JSON routes take application/json; the poster route takes an image type. A body-less write needs neither. */
+/** JSON routes take application/json; the poster routes take an image type, the preview route a video type. A body-less write needs neither. */
 export function contentTypeOk(req: Request, pathname: string): boolean {
   if (!isWrite(req.method) || req.method === 'DELETE' || !hasBody(req)) return true;
   const type = req.headers.get('Content-Type') ?? '';
-  if (/\/videos\/[^/]+\/poster$/.test(pathname) && req.method === 'PUT') return IMAGE_TYPE.test(type);
+  if (/\/videos\/[^/]+\/(poster|auto-poster)$/.test(pathname) && req.method === 'PUT') return IMAGE_TYPE.test(type);
+  if (/\/videos\/[^/]+\/preview$/.test(pathname) && req.method === 'PUT') return VIDEO_TYPE.test(type);
   return JSON_TYPE.test(type);
 }
 
@@ -207,7 +209,7 @@ export const guard: MiddlewareHandler<AppEnv> = async (c, next) => {
       await c.env.DB.prepare("INSERT INTO admin_attempts (ip_hash, ok, via, at) VALUES (?, 0, 'bearer', ?)").bind(hash, now).run();
       return adminError(c, 401, 'wrong-passkey', 'That key did not work.', { triesLeft: Math.max(0, LIMITS.per15m - (limit.count15 + 1)) });
     }
-    if (!contentTypeOk(c.req.raw, path)) return adminError(c, 415, 'unsupported-type', 'Send JSON (or an image for a poster).');
+    if (!contentTypeOk(c.req.raw, path)) return adminError(c, 415, 'unsupported-type', 'Send JSON (or an image for a poster, a video for a preview).');
     c.set('admin', { via: 'bearer' });
     return next();
   }
@@ -231,7 +233,7 @@ export const guard: MiddlewareHandler<AppEnv> = async (c, next) => {
       return adminError(c, 403, 'forbidden', 'That change has to come from the admin page itself.');
     }
   }
-  if (!contentTypeOk(c.req.raw, path)) return adminError(c, 415, 'unsupported-type', 'Send JSON (or an image for a poster).');
+  if (!contentTypeOk(c.req.raw, path)) return adminError(c, 415, 'unsupported-type', 'Send JSON (or an image for a poster, a video for a preview).');
   if (now - row.seen_at > SEEN_REFRESH_MS) {
     const touch = c.env.DB.prepare('UPDATE admin_sessions SET seen_at = ? WHERE id = ?').bind(now, verified.sid).run().catch(() => undefined);
     try {

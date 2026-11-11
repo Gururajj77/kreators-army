@@ -5,7 +5,8 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncEx
 import { useSearchParams } from 'react-router';
 import { Character, type CharacterHandle } from '../cast';
 import { CastBubble, useCastLine } from '../components/chat';
-import { Coverflow, DeckCard, StoryRing, useSeenBrands } from '../components/frames';
+import { Coverflow, DeckCard, toneOf, useSeenBrands } from '../components/frames';
+import { CardRing } from '../components/ring';
 import { ChipRail } from '../components/tabs';
 import { Cta, RollNumber, Seo } from '../components/ui';
 import { TileSkeletons, VideoPlayerDialog, VideoTile } from '../components/video';
@@ -51,26 +52,108 @@ const useIsPhone = () => useSyncExternalStore(subscribePhone, () => matchMedia(P
 
 const videoWord = (n: number) => (n === 1 ? 'video' : 'videos');
 
-// ---------- The brand rings ----------
+// ---------- The brand ring (library-slider-cta-spec §2): one card per brand on a slowly turning ring, each a filter ----------
 
-function BrandRings({ brands, selected, onToggle }: { brands: string[]; selected: string[]; onToggle: (brand: string) => void }) {
-  const seen = useSeenBrands();
+/** The most brands on the ring; the rest stay reachable through the search's brand suggestions. */
+const RING_BRANDS = 17;
+
+/** Each brand's lead video, from all videos (so the ring never reshuffles with the filters): one with a poster, then featured, most views, newest. */
+function leadVideos(videos: Video[]): Map<string, Video> {
+  const lead = new Map<string, Video>();
+  const better = (x: Video, y: Video) =>
+    Number(Boolean(y.posterUrl)) - Number(Boolean(x.posterUrl)) ||
+    Number(y.featured) - Number(x.featured) ||
+    (y.views || 0) - (x.views || 0) ||
+    (y.uploadDate ?? '').localeCompare(x.uploadDate ?? '');
+  for (const v of videos) {
+    const cur = lead.get(v.brand);
+    if (!cur || better(v, cur) < 0) lead.set(v.brand, v);
+  }
+  return lead;
+}
+
+/** The panel colours, dealt round the ring by place (not by the brand's name), so no two neighbouring panels share a colour. */
+const RING_TONES = ['tiko', 'sochu', 'bolu', 'gola'] as const;
+
+/** The colour for place `k` of `n` round the ring: in turn, except that the last place, when it would match the first across the wrap, takes the
+ *  third colour (it differs from both its neighbours). Clones get their own place's colour too. */
+function ringTone(k: number, n: number): (typeof RING_TONES)[number] {
+  const len = RING_TONES.length;
+  if (k === n - 1 && n % len === 1 && n > 1) return RING_TONES[2];
+  return RING_TONES[k % len] ?? 'tiko';
+}
+
+function BrandDisc({ brand, seen, size }: { brand: string; seen: boolean; size: 'sm' | 'lg' }) {
+  const logo = brandLogo(brand);
   return (
-    <div className="lib-rings" role="group" aria-label="Brands">
-      {brands.map((b) => (
-        <StoryRing key={b} brand={b} logo={brandLogo(b)} seen={seen.has(b)} selected={selected.includes(b)} onSelect={() => onToggle(b)} />
-      ))}
-      <StoryRing
-        brand="Your brand"
-        dashed
-        to={contactHref()}
-        caption={
-          <>
-            Your brand<span className="sr-only">: {PRIMARY_ACTION.label}</span>
-          </>
-        }
-      />
-    </div>
+    <span className="story-ring lib-disc" data-size={size} data-seen={seen ? '' : undefined} aria-hidden>
+      <span className="story-ring-circle">
+        <span className="story-ring-art" />
+        <span className="story-ring-face">{logo ? <img src={logo} alt="" loading="lazy" decoding="async" /> : <span className="story-ring-letter" data-tone={toneOf(brand)}>{brand.charAt(0)}</span>}</span>
+      </span>
+    </span>
+  );
+}
+
+function BrandRing({ brands, counts, videos, selected, onToggle, paused }: { brands: string[]; counts: Map<string, number>; videos: Video[]; selected: string[]; onToggle: (brand: string) => void; paused: boolean }) {
+  const seen = useSeenBrands();
+  const lead = useMemo(() => leadVideos(videos), [videos]);
+  // Brands with a poster first (otherwise the facet's order, kept): until every brand has a poster, the ring opens on pictures, not a row of
+  // colour panels. Once every brand has one this is the facet's order unchanged.
+  const items = useMemo(() => {
+    const has = (b: string) => Boolean(lead.get(b)?.posterUrl);
+    return [...brands.filter(has), ...brands.filter((b) => !has(b))];
+  }, [brands, lead]);
+  const anySelected = selected.length > 0;
+  return (
+    <CardRing
+      className="lib-ring"
+      items={items}
+      itemKey={(b) => b}
+      label="Brands"
+      interactive
+      minCards={12}
+      paused={paused}
+      clipOf={(b) => lead.get(b)?.previewUrl}
+      renderCard={(b, { tabIndex, clip, slot, slots }) => {
+        const video = lead.get(b);
+        const poster = video?.posterUrl;
+        const n = counts.get(b) ?? 0;
+        const on = selected.includes(b);
+        const wasSeen = seen.has(b) && !on;
+        return (
+          <button
+            type="button"
+            className="cring-card lib-ring-card"
+            tabIndex={tabIndex}
+            aria-pressed={on}
+            aria-label={`${b}, ${n} ${videoWord(n)}`}
+            data-ring-brand={b}
+            data-selected={on ? '' : undefined}
+            data-dim={anySelected && !on ? '' : undefined}
+            data-seen={wasSeen ? '' : undefined}
+            data-poster={poster ? '' : undefined}
+            data-tone={ringTone(slot, slots)}
+            onClick={() => onToggle(b)}
+          >
+            {poster ? <img src={poster} alt="" loading="lazy" decoding="async" draggable={false} /> : <BrandDisc brand={b} seen={wasSeen} size="lg" />}
+            {clip}
+            {poster && <span className="lib-ring-scrim" aria-hidden />}
+            <span className="lib-ring-label">
+              {poster && <BrandDisc brand={b} seen={wasSeen} size="sm" />}
+              <span className="lib-ring-name">{b}</span>
+            </span>
+            {on && (
+              <span className="lib-ring-check" aria-hidden>
+                <svg viewBox="0 0 16 16" focusable="false">
+                  <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+            )}
+          </button>
+        );
+      }}
+    />
   );
 }
 
@@ -656,7 +739,18 @@ export function VideoLibrary() {
     return () => window.clearTimeout(t);
   }, [n, ready]);
 
-  const ringBrands = brandFacet?.show ? brandFacet.options.map((o) => o.value) : [];
+  // The ring: the brand facet's options in its order, at most RING_BRANDS (the ones with the most videos), each named with the count it would leave.
+  const ringBrands = useMemo(() => {
+    if (!brandFacet?.show) return [];
+    // A search or filter that leaves no brand at all keeps the whole set: the ring never leaves a hole in the header.
+    const all = brandFacet.options.length > 0 ? brandFacet.options.map((o) => o.value) : brandFacet.def.options.map((o) => o.value);
+    if (all.length <= RING_BRANDS) return all;
+    const total = new Map<string, number>();
+    for (const v of videos) total.set(v.brand, (total.get(v.brand) ?? 0) + 1);
+    const top = new Set([...all].sort((x, y) => (total.get(y) ?? 0) - (total.get(x) ?? 0)).slice(0, RING_BRANDS));
+    return all.filter((b) => top.has(b));
+  }, [brandFacet, videos]);
+  const ringCounts = useMemo(() => new Map((brandFacet?.options ?? []).map((o) => [o.value, o.count] as const)), [brandFacet]);
 
   return (
     <>
@@ -672,9 +766,9 @@ export function VideoLibrary() {
             </h1>
             <p className="lead">Real street interviews for real brands. Play any video here, or open it where it was posted.</p>
           </div>
-          <div className="lib-rings-wrap" data-ready={ready ? '' : undefined}>
-            {ready && ringBrands.length > 0 && <BrandRings brands={ringBrands} selected={brands} onToggle={toggleBrand} />}
-          </div>
+        </div>
+        <div className="lib-ring-wrap" data-ready={ready ? '' : undefined} data-none={isError || (ready && ringBrands.length === 0) ? '' : undefined}>
+          {ready && ringBrands.length > 0 && <BrandRing brands={ringBrands} counts={ringCounts} videos={videos} selected={brands} onToggle={toggleBrand} paused={Boolean(openVideo)} />}
         </div>
       </header>
 

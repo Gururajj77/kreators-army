@@ -108,6 +108,21 @@ export interface AdminPoster {
   width: number | null;
   height: number | null;
   timeMs: number | null;
+  /** (pv) True when the "Thumbnails & previews" pass picked it; false or missing when it was set by hand (never replaced by "Make missing"). */
+  auto?: boolean;
+}
+
+/** (pv) The stored hover clip (migration 0008). */
+export interface AdminPreview {
+  /** '/media/pv/<id>/<sha16>.<mp4|webm>' */
+  url: string;
+  mime: 'video/mp4' | 'video/webm';
+  size: number;
+  width: number | null;
+  height: number | null;
+  durationMs: number | null;
+  startMs: number | null;
+  madeAt: string;
 }
 
 export interface AdminVideo {
@@ -132,6 +147,8 @@ export interface AdminVideo {
   instagramUrl: string | null;
   youtubeUrl: string | null;
   poster: AdminPoster | null;
+  /** (pv) The stored hover clip, or null. Missing from answers made before migration 0008. */
+  preview?: AdminPreview | null;
   importId: string | null;
   problems: VideoProblem[];
   createdAt: string;
@@ -179,6 +196,37 @@ export interface AdminVideoList {
   videos: AdminVideo[];
   legacySecretCount: number;
   binCount: number;
+}
+
+// ---- bulk actions on the videos list (sel, round 4) -------------------------------------------------------
+
+/** POST /api/admin/videos/bulk: one action on up to BULK_MAX videos, each with the same rules as its single route. */
+export const BULK_ACTIONS = ['publish', 'unpublish', 'feature', 'unfeature', 'set', 'bin', 'restore', 'purge'] as const;
+export type BulkAction = (typeof BULK_ACTIONS)[number];
+export const BULK_MAX = 200;
+/** The fields 'set' may change (validated as a VideoWrite; null or '' clears category, platform and uploadDate). */
+export const BULK_FIELDS = ['brand', 'category', 'platform', 'uploadDate', 'aspect'] as const;
+export type BulkField = (typeof BULK_FIELDS)[number];
+export type BulkFields = Pick<VideoWrite, BulkField>;
+
+export interface BulkRequest {
+  ids: string[];
+  action: BulkAction;
+  /** 'set' only. */
+  fields?: BulkFields;
+}
+export interface BulkFailure {
+  id: string;
+  code: AdminErrorCode;
+  message: string;
+  /** 'cannot-publish': what blocks it. */
+  problems?: VideoProblem[];
+}
+export interface BulkResult {
+  /** Every video the action reached, as it is now (purged ones are only in doneIds). */
+  done: AdminVideo[];
+  doneIds: string[];
+  failed: BulkFailure[];
 }
 
 // ---- import -------------------------------------------------------------------------------------------

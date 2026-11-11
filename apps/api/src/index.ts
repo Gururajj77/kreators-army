@@ -8,6 +8,7 @@ import { errorBody, HttpError } from './http';
 import { serveMedia } from './media';
 import { serveLegacy, serveVideo } from './mega/routes';
 import { servePoster } from './posters';
+import { servePreview } from './previews';
 import { admin } from './routes/admin/index';
 import { contact } from './routes/contact';
 import { health } from './routes/health';
@@ -65,6 +66,7 @@ function withPageHeaders(res: Response): Response {
 const STREAM = /^\/media\/v\/([A-Za-z0-9_-]{1,64})\.mp4$/;
 const LEGACY = /^\/media\/mega-([A-Za-z0-9_-]{8})\.mp4$/;
 const POSTER = /^\/media\/p\/([A-Za-z0-9_-]{1,64})\/([0-9a-f]{16})\.(webp|jpg|png)$/;
+const PREVIEW = /^\/media\/pv\/([A-Za-z0-9_-]{1,64})\/([0-9a-f]{16})\.(mp4|webm)$/;
 
 /**
  * Everything the Worker sees, in the order of V2-SPEC 2.3:
@@ -74,6 +76,7 @@ const POSTER = /^\/media\/p\/([A-Za-z0-9_-]{1,64})\/([0-9a-f]{16})\.(webp|jpg|pn
  *  4. /media/v/<id>.mp4       MEGA stream by video id
  *  5. /media/mega-<h>.mp4     the live v1.5 MEGA address, from the same row
  *  6. /media/p/<id>/<sha>.<ext>   stored posters
+ *  6b. /media/pv/<id>/<sha>.<ext>  stored hover previews (src/previews.ts)
  *  7. /media/*                bundled files with ranges
  *  8. anything else           static assets
  */
@@ -93,6 +96,7 @@ async function handle(req: Request, env: Env, ctx: ExecutionContext): Promise<Re
   if ((m = STREAM.exec(pathname))) return withPageHeaders(await serveVideo(req, env, ctx, m[1]!));
   if ((m = LEGACY.exec(pathname))) return withPageHeaders(await serveLegacy(req, env, ctx, m[1]!));
   if ((m = POSTER.exec(pathname))) return withPageHeaders(await servePoster(req, env, ctx, m[1]!, m[2]!, m[3]!));
+  if ((m = PREVIEW.exec(pathname))) return withPageHeaders(await servePreview(req, env, ctx, m[1]!, m[2]!, m[3]!));
   if (pathname.startsWith('/media/')) return withPageHeaders(await serveMedia(req, env.ASSETS));
   return withPageHeaders(await env.ASSETS.fetch(req));
 }

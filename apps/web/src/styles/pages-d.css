@@ -134,23 +134,24 @@
   }
 
   /* On the one field: the alternate chapters are a frosted-light panel (no blur: a translucent plate costs nothing to scroll), the dark one keeps its
-     solid sheet with a soft glow from the top. */
+     solid sheet of dark metal with a cool sheen from the top. */
   .hww-panel.band-alt {
     background: color-mix(in oklab, var(--surface-1) 62%, transparent);
     box-shadow:
       inset 0 0 0 1px color-mix(in oklab, var(--ink) 6%, transparent),
-      0 24px 60px -36px rgb(24 20 40 / 0.25);
+      0 24px 60px -36px rgb(10 12 18 / 0.25);
   }
 
   .hww-panel.band-dark {
     position: relative;
     isolation: isolate;
     background:
-      radial-gradient(90% 60% at 50% -10%, color-mix(in oklab, var(--c-purple) 16%, transparent), transparent 70%),
+      radial-gradient(90% 60% at 50% -10%, rgb(142 166 214 / 0.11), transparent 70%),
       var(--bg);
     box-shadow:
       inset 0 0 0 1px rgb(255 255 255 / 0.07),
-      0 30px 70px -30px rgb(24 20 40 / 0.45);
+      inset 0 1px 0 rgb(200 214 240 / 0.14),
+      0 30px 70px -30px rgb(0 0 0 / 0.55);
   }
 
   .hww-sub {

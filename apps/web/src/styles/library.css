@@ -1,11 +1,11 @@
 /* Video library (V2-SPEC 5.7, visual §2.6). The tile and player rules moved to frames.css with the player (A2). Owner: A5.
    Every rule is inside @layer components, so a Tailwind utility on the same element always wins. */
 @layer components {
-  /* ---------- Page header: the words, then the brands as story rings ---------- */
+  /* ---------- Page header: the words, then the brands as a ring of cards (library-slider-cta-spec §2) ---------- */
   .lib-head {
     position: relative;
     padding-top: calc(var(--nav-offset) + 56px);
-    padding-bottom: 32px;
+    padding-bottom: 8px;
   }
 
   .lib-head-in {
@@ -32,35 +32,252 @@
     padding-bottom: 8px;
   }
 
-  /* The ring row keeps its height while the library loads, so the bar below never moves. */
-  .lib-rings-wrap {
-    min-height: 106px;
+  /* ---------- The brand ring: full bleed under the words. It keeps its height while the library loads, so the bar never moves. ----------
+     --cring-h is the ring's stage height (ring.css): the same number reserves the place here and sizes the stage, and the ring fits its cards
+     inside it whole. Wide screens get the tall stage so the big edge cards show their slanted tops and bottoms (the reference's bowtie); the bar
+     still starts on the first screen at 1440 x 900. */
+  .lib-ring-wrap {
+    --cring-h: 500px;
+    min-height: var(--cring-h);
+    margin-top: 28px;
   }
 
-  .lib-rings {
+  /* Still: the flat row of cards (ring.css), 238 px cards and 10 px above and below. */
+  :root[data-still] .lib-ring-wrap:not([data-none]) {
+    min-height: 258px;
+  }
+
+  .lib-ring-wrap:has(.cring[data-flat]) {
+    min-height: 0;
+  }
+
+  /* No ring to come (the library failed to load, or holds no brand): no reserved hole above the state below. */
+  .lib-ring-wrap[data-none] {
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  .lib-ring {
+    animation: lib-ring-in 400ms var(--ease-out) both;
+  }
+
+  @keyframes lib-ring-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  :root[data-still] .lib-ring {
+    animation: none;
+  }
+
+  /* A brand card. Sizes are in card units (cqw of the card's own width, 240 px at full size), so the 3D card and the flat one read the same.
+     Light: the cast's own bright gradients. Dark: the same colour, stronger than the page's dark tints, so a wall of colour panels (most brands
+     until their posters are made) still glows on the metal. */
+  .lib-ring-card {
+    --tone: var(--c-purple);
+    background: var(--g-tiko);
+  }
+
+  .lib-ring-card[data-tone='sochu'] {
+    --tone: var(--c-yellow);
+    background: var(--g-sochu);
+  }
+
+  .lib-ring-card[data-tone='bolu'] {
+    --tone: var(--c-green);
+    background: var(--g-bolu);
+  }
+
+  .lib-ring-card[data-tone='gola'] {
+    --tone: var(--c-orange);
+    background: var(--g-gola);
+  }
+
+  :root[data-theme='dark'] .lib-ring-card:not([data-poster]) {
+    background: linear-gradient(160deg, color-mix(in oklab, var(--tone) 90%, #121216), color-mix(in oklab, var(--tone) 60%, #121216) 65%, color-mix(in oklab, var(--tone) 38%, #0c0c0f));
+  }
+
+  /* The disc's face: white, with the brand's letter in ink, whatever the panel's colour. */
+  .lib-ring-card .story-ring-face {
+    background: #ffffff;
+  }
+
+  .lib-ring-card .story-ring-letter,
+  .lib-ring-card .story-ring-letter[data-tone] {
+    background: #ffffff;
+    color: #16131b;
+  }
+
+  /* No poster yet: the brand's colour, a soft light from above and its disc in the middle. */
+  .lib-ring-card:not([data-poster])::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(90% 55% at 50% 0%, rgb(255 255 255 / 0.22), transparent 70%),
+      radial-gradient(120% 60% at 50% 110%, rgb(0 0 0 / 0.28), transparent 70%);
+    pointer-events: none;
+  }
+
+  :root[data-theme='dark'] .lib-ring-card:not([data-poster])::before {
+    background:
+      radial-gradient(90% 55% at 50% 0%, rgb(255 255 255 / 0.1), transparent 70%),
+      radial-gradient(120% 60% at 50% 110%, rgb(0 0 0 / 0.35), transparent 70%);
+  }
+
+  .lib-ring-card > .lib-disc[data-size='lg'] {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    z-index: 1;
+    width: auto;
+    translate: -50% -50%;
+  }
+
+  /* The scrim under the label, on a poster only: a colour panel has no picture to protect its text from. */
+  .lib-ring-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.38) 38%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .lib-ring-label {
+    position: absolute;
+    inset: auto 7.5cqw 7.5cqw;
+    z-index: 2;
     display: flex;
-    gap: 6px;
-    margin-inline: -10px;
-    padding: 4px 10px 6px;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3.5cqw;
   }
 
-  .lib-rings::-webkit-scrollbar {
-    display: none;
-  }
-
-  .lib-rings > .story-ring {
-    scroll-snap-align: start;
-  }
-
-  .lib-rings .story-ring-caption {
-    max-width: 100%;
+  .lib-ring-name {
+    display: -webkit-box;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 10.8cqw;
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    text-shadow: 0 1px 12px rgb(0 0 0 / 0.25);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow-wrap: anywhere;
+  }
+
+  /* On the bright light-theme panels the name is ink, like the tile's. */
+  :root:not([data-theme='dark']) .lib-ring-card:not([data-poster]) .lib-ring-name {
+    color: #16131b;
+    text-shadow: none;
+  }
+
+  :root:not([data-theme='dark']) .lib-ring-card:not([data-poster])[data-tone='tiko'] .lib-ring-name {
+    color: #ffffff;
+  }
+
+  .lib-disc {
+    --ring: 23.4cqw;
+    width: auto;
+    pointer-events: none;
+  }
+
+  .lib-disc[data-size='lg'] {
+    --ring: 40cqw;
+  }
+
+  .lib-ring-card .story-ring-face {
+    inset: 8%;
+    box-shadow: 0 1px 8px rgb(0 0 0 / 0.18);
+  }
+
+  .lib-ring-card .story-ring-letter {
+    font-size: calc(var(--ring) * 0.4);
+  }
+
+  .lib-disc[data-seen] .story-ring-art {
+    background: rgb(255 255 255 / 0.45);
+  }
+
+  /* Selected: the story ring's four colours as a 4 px outline inside the card, and a white check. */
+  .lib-ring-card[data-selected]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    padding: 4px;
+    border-radius: inherit;
+    background: conic-gradient(var(--c-yellow), var(--c-green), var(--c-purple), var(--c-orange), var(--c-yellow));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    pointer-events: none;
+  }
+
+  .lib-ring-check {
+    position: absolute;
+    top: 7.5cqw;
+    right: 7.5cqw;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: 16.7cqw;
+    height: 16.7cqw;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #0e0e10;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.25);
+    animation: story-ring-check var(--spring-bouncy) both;
+  }
+
+  .lib-ring-check > svg {
+    width: 55%;
+    height: 55%;
+  }
+
+  :root[data-still] .lib-ring-check {
+    animation: none;
+  }
+
+  /* While a brand is on, the others step back. */
+  .lib-ring-card[data-dim] {
+    filter: brightness(0.55) saturate(0.6);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .lib-ring .cring-card:hover .story-ring-art {
+      transform: rotate(120deg);
+    }
+
+    :root:not([data-still]) .lib-ring:not([data-flat]) .lib-ring-card[data-dim]:hover {
+      filter: brightness(0.8) saturate(0.85);
+    }
+  }
+
+  @media (max-width: 1068px) {
+    .lib-ring-wrap {
+      --cring-h: 400px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .lib-ring-wrap {
+      --cring-h: 300px;
+      margin-top: 16px;
+    }
+
+    :root[data-still] .lib-ring-wrap:not([data-none]) {
+      min-height: 218px;
+    }
   }
 
   @media (max-width: 1068px) {
@@ -77,13 +294,6 @@
 
     .lib-head-in {
       gap: 24px;
-    }
-
-    .lib-rings {
-      margin-inline: calc(-6.25vw - 1px);
-      padding-inline: 6.25vw;
-      scroll-padding-inline: 6.25vw;
-      scroll-snap-type: x mandatory;
     }
   }
 

@@ -1,0 +1,224 @@
+/* The card ring (components/ring.tsx, library-slider-cta-spec §1). Cards in card space: the stage sets --cw, --ch and --gap per breakpoint, the
+   component sets --n and --step, and the radius and the camera follow from them (R = n (cw + gap) / 2π, perspective 1.07 R, so the far-centre card
+   is always at about half size). Nothing on .cring-ring or .cring-slot may flatten preserve-3d: no opacity < 1, filter, overflow, mask, clip-path
+   or paint containment there. Fades and dims go on the stage or a card.
+
+   Seamless: the stage's height is fixed per breakpoint (a page sets --cring-h on the ring's wrapper and reserves the same height there before the
+   data arrives), and the component picks the slot count so the tallest visible part of any card, at any angle and with the hover lift, fits inside
+   it (fitSlots). No mask: the cards are never cut or faded at the top or bottom; only the viewport crops the sides, as on the reference. */
+@layer components {
+  .cring {
+    --cw: 240px;
+    --ch: 340px;
+    --gap: 12px;
+    /* The hover's step toward you; ring.tsx reads it to keep a lifted card inside the stage too. */
+    --lift: 32px;
+    --stage-h: var(--cring-h, 500px);
+    --R: calc(var(--n) * (var(--cw) + var(--gap)) / 6.2832);
+    --card-r: 20px;
+    position: relative;
+    height: var(--stage-h);
+    overflow: clip;
+    perspective: calc(var(--R) * 1.07);
+    perspective-origin: 50% 50%;
+    touch-action: pan-y;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 1068px) {
+    .cring {
+      --cw: 220px;
+      --ch: 312px;
+      --stage-h: var(--cring-h, 400px);
+    }
+  }
+
+  /* A phone gets a bigger card, so the centre card and its two cropped neighbours fill the width as they do on the reference (its centre card is
+     about 37% of a 390 px screen). */
+  @media (max-width: 734px) {
+    .cring {
+      --cw: 280px;
+      --ch: 396px;
+      --gap: 12px;
+      --stage-h: var(--cring-h, 300px);
+    }
+  }
+
+  .cring-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--cw);
+    height: var(--ch);
+    margin: calc(var(--ch) / -2) 0 0 calc(var(--cw) / -2);
+    transform-style: preserve-3d;
+    transform: rotateY(0deg);
+    will-change: transform;
+    /* The ring's own box sits in front of the cards (they are pushed back by R): it must never take the pointer. */
+    pointer-events: none;
+  }
+
+  .cring-slot {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateY(calc(var(--i) * var(--step) * -1)) translateZ(calc(var(--R) * -1));
+    pointer-events: auto;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Off the stage (a 250 ms tick decides): nothing to paint. Opacity on the card, a leaf, so the ring stays 3D and the card stays in the
+     accessibility tree. */
+  .cring-slot[data-culled] > .cring-card {
+    opacity: 0;
+  }
+
+  /* ---------- The card: a leaf, so it may clip, dim and lift ---------- */
+  .cring-card {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    overflow: clip;
+    isolation: isolate;
+    container-type: inline-size;
+    border: 0;
+    border-radius: var(--card-r);
+    background: var(--surface);
+    color: #ffffff;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      transform 200ms var(--ease-out),
+      filter 200ms var(--ease-out);
+  }
+
+  .cring[data-decorative],
+  .cring[data-decorative] .cring-slot {
+    pointer-events: none;
+  }
+
+  .cring-card > img,
+  .cring-clip {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--card-r);
+    object-fit: cover;
+  }
+
+  .cring-clip-box {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--card-r);
+    pointer-events: none;
+  }
+
+  /* The clip sits on the poster and shows only once it really plays, so the poster never blinks. */
+  .cring-clip {
+    opacity: 0;
+    transition: opacity 180ms ease;
+    pointer-events: none;
+  }
+
+  .cring-clip[data-on] {
+    opacity: 1;
+  }
+
+  /* Light theme: the gaps show the pale field, so each card gets a hairline. Dark: nothing; the metal shows through. */
+  :root:not([data-theme='dark']) .cring-card {
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08);
+  }
+
+  .cring[data-decorative] .cring-card,
+  :root:not([data-theme='dark']) .cring[data-decorative] .cring-card {
+    box-shadow: none;
+    background: #15151a;
+  }
+
+  :root[data-still] .cring-card {
+    transition: none;
+  }
+
+  .cring-card:focus-visible {
+    outline: 6px solid var(--focus);
+    outline-offset: 4px;
+  }
+
+  /* Hover (a fine pointer): the card steps toward you, brightens and gets a thin white edge, so it reads as something to press even on the far
+     wall, where a lift alone is a few pixels. The edge gives way to the focus ring when both apply. */
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) .cring:not([data-flat], [data-decorative]) .cring-card:hover {
+      transform: translateZ(var(--lift));
+      filter: brightness(1.15);
+    }
+
+    .cring:not([data-decorative]) .cring-card:hover:not(:focus-visible) {
+      outline: 2px solid rgb(255 255 255 / 0.9);
+      outline-offset: -2px;
+    }
+
+    :root:not([data-theme='dark']) .cring:not([data-decorative]) .cring-card:hover:not(:focus-visible) {
+      outline-color: rgb(255 255 255 / 0.95);
+      box-shadow: 0 0 0 1px rgb(0 0 0 / 0.18);
+    }
+  }
+
+  /* ---------- Still: a flat row of the real cards ---------- */
+  .cring[data-flat] {
+    --cw: 168px;
+    --ch: 238px;
+    --card-r: 16px;
+    height: auto;
+    overflow: visible;
+    perspective: none;
+    touch-action: auto;
+  }
+
+  .cring-row {
+    display: flex;
+    gap: 12px;
+    padding-block: 10px;
+    /* Full bleed, with the cards starting on the content edge. */
+    padding-inline: calc((100% - min(var(--content-w), var(--content-max))) / 2);
+    scroll-padding-inline: calc((100% - min(var(--content-w), var(--content-max))) / 2);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .cring-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cring[data-flat] .cring-slot {
+    position: relative;
+    flex: none;
+    width: var(--cw);
+    height: var(--ch);
+    transform: none;
+    transform-style: flat;
+    scroll-snap-align: start;
+  }
+
+  @media (max-width: 734px) {
+    .cring[data-flat] {
+      --cw: 140px;
+      --ch: 198px;
+      --card-r: 14px;
+    }
+
+    .cring-row {
+      gap: 10px;
+    }
+  }
+}

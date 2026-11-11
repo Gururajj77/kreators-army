@@ -10,6 +10,7 @@ import { Link } from 'react-router';
 import { InstagramGlyph, YouTubeGlyph, toneOf } from '../components/frames';
 import { spring } from '../lib/spring';
 import { MenuButton, StatusChip, Switch, When, usePopover, type ChipTone, type MenuItem } from './bits';
+import { SelectBox } from './bulk';
 import { EditCell, PROBLEM_WORDS, cellDisplay, type InlineEditor } from './inlineEdit';
 import type { ColKey } from './listColumns';
 import type { ReorderApi } from './useReorder';
@@ -79,6 +80,9 @@ export function VideoRow({
   onPurge,
   inline,
   cols,
+  selected = false,
+  onSelect,
+  note,
 }: {
   video: AdminVideo;
   index: number;
@@ -98,6 +102,11 @@ export function VideoRow({
   /** Editing in place (desktop widths, not the bin); null shows plain cells. */
   inline: InlineEditor | null;
   cols: ReadonlySet<ColKey>;
+  /** (sel) Multi-select: the row's checkbox state, and a pick from the checkbox or a Shift/Cmd/Ctrl click on the row. */
+  selected?: boolean;
+  onSelect?: (how: { shift: boolean }) => void;
+  /** (sel) Why a bulk action skipped this row, while the founder looks at those rows. */
+  note?: string | null;
 }) {
   const { pop, anchor, show, hide } = usePopover('start');
   const isActive = reorder.active === video.id;
@@ -121,6 +130,13 @@ export function VideoRow({
   }, [pop, onDismissBlocked]);
 
   const openUnlessControl = (e: MouseEvent<HTMLElement>) => {
+    // (sel) Shift+click selects a range, Cmd/Ctrl+click toggles: anywhere but the controls that have their own job (the cells included).
+    if (onSelect && (e.shiftKey || e.metaKey || e.ctrlKey)) {
+      if ((e.target as HTMLElement).closest('.adm-sel, .adm-handle, [role="switch"], .adm-row-menu, a, input, [role="menu"], [popover]')) return;
+      e.preventDefault();
+      onSelect({ shift: e.shiftKey });
+      return;
+    }
     if ((e.target as HTMLElement).closest('button, a, input, [role="menu"], [popover]')) return;
     // The click that ended an edit in place is not a click on the row.
     if (inline?.justClosed()) return;
@@ -136,12 +152,18 @@ export function VideoRow({
       data-id={video.id}
       data-lifted={isLifted ? reorder.mode ?? '' : undefined}
       data-active={isActive ? '' : undefined}
+      data-selected={selected ? '' : undefined}
       layout={isActive ? false : 'position'}
       animate={{ scale: isLifted ? 1.02 : 1 }}
       transition={{ layout: spring.snappy, scale: spring.follow }}
       style={{ y: isActive ? reorder.y : 0, zIndex: isActive ? 5 : undefined }}
       onClick={openUnlessControl}
+      onMouseDown={(e) => {
+        // A Shift+click selects rows, not the text between them.
+        if (e.shiftKey && onSelect && !(e.target as HTMLElement).closest('input, textarea')) e.preventDefault();
+      }}
     >
+      {onSelect && <SelectBox checked={selected} label={`Select ${title}`} onPick={onSelect} className="adm-row-check" />}
       {bin ? (
         <span className="adm-handle" aria-hidden />
       ) : (
@@ -190,6 +212,7 @@ export function VideoRow({
             <span className="adm-row-brand">{video.brand.trim() ? video.brand : <StatusChip tone="amber">Brand needed</StatusChip>}</span>
           </>
         )}
+        {note && <span className="adm-row-note">{note}</span>}
       </div>
 
       <div className="adm-row-status">

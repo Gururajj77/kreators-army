@@ -8,9 +8,11 @@ import { Hono } from 'hono';
 import { guard } from '../../auth';
 import type { AppEnv } from '../../env';
 import { errorBody, HttpError } from '../../http';
+import { bulk } from './bulk';
 import { imports } from './import';
 import { leads } from './leads';
 import { mega } from './mega';
+import { previews } from './previews';
 import { session } from './session';
 import { videos } from './videos';
 
@@ -40,7 +42,9 @@ admin.onError((err, c) => {
 });
 
 admin.route('/', session);
+admin.route('/', bulk);
 admin.route('/', videos);
+admin.route('/', previews);
 admin.route('/', mega);
 admin.route('/', imports);
 admin.route('/', leads);

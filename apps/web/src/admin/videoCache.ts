@@ -29,6 +29,21 @@ export function mergeVideo(qc: QueryClient, video: AdminVideo) {
   qc.setQueryData(keys.video(video.id), video);
 }
 
+/** (sel) Takes a video out of both list caches and its own (purged, or gone on the server). */
+export function forgetVideo(qc: QueryClient, id: string) {
+  qc.setQueryData<AdminVideoList>(keys.videos(false), (old) => {
+    if (!old || !old.videos.some((v) => v.id === id)) return old;
+    const videos = old.videos.filter((v) => v.id !== id);
+    return { ...old, videos, legacySecretCount: videos.filter((v) => v.mega?.keyIn === 'secret').length };
+  });
+  qc.setQueryData<AdminVideoList>(keys.videos(true), (old) => {
+    if (!old || !old.videos.some((v) => v.id === id)) return old;
+    const videos = old.videos.filter((v) => v.id !== id);
+    return { ...old, videos, binCount: videos.length };
+  });
+  qc.removeQueries({ queryKey: keys.video(id), exact: true });
+}
+
 /** V5, then a toast with Undo (V6 with the previous published value). Resolves true when the video went to the bin. */
 export async function deleteWithUndo(qc: QueryClient, v: AdminVideo): Promise<boolean> {
   try {

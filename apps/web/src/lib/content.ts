@@ -296,12 +296,13 @@ export const LOCK_LIST = [
 /** The creative loop; the last step arrows back to the first. */
 export const LOOP = ['Hypothesis', 'Interaction', 'Production', 'Edit', 'Learn', 'Improve'];
 
-/** Home #interaction: Bolu's real filmed questions, each answered by its real video. A pair whose video is not live is dropped. */
-export const INTERACTION_THREAD: { q: string; videoId: string }[] = [
-  { q: 'New phone or a Goa trip?', videoId: 'seed-circlestore-2' },
-  { q: "Hot take on Valentine's Day?", videoId: 'seed-brandingbum' },
-  { q: 'Worst thing you ever bought second-hand?', videoId: 'seed-circlestore-1' },
-  { q: 'What does AI change about design?', videoId: 'seed-ansh-mehra' },
+/** Home #interaction: Bolu's real filmed questions, each answered by its real video. Each pair finds its video by id first, then by the live re-imported ids (alsoIds), then by brand and a
+ * title phrase (so a re-import under a new id, e.g. from the admin CSV, still answers it). A pair with no live video is dropped. */
+export const INTERACTION_THREAD: { q: string; videoId: string; alsoIds?: string[]; brand: string; titles: string[] }[] = [
+  { q: 'New phone or a Goa trip?', videoId: 'seed-circlestore-2', alsoIds: ['70eee17b-a646-4e82-996e-1826a076544b'], brand: 'CircleStore', titles: ['goa'] },
+  { q: "Hot take on Valentine's Day?", videoId: 'seed-brandingbum', brand: 'BrandingBum', titles: ['valentine'] },
+  { q: 'Worst thing you ever bought second-hand?', videoId: 'seed-circlestore-1', alsoIds: ['6c83cda2-0905-466b-b504-b3779374263d'], brand: 'CircleStore', titles: ['bad second hand', 'bad second-hand', 'worst'] },
+  { q: 'What does AI change about design?', videoId: 'seed-ansh-mehra', brand: 'Ansh Mehra', titles: ['ai and design', 'ai & design'] },
 ];
 
 // ---------- Testimonials ----------

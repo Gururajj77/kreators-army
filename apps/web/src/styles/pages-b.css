@@ -1069,7 +1069,7 @@
     padding-block: 72px var(--section-y);
   }
 
-  /* The closing panel: the page's last ask, lit like the rest of the field. A light from the top left, a rim of light, and a soft glow under it. */
+  /* The closing panel: the page's last ask, lit like the rest of the field. A light from the top left, a rim of light, and a soft shadow under it: a polished plate on the metal. */
   .cr-close {
     display: flex;
     flex-direction: row;
@@ -1078,19 +1078,19 @@
     gap: 40px;
     padding: 56px 64px;
     background:
-      radial-gradient(70% 120% at 0% 0%, color-mix(in oklab, var(--c-yellow) 18%, transparent), transparent 65%),
-      radial-gradient(60% 120% at 100% 100%, color-mix(in oklab, var(--c-purple) 12%, transparent), transparent 65%),
-      var(--surface);
+      radial-gradient(70% 120% at 0% 0%, rgb(255 255 255 / 0.9), transparent 65%),
+      radial-gradient(60% 120% at 100% 100%, rgb(70 100 160 / 0.08), transparent 65%),
+      linear-gradient(160deg, #fbfbfc, #eef0f3);
     box-shadow:
       inset 0 0 0 1px color-mix(in oklab, var(--ink) 7%, transparent),
-      inset 0 1px 0 rgb(255 255 255 / 0.5),
-      0 30px 70px -34px rgb(24 20 40 / 0.35);
+      inset 0 1px 0 rgb(255 255 255 / 0.7),
+      0 30px 70px -34px rgb(10 12 18 / 0.35);
   }
 
   [data-theme='dark'] .cr-close {
     background:
-      radial-gradient(70% 120% at 0% 0%, color-mix(in oklab, var(--c-purple) 22%, transparent), transparent 65%),
-      radial-gradient(60% 120% at 100% 100%, color-mix(in oklab, var(--c-orange) 9%, transparent), transparent 65%),
+      radial-gradient(70% 120% at 0% 0%, rgb(142 166 214 / 0.16), transparent 65%),
+      radial-gradient(60% 120% at 100% 100%, rgb(150 40 44 / 0.1), transparent 65%),
       var(--surface);
     box-shadow:
       inset 0 0 0 1px rgb(255 255 255 / 0.08),

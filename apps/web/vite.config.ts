@@ -8,6 +8,9 @@ const NAMED_CHUNKS: [RegExp, string][] = [
   [/\/src\/admin\/AdminApp\.tsx$/, 'admin'],
   [/\/src\/components\/street\/StreetScene\.tsx$/, 'street-far'],
   [/\/src\/components\/street\/art-full\.ts$/, 'street-full'],
+  // (pv) The clip muxers, loaded by the admin's "Thumbnails & previews" only: admin-* names keep them out of the service worker's precache.
+  [/\/node_modules\/mp4-muxer\//, 'admin-mp4-muxer'],
+  [/\/node_modules\/webm-muxer\//, 'admin-webm-muxer'],
 ];
 const namedChunk = (facade: string | null) => (facade ? NAMED_CHUNKS.find(([re]) => re.test(facade))?.[1] : undefined);
 // Vite names a chunk's stylesheet after the chunk's own name (its entry file). The street's two paint sheets (paint-*.css, paint-full-*.css) are shared
@@ -103,6 +106,7 @@ export default defineConfig({
       '/media/v/': 'http://localhost:8797',
       '/media/mega-': 'http://localhost:8797',
       '/media/p/': 'http://localhost:8797',
+      '/media/pv/': 'http://localhost:8797',
     },
   },
 });

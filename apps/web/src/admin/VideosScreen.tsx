@@ -1,7 +1,7 @@
 // Owner: A4 Admin; inline editing and columns by adm (round 3). The videos list (admin brief 5.3, V2-SPEC 4.3): search, filter chips with counts, rows
 // with the Published switch, reorder by drag and by keyboard, the row menu, delete to the bin with Undo, the bin view, and the add and edit drawer on top
 // (/admin/videos/new, /admin/videos/:id). On desktop widths the cells edit in place (inlineEdit.tsx) and the columns can be chosen (listColumns.tsx).
-import { BLOCKING_PROBLEMS, type AdminVideo, type AdminVideoList, type VideoProblem } from '@kreators/shared';
+import { BLOCKING_PROBLEMS, type AdminVideo, type AdminVideoList, type BulkAction, type BulkFields, type VideoProblem } from '@kreators/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowDownToLine, ArrowUpToLine, Copy, Pencil, Plus, Search, Trash2, Upload, X } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
@@ -10,8 +10,10 @@ import { ChipRail } from '../components/tabs';
 import { Seo } from '../components/ui';
 import { AdminApiError, adminApi, keys, retryOnce } from './api';
 import { Announcer, ConfirmDialog, EmptyState, type MenuItem } from './bits';
+import { BulkBar, BulkNote, SelectBox, useBulkActions, useSelection, type BulkSummary } from './bulk';
 import { useInlineEditor } from './inlineEdit';
 import { COLUMNS, ColumnsMenu, useColumns } from './listColumns';
+import { MediaGenControl } from './mediaGen/MediaGenControl';
 import { toast } from './Toasts';
 import { useReorder } from './useReorder';
 import { deleteWithUndo, mergeVideo } from './videoCache';
@@ -85,6 +87,12 @@ export function VideosScreen() {
   const [saveNote, setSaveNote] = useState('');
   const wide = useWide();
   const cols = useColumns(screenRef, bin);
+  // (sel) Multi-select: the rows a bulk action left behind ("Show these"), its summary, the purge confirm, the header checkbox.
+  const [only, setOnly] = useState<ReadonlySet<string> | null>(null);
+  const [summary, setSummary] = useState<BulkSummary | null>(null);
+  // The count asked about, kept while the purge runs (the rows leave the view at once, before the server answers).
+  const [confirmBulkPurge, setConfirmBulkPurge] = useState<number | null>(null);
+  const selectAllRef = useRef<HTMLInputElement>(null);
 
   const list = useQuery({ queryKey: keys.videos(false), queryFn: () => adminApi.videos(false), staleTime: 15_000, retry: retryOnce });
   const binList = useQuery({ queryKey: keys.videos(true), queryFn: () => adminApi.videos(true), enabled: bin, retry: retryOnce });
@@ -111,7 +119,7 @@ export function VideosScreen() {
   const inline = useInlineEditor(lists, politely);
   const editable = wide && !bin;
 
-  const reorderOn = !bin && filter === 'all' && !q.trim() && !importId;
+  const reorderOn = !bin && filter === 'all' && !q.trim() && !importId && !only;
   const announce = useCallback((text: string) => setAnnouncement((prev) => (prev === text ? `${text} ` : text)), []);
   const titleOf = useCallback((id: string) => all.find((v) => v.id === id)?.title ?? 'this video', [all]);
 
@@ -143,15 +151,93 @@ export function VideosScreen() {
 
   const byId = useMemo(() => new Map(all.map((v) => [v.id, v])), [all]);
   const shown = useMemo(() => {
-    if (bin) return (binList.data?.videos ?? []).filter((v) => matches(v, q.trim()));
+    if (bin) return (binList.data?.videos ?? []).filter((v) => matches(v, q.trim()) && (!only || only.has(v.id)));
     const ordered = reorder.order.map((id) => byId.get(id)).filter((v): v is AdminVideo => !!v);
     return ordered.filter(
       (v) =>
         matches(v, q.trim()) &&
+        (!only || only.has(v.id)) &&
         (!importId || v.importId === importId) &&
         (filter === 'all' || (filter === 'published' && v.published) || (filter === 'drafts' && !v.published) || (filter === 'attention' && ATTENTION(v))),
     );
-  }, [bin, binList.data, reorder.order, byId, q, importId, filter]);
+  }, [bin, binList.data, reorder.order, byId, q, importId, filter, only]);
+
+  // ---------- (sel) multi-select and bulk actions ----------
+  const viewIds = useMemo(() => shown.map((v) => v.id), [shown]);
+  const sel = useSelection(viewIds, bin ? 'bin' : 'list');
+  const bulk = useBulkActions({ inline, onSummary: setSummary });
+  const selected = useMemo(() => shown.filter((v) => sel.ids.has(v.id)), [shown, sel.ids]);
+
+  // Switching between the list and the bin starts afresh.
+  useEffect(() => {
+    setOnly(null);
+    setSummary(null);
+  }, [bin]);
+
+  // "3 selected", said once the clicking settles (not on every Shift+click step).
+  const [selNote, setSelNote] = useState('');
+  const spoken = useRef(0);
+  useEffect(() => {
+    if (sel.count === spoken.current) return;
+    const t = window.setTimeout(() => {
+      spoken.current = sel.count;
+      setSelNote(sel.count ? `${sel.count} selected.` : 'Selection cleared.');
+    }, 450);
+    return () => window.clearTimeout(t);
+  }, [sel.count]);
+
+  const focusAfterRemoval = () =>
+    window.setTimeout(() => (selectAllRef.current ?? document.querySelector<HTMLInputElement>('[data-admin-search]'))?.focus({ preventScroll: true }), 50);
+
+  const runBulk = async (action: BulkAction, fields?: BulkFields) => {
+    const res = await bulk.run(action, selected, fields);
+    if (res && (action === 'bin' || action === 'restore' || action === 'purge')) focusAfterRemoval();
+  };
+
+  const purgeSelected = async () => {
+    await runBulk('purge');
+    setConfirmBulkPurge(null);
+  };
+
+  const showFailed = () => {
+    if (!summary) return;
+    const ids = summary.failed.map((f) => f.id);
+    setOnly(new Set(ids));
+    sel.replace(ids);
+  };
+
+  // Cmd/Ctrl+A in the list selects every row in view; Esc clears the selection. Never while typing, in a dialog or a popover, or mid-reorder.
+  const selRef = useRef(sel);
+  selRef.current = sel;
+  useEffect(() => {
+    const typing = (el: HTMLElement | null) =>
+      !!el && (el.isContentEditable || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || (el.tagName === 'INPUT' && !/^(checkbox|radio|button|submit|reset)$/.test((el as HTMLInputElement).type)));
+    const overlay = () => {
+      try {
+        return !!document.querySelector('dialog[open], :popover-open');
+      } catch {
+        return !!document.querySelector('dialog[open]');
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      const s = selRef.current;
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'a') {
+        if (typing(t) || overlay() || !t?.closest?.('.adm-rows, .adm-list-head, .adm-bulk')) return;
+        e.preventDefault();
+        s.selectAll();
+      } else if (e.key === 'Escape' && s.count && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        if (typing(t) || overlay() || t?.closest?.('.adm-handle[aria-pressed="true"]')) return;
+        const inBar = !!t?.closest?.('.adm-bulk');
+        e.preventDefault();
+        s.clear();
+        if (inBar) focusAfterRemoval();
+      }
+    };
+    // Capture: an open popover is still open here (the browser closes it after), so its Esc is left alone.
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, []);
 
   const setBusy = (id: string, on: boolean) =>
     setBusyIds((s) => {
@@ -322,6 +408,9 @@ export function VideosScreen() {
             onPurge={() => setConfirmPurge(v)}
             inline={editable ? inline : null}
             cols={cols.shown}
+            selected={sel.ids.has(v.id)}
+            onSelect={(how) => sel.pick(v.id, how)}
+            note={only ? summary?.notes.get(v.id) : null}
           />
         ))}
       </ul>
@@ -329,13 +418,14 @@ export function VideosScreen() {
   }
 
   return (
-    <section ref={screenRef} className="adm-screen" aria-labelledby="adm-videos-title" style={{ '--adm-cols': cols.template } as CSSProperties}>
+    <section ref={screenRef} className="adm-screen" aria-labelledby="adm-videos-title" style={{ '--adm-cols': cols.template } as CSSProperties} data-selecting={sel.count ? '' : undefined}>
       <Seo title={bin ? 'Bin · Library admin' : 'Videos · Library admin'} description="Library admin" noindex />
       <div className="adm-head">
         <h1 id="adm-videos-title" className="adm-title">
           Videos
         </h1>
         <div className="adm-head-actions">
+          <MediaGenControl />
           <Link to="/admin/import" className="btn btn-sm btn-ghost">
             <Upload className="size-4" aria-hidden /> Import links
           </Link>
@@ -384,7 +474,28 @@ export function VideosScreen() {
         />
       </div>
 
-      <div className="adm-subline">
+      <div className="adm-subline" data-selecting={sel.count ? '' : undefined}>
+        {sel.count > 0 && (
+          <BulkBar
+            bin={bin}
+            sel={sel}
+            bulk={bulk}
+            lists={lists}
+            onAction={(a) => void runBulk(a)}
+            onSet={(fields) => void runBulk('set', fields)}
+            onExport={() => bulk.exportCsv(selected)}
+            onRecheck={() => void bulk.recheck(selected)}
+            onPurge={() => setConfirmBulkPurge(selected.length)}
+          />
+        )}
+        {only && (
+          <span className="adm-chip-filter" data-only>
+            The {only.size} that couldn't
+            <button type="button" aria-label="Show every video" onClick={() => setOnly(null)}>
+              <X className="size-3.5" aria-hidden />
+            </button>
+          </span>
+        )}
         {importId && !bin && (
           <span className="adm-chip-filter">
             From this import
@@ -411,20 +522,35 @@ export function VideosScreen() {
         {wide && <ColumnsMenu cols={cols} />}
       </div>
 
-      <div className="adm-list-head" aria-hidden>
-        <span />
-        <span />
-        <span>Video</span>
+      <BulkNote summary={summary} showing={!!only} onShow={showFailed} onDismiss={() => setSummary(null)} />
+      <div className="adm-list-head">
+        <span className="adm-head-check">
+          {!loading && !failed && shown.length > 0 && (
+            <SelectBox
+              checked={sel.count > 0 && sel.count === sel.total}
+              indeterminate={sel.count > 0 && sel.count < sel.total}
+              label={`Select all ${sel.total}`}
+              inputRef={selectAllRef}
+              onPick={() => (sel.count === sel.total ? sel.clear() : sel.selectAll())}
+            >
+              <span className="adm-head-check-text">Select all {sel.total}</span>
+            </SelectBox>
+          )}
+        </span>
+        <span aria-hidden />
+        <span aria-hidden />
+        <span aria-hidden>Video</span>
         {COLUMNS.filter((c) => cols.shown.has(c.key)).map((c) => (
-          <span key={c.key} data-col={c.key}>
+          <span key={c.key} data-col={c.key} aria-hidden>
             {c.key === 'updated' && bin ? 'Deleted' : c.label}
           </span>
         ))}
-        <span />
+        <span aria-hidden />
       </div>
       {body}
       <Announcer text={announcement} assertive />
       <Announcer text={saveNote} />
+      <Announcer text={selNote} />
       {(['brand', 'category', 'platform'] as const).map((k) => (
         <datalist key={k} id={lists[k]}>
           {options[k].map((o) => (
@@ -453,6 +579,18 @@ export function VideosScreen() {
           busy={working}
           onConfirm={() => void purge(confirmPurge)}
           onCancel={() => setConfirmPurge(null)}
+        />
+      )}
+
+      {confirmBulkPurge !== null && (
+        <ConfirmDialog
+          title={`Delete ${confirmBulkPurge} video${confirmBulkPurge === 1 ? '' : 's'} for good?`}
+          body={`They and their posters go for good. This can't be undone.`}
+          confirmLabel={`Delete ${confirmBulkPurge} forever`}
+          danger
+          busy={bulk.busy === 'purge'}
+          onConfirm={() => void purgeSelected()}
+          onCancel={() => setConfirmBulkPurge(null)}
         />
       )}
 

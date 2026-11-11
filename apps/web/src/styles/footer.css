@@ -42,35 +42,108 @@
     gap: 28px;
   }
 
-  .ft-ask {
+  /* ---------- The ask: a centred band at the top of the footer, the card ring between its words and its buttons (library-slider-cta-spec §3) ---------- */
+  .ft-band-cta {
+    padding-top: 80px;
+    text-align: center;
+  }
+
+  .ft-cta-copy {
     display: flex;
     flex-direction: column;
+    align-items: center;
   }
 
   .ft-eyebrow {
-    margin: 0 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
     color: var(--ft-soft);
   }
 
+  .ft-eyebrow-dot {
+    width: 8px;
+    height: 8px;
+    flex: none;
+    border-radius: 50%;
+    background: #47c349;
+  }
+
   .ft-title {
+    max-width: 14ch;
+    margin: 16px auto 0;
     color: #ffffff;
+    text-wrap: balance;
   }
 
   .ft-copy {
-    max-width: 400px;
-    margin: 14px 0 0;
+    max-width: 440px;
+    margin: 14px auto 0;
     color: var(--ft-soft);
     font-size: 17px;
     line-height: 25px;
     letter-spacing: -0.012em;
   }
 
-  /* The two buttons run a little past the 420 column, into the gutter. Below 1180 the columns stack, so this never crowds them. */
+  /* The ring's place keeps its height while the posters load; it folds away when there are too few to make a ring. --cring-h is the ring's
+     stage height (ring.css), the same number here and on the stage, and the ring fits its cards inside it whole. The band has the room for a
+     taller stage than the library's on a wide screen; tablet and phone use the ring's own heights (400 / 300). */
+  .ft-ring-slot {
+    --cring-h: 540px;
+    min-height: var(--cring-h);
+    margin-top: 40px;
+  }
+
+  @media (max-width: 1068px) {
+    .ft-ring-slot {
+      --cring-h: 400px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .ft-ring-slot {
+      --cring-h: 300px;
+    }
+  }
+
+  .ft-ring-slot:has([data-ring-empty]) {
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  .ft-ring {
+    animation: ft-ring-in 400ms var(--ease-out) both;
+  }
+
+  @keyframes ft-ring-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .ft-actions-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+  }
+
   .ft-actions {
     display: flex;
+    justify-content: center;
     gap: 12px;
-    width: max-content;
-    margin-top: 28px;
+  }
+
+  /* Below the band, a hairline, then the reach block and the links. */
+  .ft-band-cta + .ft-body > .ft-top {
+    margin-top: 72px;
+    border-top: 1px solid rgb(255 255 255 / 0.1);
+    padding-top: 64px;
   }
 
   /* The sheet is #111111 whichever theme is on, so its hairlines are set here. */
@@ -589,6 +662,15 @@
       row-gap: 48px;
       padding-block: 64px 48px;
     }
+
+    .ft-band-cta {
+      padding-top: 64px;
+    }
+
+    .ft-band-cta + .ft-body > .ft-top {
+      margin-top: 56px;
+      padding-top: 56px;
+    }
   }
 
   @media (max-width: 734px) {
@@ -601,12 +683,28 @@
       gap: 12px;
     }
 
+    .ft-band-cta {
+      padding-top: 40px;
+    }
+
+    .ft-ring-slot {
+      margin-top: 24px;
+    }
+
+    .ft-actions-row {
+      margin-top: 20px;
+    }
+
     .ft-actions {
-      width: auto;
-      margin-top: 16px;
+      width: 100%;
       flex-direction: column;
       align-items: stretch;
       gap: 8px;
+    }
+
+    .ft-band-cta + .ft-body > .ft-top {
+      margin-top: 40px;
+      padding-top: 32px;
     }
 
     .ft-copy {

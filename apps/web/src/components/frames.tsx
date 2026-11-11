@@ -1,7 +1,8 @@
 // Every video on the site sits in an object (visual §1.2): a phone, a card, a chat-reply bubble, a polaroid or a story ring. The poster comes first.
 // A muted preview plays from the same-origin stream only on desktop, one at a time, under one rule (usePreview, V2-SPEC 3.4). The browser never sees
 // MEGA: a MEGA entry's stream is the Worker's own address by video id (streamUrl), and its preview the same address with ?preview=6, which the Worker
-// bounds. Paths come from the API (shared previewSrc), never from this file.
+// bounds. Paths come from the API (shared previewSrc), never from this file. (pv) A video with a stored hover clip (`previewUrl`, a few seconds,
+// small, made by the admin's "Thumbnails & previews" pass) plays that clip instead, looped, whatever `previewOk` says.
 
 import { formatViews, previewSrc, type Video } from '@kreators/shared';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
@@ -13,6 +14,7 @@ import {
   useState,
   useSyncExternalStore,
   type CSSProperties,
+  type FocusEvent as ReactFocusEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -22,6 +24,7 @@ import { Link } from 'react-router';
 import { brandLogo } from '../lib/content';
 import { uploadMonth } from '../lib/videoFind';
 import { canAutoplay, finePointer, motionOk, useMotionOk, useRunning } from '../lib/motionOk';
+import { warmClip } from '../lib/previewWarm';
 import { spring } from '../lib/spring';
 import { useStill } from '../lib/store';
 import { RollNumber, whenSeen } from './ui';
@@ -170,6 +173,9 @@ export function ViewsSticker({ views, tilt = -4, pop = 'view', className }: { vi
 // ---------- Previews (V2-SPEC 3.4) ----------
 
 const HOVER_DELAY = 300; // R6
+// A stored clip is small and usually already in the cache (previewWarm), so it needs only enough of a wait to ignore a pointer sweeping
+// across the grid: with the first frame decoded in about 40 ms it starts within ~150 ms of the hover.
+const CLIP_HOVER_DELAY = 100;
 const LOOP_AT = 5; // seconds (C12): the Worker bounds ?preview=6, so loop before the bound
 const STALL_LIMIT = 1500;
 
@@ -195,7 +201,7 @@ export interface PreviewOptions {
 
 export interface Preview {
   /** Spread onto the frame (hover mode). */
-  bind: { onPointerEnter: (e: ReactPointerEvent) => void; onPointerLeave: () => void };
+  bind: { onPointerEnter: (e: ReactPointerEvent) => void; onPointerLeave: () => void; onFocus: (e: ReactFocusEvent) => void; onBlur: () => void };
   /** The muted <video>, to render inside the frame's media box, or null. */
   node: ReactNode;
   /** True once a frame is really playing. */
@@ -204,14 +210,21 @@ export interface Preview {
   stop: () => void;
 }
 
-/** Whether `video` may preview here at all: allowed by the API, has a stream, and the device may autoplay. */
-export const previewAllowed = (video: Video | null | undefined): video is Video => Boolean(video && video.previewOk && previewSrc(video) && canAutoplay());
+/** What a muted preview of `video` plays: its stored clip, else the bounded stream when the API allows it, else nothing. */
+export function previewSource(video: Video): { src: string; clip: boolean } | null {
+  if (video.previewUrl) return { src: video.previewUrl, clip: true };
+  const stream = video.previewOk ? previewSrc(video) : null;
+  return stream ? { src: stream, clip: false } : null;
+}
+
+/** Whether `video` may preview here at all: a stored clip or an allowed stream, and the device may autoplay. */
+export const previewAllowed = (video: Video | null | undefined): video is Video => Boolean(video && previewSource(video) && canAutoplay());
 
 /**
  * The one rule for every video that plays by itself:
- * 1. only with canAutoplay() (fine pointer, motion allowed, no Save-Data), `previewOk`, a preview address, and the video token;
+ * 1. only with canAutoplay() (fine pointer, motion allowed, no Save-Data), a stored clip or `previewOk` with a preview address, and the video token;
  * 2. a muted, inline <video> shown only once it is `playing`, so the poster never blinks;
- * 3. it loops at 5 s by seeking to 0;
+ * 3. a stored clip loops by itself (it is made to loop); a stream loops at 5 s by seeking to 0;
  * 4. a `waiting` that lasts 1.5 s, or an error, ends it (and it does not try again in this mount);
  * 5. leaving, scrolling out, Pause animations or another video taking the token: pause(), drop the src, load() to abort the fetch, unmount.
  */
@@ -225,7 +238,9 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
   const stall = useRef(0);
   const failed = useRef(false);
   const still = useStill((s) => s.still);
-  const src = video ? previewSrc(video) : null;
+  const source = video ? previewSource(video) : null;
+  const src = source?.src ?? null;
+  const clip = Boolean(source?.clip);
 
   const stop = useCallback(() => {
     window.clearTimeout(wait.current);
@@ -270,6 +285,11 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
     return () => io.disconnect();
   }, [root, mode]);
 
+  // A stored clip on screen is fetched ahead of a hover (a few per page view, two at a time, once the visitor moves a mouse).
+  useEffect(() => {
+    if (clip && inView && mode !== 'none' && !still) warmClip(src, 'near');
+  }, [clip, inView, mode, still, src]);
+
   useEffect(() => {
     if (!inView && on) stop();
   }, [inView, on, stop]);
@@ -299,12 +319,28 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
   const bind = {
     onPointerEnter: (e: ReactPointerEvent) => {
       if (mode !== 'hover' || e.pointerType !== 'mouse' || !previewAllowed(video)) return;
+      if (clip) warmClip(src, 'hover');
       window.clearTimeout(wait.current);
-      wait.current = window.setTimeout(() => start(true), HOVER_DELAY);
+      wait.current = window.setTimeout(() => start(true), clip ? CLIP_HOVER_DELAY : HOVER_DELAY);
     },
     onPointerLeave: () => {
       if (mode !== 'hover') return;
       window.clearTimeout(wait.current);
+      // A frame that still has the keyboard's focus keeps its preview.
+      if (root.current?.matches(':focus-visible')) return;
+      if (on || videoToken.holds(owner.current)) stop();
+    },
+    // (pv) Keyboard focus previews like a hover (focus-visible only: a click's focus is followed by the player).
+    onFocus: (e: ReactFocusEvent) => {
+      if (mode !== 'hover' || !previewAllowed(video) || !e.currentTarget.matches(':focus-visible')) return;
+      if (clip) warmClip(src, 'hover');
+      window.clearTimeout(wait.current);
+      wait.current = window.setTimeout(() => start(true), clip ? CLIP_HOVER_DELAY : HOVER_DELAY);
+    },
+    onBlur: () => {
+      if (mode !== 'hover') return;
+      window.clearTimeout(wait.current);
+      if (root.current?.matches(':hover')) return;
       if (on || videoToken.holds(owner.current)) stop();
     },
   };
@@ -317,6 +353,7 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
         src={src}
         muted
         autoPlay
+        loop={clip}
         playsInline
         preload="auto"
         disablePictureInPicture
@@ -328,8 +365,9 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
           window.clearTimeout(stall.current);
           setPlaying(true);
         }}
+        data-clip={clip ? '' : undefined}
         onTimeUpdate={(e) => {
-          if (e.currentTarget.currentTime >= LOOP_AT) e.currentTarget.currentTime = 0;
+          if (!clip && e.currentTarget.currentTime >= LOOP_AT) e.currentTarget.currentTime = 0;
         }}
         onWaiting={() => {
           window.clearTimeout(stall.current);
@@ -353,7 +391,7 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
 export type FrameVariant = 'phone' | 'card' | 'bubble' | 'polaroid' | 'ring';
 
 export interface VideoFrameProps {
-  /** The public Video: reads posterUrl, streamUrl (through previewSrc), previewOk, embedUrl, links, views, brand, title. */
+  /** The public Video: reads posterUrl, previewUrl, streamUrl (through previewSrc), previewOk, embedUrl, links, views, brand, title. */
   video: Video;
   variant: FrameVariant;
   /** Sets --fw. Height follows the shape: 9:16 (phone 280:580), 16:9 for a landscape card, a circle for a ring. */

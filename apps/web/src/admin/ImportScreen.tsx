@@ -10,7 +10,7 @@ import { Character } from '../cast';
 import { ChipRail } from '../components/tabs';
 import { Seo } from '../components/ui';
 import { keys } from './api';
-import { makePosters } from './autoPosters';
+import { attachQueryClient, enqueue, stop as stopMedia, useMediaGen } from './mediaGen/runner';
 import { ConfirmDialog, EmptyState } from './bits';
 import {
   bindQueryClient,
@@ -31,7 +31,6 @@ import {
 } from './importStore';
 import { ImportSkeleton, ImportTable } from './ImportTable';
 import { toast } from './Toasts';
-import { mergeVideo } from './videoCache';
 
 const STEPS = ['Add links', 'Review', 'Done'] as const;
 const SHEET_EXT = /\.(xlsx|xlsm|xls|numbers|ods)$/i;
@@ -399,17 +398,30 @@ function Ignored({ list }: { list: { line: number; link: string; reason: string 
 
 // ---------- Step 3: Done ----------
 
-let posterAbort: AbortController | null = null;
+/** (pv) Imports whose drafts were already queued for thumbnails and previews (once per import, even if this step mounts again). */
+const mediaQueued = new Set<string>();
 
 function DoneStep() {
   const qc = useQueryClient();
   const result = useImport((s) => s.result);
   const rows = useImport((s) => s.rows);
   const importId = useImport((s) => s.importId);
-  const posters = useImport((s) => s.posters);
+  const jobs = useMediaGen((s) => s.jobs);
   const undone = useImport((s) => s.undone);
   const [confirmUndo, setConfirmUndo] = useState(false);
   const [undoing, setUndoing] = useState(false);
+
+  // (pv) Right after an import, its new drafts get a thumbnail and a hover preview, made in this browser one at a time (admin/mediaGen).
+  useEffect(() => {
+    if (!result || undone || !result.created.length || !importId || mediaQueued.has(importId)) return;
+    mediaQueued.add(importId);
+    attachQueryClient(qc);
+    const list = qc.getQueryData<AdminVideoList>(keys.videos(false))?.videos ?? [];
+    enqueue(result.created.map((v) => list.find((x) => x.id === v.id) ?? v).filter((v) => !v.deletedAt));
+  }, [result, undone, importId, qc]);
+  const createdIds = useMemo(() => new Set(result?.created.map((v) => v.id) ?? []), [result]);
+  const mine = jobs.filter((j) => createdIds.has(j.id));
+
   if (!result) return null;
 
   const created = result.created.length;
@@ -417,29 +429,9 @@ function DoneStep() {
   const reasons = skippedReasons(rows, result);
   const skipped = reasons.reduce((n, [c]) => n + c, 0);
 
-  const startPosters = async () => {
-    // The newest copy of each created video, so a poster made meanwhile is not made again.
-    const list = qc.getQueryData<AdminVideoList>(keys.videos(false))?.videos ?? [];
-    const latest: AdminVideo[] = result.created.map((v) => list.find((x) => x.id === v.id) ?? v).filter((v) => !v.deletedAt);
-    posterAbort?.abort();
-    const ac = new AbortController();
-    posterAbort = ac;
-    useImport.setState({ posters: { done: 0, total: 0, made: 0, failed: 0, running: true, stopped: false } });
-    const run = await makePosters(latest, {
-      signal: ac.signal,
-      onProgress: (done, total) => useImport.setState((s) => ({ posters: s.posters ? { ...s.posters, done, total } : s.posters })),
-      onMade: (v) => {
-        mergeVideo(qc, v);
-        useImport.setState((s) => ({ posters: s.posters ? { ...s.posters, made: s.posters.made + 1 } : s.posters }));
-      },
-    });
-    useImport.setState((s) => ({ posters: s.posters ? { ...s.posters, running: false, failed: run.failed.length, stopped: run.stopped } : s.posters }));
-    if (run.failed.length) toast(`${run.failed.length} ${run.failed.length === 1 ? 'poster' : 'posters'} could not be made. Pick a frame by hand for those.`, { tone: 'error' });
-  };
-
   const undo = async () => {
     setUndoing(true);
-    posterAbort?.abort();
+    stopMedia();
     const ok = await undoImport();
     setUndoing(false);
     setConfirmUndo(false);
@@ -489,11 +481,6 @@ function DoneStep() {
             Review the drafts
           </Link>
           {!undone && created > 0 && (
-            <button type="button" className="btn btn-sm btn-ghost" onClick={() => void startPosters()} disabled={!!posters?.running}>
-              Make posters from the first second
-            </button>
-          )}
-          {!undone && created > 0 && (
             <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmUndo(true)}>
               Undo this import
             </button>
@@ -502,18 +489,17 @@ function DoneStep() {
             Import more links
           </button>
         </div>
-        {posters && (
-          <p className="adm-posters-line" aria-live="polite">
-            {posters.running
-              ? `Posters: ${posters.done} of ${posters.total}`
-              : posters.total === 0
-                ? 'Every video already has a poster.'
-                : `Posters: ${posters.made} made${posters.failed ? `, ${posters.failed} failed` : ''}${posters.stopped ? ' (stopped)' : ''}.`}
-            {posters.running && (
-              <button type="button" className="adm-link-btn" onClick={() => posterAbort?.abort()}>
-                Cancel
-              </button>
-            )}
+        {mine.length > 0 && (
+          <p className="adm-posters-line" aria-live="polite" data-mediagen-import>
+            {(() => {
+              const done = mine.filter((j) => j.status === 'done').length;
+              const failed = mine.filter((j) => j.status === 'failed').length;
+              const going = mine.some((j) => j.status === 'queued' || j.status === 'running');
+              return `Thumbnails and previews: ${done} of ${mine.length} made${failed ? `, ${failed} failed` : ''}${going ? '. Keep this tab open.' : '.'}`;
+            })()}{' '}
+            <Link to="/admin/videos" className="adm-link-btn">
+              See them in Videos
+            </Link>
           </p>
         )}
       </div>

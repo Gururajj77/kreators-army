@@ -10,6 +10,8 @@ import type {
   AdminSession,
   AdminVideo,
   AdminVideoList,
+  BulkRequest,
+  BulkResult,
   ImportCommitRequest,
   ImportCommitResponse,
   ImportDryRunRequest,
@@ -206,6 +208,8 @@ export const adminApi = {
   },
   removePoster: (id: string) => adminFetch<void>(`/videos/${encodeURIComponent(id)}/poster`, { method: 'DELETE' }),
   megaCheck: (id: string) => adminFetch<{ video: AdminVideo; inspect: MegaInspect }>(`/videos/${encodeURIComponent(id)}/mega-check`, { method: 'POST' }),
+  /** (sel) One action on several videos (POST /videos/bulk). */
+  bulk: (req: BulkRequest) => adminFetch<BulkResult>('/videos/bulk', { method: 'POST', json: req }),
   adoptSecret: () => adminFetch<{ adopted: AdminVideo[]; missing: string[] }>('/videos/adopt-secret', { method: 'POST' }),
 
   inspect: (link: string, opts: { refresh?: boolean; videoId?: string } = {}, signal?: AbortSignal) =>

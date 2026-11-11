@@ -7,6 +7,7 @@ import {
   isPlayable,
   streamGrade,
   type AdminPoster,
+  type AdminPreview,
   type AdminVideo,
   type MegaMeta,
   type MegaProblem,
@@ -20,19 +21,25 @@ import {
 import { streamTag, streamUrl } from './mega/lookup';
 import { parseSniffMeta, type SniffMeta } from './mega/sniff';
 import { PREVIEW_MAX } from './mega/stream';
+import { previewPath } from './previews';
 
 /** What GET /api/videos reads (V2-SPEC 2.10). mega_url is read only to compute the stream tag. */
 export const PUBLIC_COLUMNS = `v.id, v.title, v.brand, v.category, v.platform, v.aspect, v.views, v.upload_date, v.featured,
        v.mega_handle, v.mega_url, v.mega_meta, v.mega_duration_ms, v.file_ref, v.wave_ref,
-       v.instagram_url, v.youtube_url, v.poster_url, p.sha AS poster_sha, p.mime AS poster_mime`;
+       v.instagram_url, v.youtube_url, v.poster_url, p.sha AS poster_sha, p.mime AS poster_mime, pv.sha AS preview_sha, pv.mime AS preview_mime`;
+
+/** The public listing's tables. The joins name small columns only, so no poster or clip BLOB is ever read here. */
+export const PUBLIC_FROM = 'FROM videos v LEFT JOIN posters p ON p.video_id = v.id LEFT JOIN video_previews pv ON pv.video_id = v.id';
 
 export const ADMIN_COLUMNS = `v.id, v.title, v.brand, v.category, v.platform, v.aspect, v.views, v.upload_date, v.featured, v.sort_order, v.published,
        v.created_at, v.updated_at, v.source, v.mega_handle, v.mega_url, v.mega_name, v.mega_size, v.mega_width, v.mega_height,
        v.mega_duration_ms, v.mega_bitrate, v.mega_codec, v.mega_fast_start, v.mega_checked_at, v.mega_error, v.mega_meta,
        v.file_ref, v.wave_ref, v.instagram_url, v.youtube_url, v.poster_url, v.import_id, v.deleted_at,
-       p.sha AS poster_sha, p.mime AS poster_mime, p.width AS poster_width, p.height AS poster_height, p.time_ms AS poster_time_ms`;
+       p.sha AS poster_sha, p.mime AS poster_mime, p.width AS poster_width, p.height AS poster_height, p.time_ms AS poster_time_ms, p.auto AS poster_auto,
+       pv.sha AS preview_sha, pv.mime AS preview_mime, pv.size AS preview_size, pv.width AS preview_width, pv.height AS preview_height,
+       pv.duration_ms AS preview_duration_ms, pv.start_ms AS preview_start_ms, pv.made_at AS preview_made_at`;
 
-export const ADMIN_FROM = 'FROM videos v LEFT JOIN posters p ON p.video_id = v.id';
+export const ADMIN_FROM = 'FROM videos v LEFT JOIN posters p ON p.video_id = v.id LEFT JOIN video_previews pv ON pv.video_id = v.id';
 
 export interface PublicRow {
   id: string;
@@ -55,6 +62,9 @@ export interface PublicRow {
   poster_url: string | null;
   poster_sha: string | null;
   poster_mime: string | null;
+  /** From video_previews (migration 0008); undefined from a query that does not join it. */
+  preview_sha?: string | null;
+  preview_mime?: string | null;
 }
 
 export interface VideoRow extends PublicRow {
@@ -77,6 +87,13 @@ export interface VideoRow extends PublicRow {
   poster_width: number | null;
   poster_height: number | null;
   poster_time_ms: number | null;
+  poster_auto?: number | null;
+  preview_size?: number | null;
+  preview_width?: number | null;
+  preview_height?: number | null;
+  preview_duration_ms?: number | null;
+  preview_start_ms?: number | null;
+  preview_made_at?: string | null;
 }
 
 const EXT: Record<string, string> = { 'image/webp': 'webp', 'image/jpeg': 'jpg', 'image/png': 'png' };
@@ -104,6 +121,11 @@ export function previewOkFromMeta(meta: SniffMeta | null): boolean {
 function previewOk(row: Pick<PublicRow, 'mega_handle' | 'mega_meta' | 'file_ref'>): boolean {
   if (row.mega_handle) return previewOkFromMeta(parseSniffMeta(row.mega_meta));
   return !!row.file_ref;
+}
+
+/** The stored hover clip's address, or null. */
+export function previewUrl(row: Pick<PublicRow, 'id' | 'preview_sha' | 'preview_mime'>): string | null {
+  return row.preview_sha && row.preview_mime ? previewPath(row.id, row.preview_sha, row.preview_mime) : null;
 }
 
 const youtubeEmbed = (id: string) => `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1`;
@@ -136,6 +158,7 @@ export async function toPublicVideo(row: PublicRow): Promise<Video> {
     embedUrl,
     posterUrl: posterUrl(row),
     previewOk: previewOk(row),
+    previewUrl: previewUrl(row),
     durationMs: row.mega_duration_ms,
     links: { instagram: row.instagram_url, youtube: row.youtube_url },
     source,
@@ -188,8 +211,21 @@ export function problemsFor(row: VideoRow): VideoProblem[] {
 export async function toAdminVideo(row: VideoRow): Promise<AdminVideo> {
   const pub = await toPublicVideo(row);
   let poster: AdminPoster | null = null;
-  if (row.poster_sha && row.poster_mime) poster = { url: pub.posterUrl!, stored: true, width: row.poster_width, height: row.poster_height, timeMs: row.poster_time_ms };
+  if (row.poster_sha && row.poster_mime) poster = { url: pub.posterUrl!, stored: true, width: row.poster_width, height: row.poster_height, timeMs: row.poster_time_ms, auto: row.poster_auto === 1 };
   else if (pub.posterUrl) poster = { url: pub.posterUrl, stored: false, width: null, height: null, timeMs: null };
+  const preview: AdminPreview | null =
+    pub.previewUrl && row.preview_mime
+      ? {
+          url: pub.previewUrl,
+          mime: row.preview_mime === 'video/webm' ? 'video/webm' : 'video/mp4',
+          size: row.preview_size ?? 0,
+          width: row.preview_width ?? null,
+          height: row.preview_height ?? null,
+          durationMs: row.preview_duration_ms ?? null,
+          startMs: row.preview_start_ms ?? null,
+          madeAt: row.preview_made_at ? new Date(`${row.preview_made_at.replace(' ', 'T')}Z`).toISOString() : new Date(0).toISOString(),
+        }
+      : null;
   let mega: AdminVideo['mega'] = null;
   if (row.mega_handle) {
     const meta = megaMetaFromRow(row);
@@ -228,6 +264,7 @@ export async function toAdminVideo(row: VideoRow): Promise<AdminVideo> {
     instagramUrl: row.instagram_url,
     youtubeUrl: row.youtube_url,
     poster,
+    preview,
     importId: row.import_id,
     problems: problemsFor(row),
     createdAt: row.created_at,
