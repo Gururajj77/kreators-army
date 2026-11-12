@@ -386,8 +386,11 @@ export function EditTimeline({ steps, mode, tone = 'ink', onStep, onDone, aside,
 
   // Stage: the playhead follows the scroll as the timeline itself passes up the screen, at every width. Never pinned (home11): a pinned stage held the
   // page still under the visitor's scroll, which read as the page being stuck.
-  const { scrollYProgress } = useScroll({ target: stage, offset: ['start 75%', 'end 60%'] });
+  // (r18) A travelling timeline counts from its plate, not the stage over it, and a little later: the playhead sets off as the plate's top reaches 66%
+  // of the screen and ends as its bottom reaches 50%, so step 1 holds while the section scrolls in and the walk starts with the clips and their captions
+  // on screen (it used to start with the track still at the bottom edge), and step 5 lands with the scene above the plate still in view.
   const walking = travel && mode === 'stage';
+  const { scrollYProgress } = useScroll(walking ? { target: plate, offset: ['start 66%', 'end 50%'] } : { target: stage, offset: ['start 75%', 'end 60%'] });
   const walkTo = useTravel(walking, root);
   // A clicked step holds until the visitor scrolls on by more than a little; then the scroll leads again.
   const held = useRef<{ k: number; y: number } | null>(null);

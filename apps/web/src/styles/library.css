@@ -606,6 +606,7 @@
   /* Below 900px (and on phones) Shuffle is its icon, the word kept for screen readers. */
   @media (max-width: 900px) {
     .lib-shuffle {
+      min-width: 44px;
       padding-inline: 11px;
     }
 

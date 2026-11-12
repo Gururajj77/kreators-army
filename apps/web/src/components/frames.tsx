@@ -22,7 +22,7 @@ import {
 } from 'react';
 import { Link } from 'react-router';
 import { brandLogo } from '../lib/content';
-import { uploadMonth } from '../lib/videoFind';
+import { posterFirst, shuffleForLoad, uploadMonth } from '../lib/videoFind';
 import { canAutoplay, finePointer, motionOk, useMotionOk, useRunning } from '../lib/motionOk';
 import { warmClip } from '../lib/previewWarm';
 import { spring } from '../lib/spring';
@@ -279,11 +279,12 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
     if (still) stop();
   }, [still, stop]);
 
-  // In view: at least half the frame, for 'active'; any of it, to keep a hover preview alive.
+  // In view: about half the frame, for 'active' (0.45, so a frame cut exactly in half by a mask, like the middle vox pop photo on
+  // /why-kreators at a ratio of 0.4998, still counts); any of it, to keep a hover preview alive.
   useEffect(() => {
     const node = root.current;
     if (!node || mode === 'none' || typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(([e]) => setInView(Boolean(e && e.intersectionRatio >= (mode === 'active' ? 0.5 : 0.01))), { threshold: [0, 0.01, 0.5] });
+    const io = new IntersectionObserver(([e]) => setInView(Boolean(e && e.intersectionRatio >= (mode === 'active' ? 0.45 : 0.01))), { threshold: [0, 0.01, 0.45] });
     io.observe(node);
     return () => io.disconnect();
   }, [root, mode]);
@@ -737,15 +738,15 @@ const usePhone = () => useSyncExternalStore(onPhoneChange, () => matchMedia(PHON
 const DWELL = 4500;
 
 /**
- * The deck's videos (V2-SPEC 3.4): `firstId` first, then the next published videos by sort order, `count` in all. Videos with a thumbnail lead
- * (the founder's imported library starts without them, and a deck of blank cards reads as broken), featured ones first within each group.
- * The API already returns them in sort order; this keeps that order within each group.
+ * The deck's videos (V2-SPEC 3.4; r18: random on every page load, so each reel gets its turn at the front): `count` videos in this load's order
+ * (lib/videoFind shuffleForLoad, the same order on every render and route change of the visit). Videos with a thumbnail lead (the founder's
+ * imported library starts without them, and a deck of blank cards reads as broken), vertical before landscape within each group.
+ * `firstId` (the kit's fixed sample) still puts that video first when it is live.
  */
-export function deckOrder(videos: Video[], firstId: string, count = 4): Video[] {
-  const first = videos.find((v) => v.id === firstId);
-  const rest = videos.filter((v) => v.id !== firstId);
-  const rank = (v: Video) => (v.posterUrl ? 0 : 2) + (v.featured ? 0 : 1);
-  const ordered = rest.map((v, i) => ({ v, i })).sort((a, b) => rank(a.v) - rank(b.v) || a.i - b.i).map((x) => x.v);
+export function deckOrder(videos: Video[], firstId?: string, count = 4): Video[] {
+  const first = firstId ? videos.find((v) => v.id === firstId) : undefined;
+  const rest = videos.filter((v) => v !== first);
+  const ordered = shuffleForLoad(rest, 'hero-deck', { tier: (v) => posterFirst(v) * 2 + (v.aspect === 'landscape' ? 1 : 0) });
   return (first ? [first, ...ordered] : ordered).slice(0, count);
 }
 
@@ -777,6 +778,7 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
   const [held, setHeld] = useState(false);
   const [arrived, setArrived] = useState(0);
   const [armed, setArmed] = useState(false);
+  const [cover, setCover] = useState<'on' | 'leaving' | 'off'>('on');
   const flat = usePhone();
   const list = videos ?? [];
   const key = list.map((v) => v.id).join('|');
@@ -853,6 +855,25 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
   // Story progress: one segment per card in the deck's own order; those before the front are full.
   const position = front ? Math.max(0, list.findIndex((v) => v.id === front.id)) : 0;
 
+  // (r18) The deck's order is random per load, so its front is rarely the poster's video. The poster card stays on top until the front's picture
+  // has decoded (no blank card behind it), then leaves the way any card leaves the deck (still: at once). The same picture: it simply gives way.
+  const frontPicture = front ? (front.posterUrl ?? poster) : null;
+  useEffect(() => {
+    if (cover !== 'on' || !frontPicture) return;
+    if (frontPicture === poster) {
+      setCover('off');
+      return;
+    }
+    let alive = true;
+    const go = () => alive && setCover(ok ? 'leaving' : 'off');
+    const img = new Image();
+    img.src = frontPicture;
+    img.decode().then(go, go);
+    return () => {
+      alive = false;
+    };
+  }, [cover, frontPicture, poster, ok]);
+
   return (
     <div className={`vdeck-wrap ${className ?? ''}`}>
       <div
@@ -868,8 +889,22 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
         onFocus={() => setHeld(true)}
         onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setHeld(false)}
       >
-        {cards.length === 0 ? (
-          <div className="vdeck-card" data-slot="0" style={{ zIndex: 8 }}>
+        {(cover !== 'off' || cards.length === 0) && (
+          // The first paint (the preloaded poster), kept as its own card on top until the random front's picture is ready (r18); the same element
+          // throughout, so the LCP image is never swapped. Once cards are under it, it is decoration: hidden and inert (clicks reach the front).
+          <m.div
+            key="cover"
+            className="vdeck-card"
+            data-slot="0"
+            data-cover=""
+            style={{ zIndex: 9 }}
+            initial={false}
+            animate={cover === 'leaving' ? (flat ? FLAT_EXIT : EXIT) : SLOTS[0]}
+            transition={spring.glide}
+            onAnimationComplete={() => cover === 'leaving' && setCover('off')}
+            aria-hidden={cards.length > 0 || undefined}
+            inert={cards.length > 0 || undefined}
+          >
             <div className="vframe vframe-phone" data-frame="phone">
               <span className="vframe-screen">
                 <img src={poster} alt="" fetchPriority="high" decoding="async" />
@@ -877,9 +912,9 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
                 <span className="vframe-island" aria-hidden />
               </span>
             </div>
-          </div>
-        ) : (
-          cards.map((v, slot) => {
+          </m.div>
+        )}
+        {cards.map((v, slot) => {
             const out = v.id === leaving;
             const isFront = slot === 0 && !out;
             // (hover7) The two back cards you can see play on hover too: decorative frames (no button, nothing focusable), so they are only
@@ -931,11 +966,10 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
                     </>
                   )}
                 </VideoFrame>
-                {isFront && <ViewsSticker key={`${v.id}-${arrived}`} views={v.views} tilt={-6} pop={arrived > 0 ? 'mount' : 'view'} className="vdeck-sticker" />}
+                {isFront && cover === 'off' && <ViewsSticker key={`${v.id}-${arrived}`} views={v.views} tilt={-6} pop={arrived > 0 ? 'mount' : 'view'} className="vdeck-sticker" />}
               </m.div>
             );
-          })
-        )}
+          })}
         {cards.length > 1 && <ReelPause wanted={wanted} label={label} onToggle={toggle} className="vdeck-pause" />}
       </div>
       {viewsCard && front && (
@@ -948,10 +982,10 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
           )}
           {cards.length > 1 && (
             <span className="vdeck-steps">
-              <button type="button" className="nav-icon" onClick={() => step(-1)} aria-label="Previous reel">
+              <button type="button" className="rail-paddle" onClick={() => step(-1)} aria-label="Previous reel">
                 <ChevronLeft className="size-5" aria-hidden />
               </button>
-              <button type="button" className="nav-icon" onClick={() => step(1)} aria-label="Next reel">
+              <button type="button" className="rail-paddle" onClick={() => step(1)} aria-label="Next reel">
                 <ChevronRight className="size-5" aria-hidden />
               </button>
             </span>

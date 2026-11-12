@@ -70,15 +70,23 @@
     transition: opacity 140ms ease 120ms;
   }
 
+  /* (fix17) Never under 11px: a floor on the scaled name, and on a thumbnail too small to hold it the tone alone stands in for it. */
   .tile-empty > span {
     display: block;
     font-family: var(--font-display);
-    font-size: 11cqw;
+    font-size: max(11px, 11cqw);
+    overflow-wrap: anywhere;
     font-weight: var(--w-semibold);
     line-height: 1.08;
     letter-spacing: -0.012em;
     text-align: center;
     text-wrap: balance;
+  }
+
+  @container (max-width: 71.98px) {
+    .tile-empty > span {
+      display: none;
+    }
   }
 
   .tile-empty[data-tone='sochu'] {
@@ -1462,12 +1470,13 @@
     letter-spacing: var(--t-body-track);
   }
 
+  /* (r18) The step buttons are the site's round icon buttons, the rail's paddles (.rail-paddle, home.css and the 3D recipe in buttons.css),
+     4 px apart, so the card stays inside the room Bolu and Tiko leave it (--views-clear). In the pill, ink is the pill's light text: the paddles' icon
+     and liquid follow it, and buttons.css already gives the pill the dark-context frost. */
   .vdeck-steps {
+    --ink: #f5f3ee;
     display: inline-flex;
-  }
-
-  .vdeck-steps .nav-icon {
-    color: inherit;
+    gap: 4px;
   }
 
   /* ---------- The pause control on a reel (moved with ReelPause from home.css). Over-video glass, 44 px. ---------- */

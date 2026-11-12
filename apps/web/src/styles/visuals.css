@@ -304,16 +304,20 @@
     box-shadow: 0 0 0 2px var(--surface);
   }
 
+  /* (fix17) Up to two lines (two 17px lines fit the 52px clip), hyphenated in a narrow clip, so a name is cut only when it truly cannot fit. */
   .etl-clip-name {
     position: relative;
+    display: -webkit-box;
     min-width: 0;
     overflow: hidden;
     font-size: var(--t-footnote-size);
     letter-spacing: var(--t-footnote-track);
     font-weight: var(--w-semibold);
     line-height: var(--t-footnote-lh);
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    hyphens: auto;
   }
 
   /* The playhead: Sochu's yellow, never red. It moves by transform only: x = progress x the track's width. */

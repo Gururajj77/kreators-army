@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { DeckCard } from '../../components/frames';
 import { HeroCopy, Reveal, ResultsNote, Seo, Tile, TileBody, type TileTone } from '../../components/ui';
 import { FOUNDER_QUOTE, TESTIMONIALS } from '../../lib/content';
 import { useVideos } from '../../lib/queries';
+import { shuffleForLoad } from '../../lib/videoFind';
 
 // A wall, not a row of cards: three sizes on one tight grid, the number first and the words after it. No characters here: a mascot beside a client's words undercuts them (R42).
 
@@ -25,9 +26,9 @@ function Cell({ slot, i, children }: { slot: string; i: number; children: ReactN
 }
 
 export default function Testimonials() {
-  // The "Watch the videos" tile is a deck of real posters from the library (M8): the most viewed first.
+  // The "Watch the videos" tile is a deck of real posters from the library (M8): three at random for this page load (r18), so each reel has its turn.
   const { data } = useVideos();
-  const posters = [...(data ?? [])].filter((v) => v.posterUrl).sort((a, b) => b.views - a.views).slice(0, 3);
+  const posters = useMemo(() => shuffleForLoad((data ?? []).filter((v) => v.posterUrl), 'testimonials').slice(0, 3), [data]);
   return (
     <>
       <Seo title="Testimonials" description="What founders and marketing teams say about working with Kreators.Army on vox pop street interviews: the format, the shoot and the videos, in their own words." />

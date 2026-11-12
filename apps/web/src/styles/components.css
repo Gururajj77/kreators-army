@@ -21,6 +21,14 @@
   initial-value: 0;
 }
 
+/* (fix17) The sheen's strength through one sweep: 0 at rest, up as the band enters, back to 0 before it ends, so a tall card is never left
+   with a stripe of sheen parked over its content (and still or reduced motion never shows one). */
+@property --lg-sheen-k {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
 @property --glow-sil {
   syntax: '*';
   inherits: false;
@@ -814,6 +822,7 @@
       .bp-stat,
       .bp-cta,
       .bp-verdict,
+      .bp-video[data-state='missing'],
       .bw
     ) {
     position: relative;
@@ -871,6 +880,7 @@
       .bp-stat,
       .bp-cta,
       .bp-verdict,
+      .bp-video[data-state='missing'],
       .bw
     )::after {
     content: '';
@@ -902,12 +912,12 @@
     opacity: 0;
     pointer-events: none;
     -webkit-mask:
-      linear-gradient(110deg, transparent 40%, rgb(0 0 0 / var(--lgm-sheen-a)) 50%, transparent 60%) var(--lg-sweep) 0 / 250% 100% no-repeat,
+      linear-gradient(110deg, transparent 40%, rgb(0 0 0 / calc(var(--lgm-sheen-a) * var(--lg-sheen-k))) 50%, transparent 60%) var(--lg-sweep) 0 / 250% 100% no-repeat,
       linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);
     -webkit-mask-composite: source-over, xor;
     mask:
-      linear-gradient(110deg, transparent 40%, rgb(0 0 0 / var(--lgm-sheen-a)) 50%, transparent 60%) var(--lg-sweep) 0 / 250% 100% no-repeat add,
+      linear-gradient(110deg, transparent 40%, rgb(0 0 0 / calc(var(--lgm-sheen-a) * var(--lg-sheen-k))) 50%, transparent 60%) var(--lg-sweep) 0 / 250% 100% no-repeat add,
       linear-gradient(#000 0 0) content-box exclude,
       linear-gradient(#000 0 0);
     animation: var(--lg-anim-rest, lg-flow 2.4s linear infinite paused);
@@ -943,6 +953,7 @@
         .bp-stat,
         .bp-cta,
         .bp-verdict,
+        .bp-video[data-state='missing'],
         .bw
       ):hover {
       --lg-glow: 1;
@@ -976,6 +987,7 @@
         .bp-stat,
         .bp-cta,
         .bp-verdict,
+        .bp-video[data-state='missing'],
         .bw
       ):hover::after {
       opacity: 1;
@@ -1021,6 +1033,7 @@
       .bp-stat,
       .bp-cta,
       .bp-verdict,
+      .bp-video[data-state='missing'],
       .bw
     ):is(:focus-visible, :has(:focus-visible:not(input, textarea, select))) {
     --lg-glow: 1;
@@ -1054,6 +1067,7 @@
       .bp-stat,
       .bp-cta,
       .bp-verdict,
+      .bp-video[data-state='missing'],
       .bw
     ):is(:focus-visible, :has(:focus-visible:not(input, textarea, select)))::after {
     opacity: 1;
@@ -1069,11 +1083,57 @@
   @keyframes lg-sweep {
     from {
       --lg-sweep: 100%;
+      --lg-sheen-k: 0;
+    }
+
+    15% {
+      --lg-sheen-k: 1;
+    }
+
+    70% {
+      --lg-sheen-k: 1;
     }
 
     to {
       --lg-sweep: 0%;
+      --lg-sheen-k: 0;
     }
+  }
+
+  /* (fix17) No sheen over controls: a card that holds a button or a form field keeps its rim and halo, but the near-white band would lift an
+     ink or accent button's fill (the /contact Next label fell to about 3:1 in light while the form card was hovered). */
+  :where(
+      .lglass,
+      .plate:not([data-tone]),
+      .stat,
+      .frame,
+      .t-card,
+      .platform,
+      .price-row,
+      .faqchat-a,
+      .split-control,
+      .mech-card,
+      .etl[data-tone='plate'] .etl-plate,
+      .cf-card,
+      .qa-plate,
+      .rt-shelf,
+      .vp-street,
+      .hww-chain,
+      .post-answer,
+      .post-takeaways li,
+      .bp-def,
+      .bp-table-scroll,
+      .bp-script,
+      .bp-steps,
+      .bp-fw,
+      .bp-compare-col,
+      .bp-stat,
+      .bp-cta,
+      .bp-verdict,
+      .bp-video[data-state='missing'],
+      .bw
+    ):has(button, .btn, input, select, textarea) {
+    --lgm-sheen-a: 0;
   }
 
   /* Still or reduced motion: the rim and halo show on hover and focus, still: no flow, no sweep, no fade. */

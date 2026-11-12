@@ -1,4 +1,4 @@
-import type { Video } from '@kreators/shared';
+import { seededRandom, seededShuffle, type SeededShuffleOptions, type Video } from '@kreators/shared';
 
 // The video library's finding rules, kept free of React so they read (and test) on their own: the facets and their counts, the sorts, the search
 // and its suggestions, and the upload date as words. Used by site/VideoLibrary.tsx, and for the date by the tiles and the player.
@@ -316,21 +316,27 @@ export function sortsFor(videos: Video[]): SortDef[] {
   ];
 }
 
-/** A small seeded generator (mulberry32) from any string, so a shuffle stays put across renders and in a shared link (?sort=shuffle&seed=). */
-function seeded(seed: string): () => number {
-  let h = 1779033703 ^ seed.length;
-  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 3432918353) >>> 0;
-  let t = h >>> 0;
-  return () => {
-    t = (t + 0x6d2b79f5) >>> 0;
-    let r = Math.imul(t ^ (t >>> 15), 1 | t);
-    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 /** A new shuffle seed (each visit's default order, and the Shuffle button): short, URL-safe. */
 export const newShuffleSeed = () => Math.random().toString(36).slice(2, 8);
+
+// ---------- This page load's order: every public list of videos (and the Home chat's questions) ----------
+
+let loadSeed: string | undefined;
+
+/** One seed per page load, made on the first call (in the browser: the app renders on the client only), so a re-render or a route change within
+ *  the visit keeps every order and a full reload deals new ones. Each reel gets its turn at the prominent places. */
+export function pageLoadSeed(): string {
+  loadSeed ??= newShuffleSeed();
+  return loadSeed;
+}
+
+/** A video with a poster before one without (no blank cards in the prominent places while alternatives exist). */
+export const posterFirst = (v: Video) => (v.posterUrl ? 0 : 1);
+
+/** This load's order of `list` for one surface (`salt`: each surface its own order). Stable for the visit; `tier` puts lower tiers first. */
+export function shuffleForLoad<T>(list: readonly T[], salt: string, options?: SeededShuffleOptions<T>): T[] {
+  return seededShuffle(list, `${pageLoadSeed()}:${salt}`, options);
+}
 
 /** Missing values (no date, unknown views, no length) go last in both directions. Ties keep the library's order. */
 const by = (get: (v: Video) => number | null, dir: 1 | -1) => (a: Video, b: Video) => {
@@ -343,7 +349,7 @@ const by = (get: (v: Video) => number | null, dir: 1 | -1) => (a: Video, b: Vide
 export function sortVideos(list: Video[], sort: string, seed = '1'): Video[] {
   const out = [...list];
   if (sort === 'shuffle') {
-    const rnd = seeded(seed);
+    const rnd = seededRandom(seed);
     for (let i = out.length - 1; i > 0; i--) {
       const j = Math.floor(rnd() * (i + 1));
       [out[i], out[j]] = [out[j]!, out[i]!];

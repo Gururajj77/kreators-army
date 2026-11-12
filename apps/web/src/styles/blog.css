@@ -1043,11 +1043,11 @@
     text-wrap: pretty;
   }
 
+  /* (fix17) Liquid glass, from the shared card list in components.css (it was a grey --sunken block). */
   .bp-video[data-state='missing'] {
     display: block;
     padding: 16px 18px;
     border-radius: var(--r-inner);
-    background: var(--sunken);
   }
 
   .bp-video-tile {

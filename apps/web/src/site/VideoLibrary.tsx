@@ -1,4 +1,4 @@
-import type { Video } from '@kreators/shared';
+import { seededShuffle, type Video } from '@kreators/shared';
 import { Check, ChevronDown, Search, Shuffle, X } from 'lucide-react';
 import { AnimatePresence, LayoutGroup, m } from 'motion/react';
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
@@ -15,7 +15,7 @@ import { motionOk } from '../lib/motionOk';
 import { useVideos } from '../lib/queries';
 import { spring } from '../lib/spring';
 import { FIRST_ROWS, LibraryIntro, guessCols } from './LibraryShell';
-import { chipLabel, facetDefs, facets as facetsOf, newShuffleSeed, passes, sortVideos, sortsFor, suggest, tokens, withoutWordsOf, type Facet, type SortDef, type Suggestion } from '../lib/videoFind';
+import { chipLabel, facetDefs, facets as facetsOf, newShuffleSeed, passes, posterFirst, sortVideos, sortsFor, suggest, tokens, withoutWordsOf, type Facet, type SortDef, type Suggestion } from '../lib/videoFind';
 
 // The video library (V2-SPEC 5.7, content §3.6, visual §2.6). The brands are story rings (M6): a ring is a filter, set in the address, and turns grey
 // once a video of that brand has been opened. The glass bar's top row is one line: the Uploaded menu (and the count) on the left, the search (with
@@ -96,18 +96,11 @@ function savedReveal(): Reveal | null {
 /** The most brands on the ring; the rest stay reachable through the search's brand suggestions. */
 const RING_BRANDS = 17;
 
-/** Each brand's lead video, from all videos (so the ring never reshuffles with the filters): one with a poster, then featured, most views, newest. */
-function leadVideos(videos: Video[]): Map<string, Video> {
+/** Each brand's lead video, from all videos (so the ring never reshuffles with the filters): one with a poster, chosen at random for this order
+ *  (r18: the library's seed, so each visit and each Shuffle shows other reels on the ring). */
+function leadVideos(videos: Video[], seed: string): Map<string, Video> {
   const lead = new Map<string, Video>();
-  const better = (x: Video, y: Video) =>
-    Number(Boolean(y.posterUrl)) - Number(Boolean(x.posterUrl)) ||
-    Number(y.featured) - Number(x.featured) ||
-    (y.views || 0) - (x.views || 0) ||
-    (y.uploadDate ?? '').localeCompare(x.uploadDate ?? '');
-  for (const v of videos) {
-    const cur = lead.get(v.brand);
-    if (!cur || better(v, cur) < 0) lead.set(v.brand, v);
-  }
+  for (const v of seededShuffle(videos, `${seed}:ring-lead`, { tier: posterFirst })) if (!lead.has(v.brand)) lead.set(v.brand, v);
   return lead;
 }
 
@@ -134,15 +127,12 @@ function BrandDisc({ brand, seen, size }: { brand: string; seen: boolean; size: 
   );
 }
 
-function BrandRing({ brands, counts, videos, selected, onToggle, paused }: { brands: string[]; counts: Map<string, number>; videos: Video[]; selected: string[]; onToggle: (brand: string) => void; paused: boolean }) {
+function BrandRing({ brands, counts, videos, selected, onToggle, paused, seed }: { brands: string[]; counts: Map<string, number>; videos: Video[]; selected: string[]; onToggle: (brand: string) => void; paused: boolean; seed: string }) {
   const seen = useSeenBrands();
-  const lead = useMemo(() => leadVideos(videos), [videos]);
-  // Brands with a poster first (otherwise the facet's order, kept): until every brand has a poster, the ring opens on pictures, not a row of
-  // colour panels. Once every brand has one this is the facet's order unchanged.
-  const items = useMemo(() => {
-    const has = (b: string) => Boolean(lead.get(b)?.posterUrl);
-    return [...brands.filter(has), ...brands.filter((b) => !has(b))];
-  }, [brands, lead]);
+  const lead = useMemo(() => leadVideos(videos, seed), [videos, seed]);
+  // Brands with a poster first: until every brand has a poster, the ring opens on pictures, not a row of colour panels. Within each group, the
+  // library's random order (r18: the visit's seed, a new one with Shuffle; each brand keeps its place when filters take others off the ring).
+  const items = useMemo(() => seededShuffle(brands, `${seed}:ring`, { tier: (b) => (lead.get(b)?.posterUrl ? 0 : 1) }), [brands, lead, seed]);
   const anySelected = selected.length > 0;
   return (
     <CardRing
@@ -996,7 +986,7 @@ export function VideoLibrary() {
         <div className="ground" aria-hidden />
         <LibraryIntro />
         <div className="lib-ring-wrap" data-ready={ready ? '' : undefined} data-none={isError || (ready && ringBrands.length === 0) ? '' : undefined}>
-          {ready && ringBrands.length > 0 && <BrandRing brands={ringBrands} counts={ringCounts} videos={videos} selected={brands} onToggle={toggleBrand} paused={Boolean(openVideo)} />}
+          {ready && ringBrands.length > 0 && <BrandRing brands={ringBrands} counts={ringCounts} videos={videos} selected={brands} onToggle={toggleBrand} paused={Boolean(openVideo)} seed={seed} />}
         </div>
       </header>
 

@@ -10,7 +10,8 @@ import { BRANDS, HERO, IMPACT, SITE, type CastLineKey } from '../../lib/content'
 
 // The hero stands on the street (V2-SPEC 5.2, visual §1.3): the copy on the left, and on the right the reel deck on the footpath's back edge with the
 // four around it, Sochu and Gola further back, Bolu and Tiko in front. The deck paints HERO.poster before /api/videos answers, so the preloaded poster
-// stays the first paint; the street's art arrives after that, behind everything.
+// stays the first paint; the street's art arrives after that, behind everything. Then the deck is this load's random order (deckOrder), and the
+// poster leaves the way a card leaves the deck when its picture is not the first card's (FrameDeck).
 
 const INTRO_KEY = 'kreators-hero-seen';
 
@@ -149,7 +150,7 @@ export function Hero({ videos, onOpen, paused }: { videos: Video[] | undefined; 
         <div className="hero-stage street-floor">
           <Talker who="sochu" line="home.hero.sochu" cast={cast} size="var(--c-sochu)" intro={cue(3)} className="hero-sochu" />
           <Talker who="gola" line="home.hero.gola" cast={cast} size="var(--c-gola)" intro={cue(2)} className="hero-gola" />
-          <FrameDeck className="hero-deck" videos={videos && deckOrder(videos, HERO.firstId)} poster={HERO.poster} onOpen={onOpen} paused={paused} />
+          <FrameDeck className="hero-deck" videos={videos && deckOrder(videos)} poster={HERO.poster} onOpen={onOpen} paused={paused} />
           <span className="hero-char hero-bolu">
             <Character ref={bolu} who="bolu" size="var(--c-bolu)" prop intro={cue(0)} interactive>
               <CastBubble {...cast.bubble('home.hero.intro')} />

@@ -7,6 +7,7 @@ import { CLOSING, FOOTER_CAST_ORDER, FOOTER_GROUPS, OWN_ACTION_ROUTES, SITE, SOC
 import { useMotionOk, useRunning } from '../lib/motionOk';
 import { previewSource } from './frames';
 import { useVideos } from '../lib/queries';
+import { shuffleForLoad } from '../lib/videoFind';
 import { spring } from '../lib/spring';
 import { useStill } from '../lib/store';
 import { Street } from './street';
@@ -73,9 +74,10 @@ function ringFill(posters: number): number {
   return Math.min(RING_MAX, posters * 2);
 }
 
-/** Videos with a poster: featured first, then by views, then dealt round the brands so neighbours differ. Up to RING_MAX. */
+/** Videos with a poster, in this page load's random order (r18: each load shows other reels), dealt round the brands so neighbours differ. Up to
+ *  RING_MAX. */
 function ringPosters(videos: Video[]): Video[] {
-  const sorted = videos.filter((v) => v.posterUrl).sort((x, y) => Number(y.featured) - Number(x.featured) || (y.views || 0) - (x.views || 0));
+  const sorted = shuffleForLoad(videos.filter((v) => v.posterUrl), 'footer-ring');
   const groups = new Map<string, Video[]>();
   for (const v of sorted) {
     const list = groups.get(v.brand);

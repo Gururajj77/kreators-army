@@ -86,7 +86,8 @@ function QuestionOfTheWeek({ name, body, videos, onOpen }: { name: string; body:
     }
   };
 
-  const shown = [2, 1, 0].map((depth) => ({ depth, tape: pos + depth }));
+  // Never more depths than cards: with two cards a third depth would draw the front card again at the back of the stack.
+  const shown = [2, 1, 0].filter((depth) => depth < count).map((depth) => ({ depth, tape: pos + depth }));
 
   return (
     <div role="group" aria-roledescription="carousel" aria-label={name} onKeyDown={onKey}>

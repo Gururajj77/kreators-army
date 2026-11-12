@@ -3978,6 +3978,36 @@
     flex: none;
   }
 
+  /* (r17) One full-width bar: Columns on the left, the search filling the middle, the filter chips right-aligned. Under 1100 px the chips take
+     their own row, still right-aligned (they scroll sideways if they still do not fit). */
+  .adm-screen[data-fluid] .adm-tools {
+    width: 100%;
+  }
+
+  .adm-screen[data-fluid] .adm-tools > .adm-search {
+    flex: 1 1 320px;
+    max-width: none;
+  }
+
+  .adm-screen[data-fluid] .adm-tools > .adm-filters {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-left: auto;
+    justify-content: flex-end;
+  }
+
+  @media (min-width: 1100px) {
+    .adm-screen[data-fluid] .adm-tools {
+      flex-wrap: nowrap;
+    }
+  }
+
+  @media (max-width: 1099px) {
+    .adm-screen[data-fluid] .adm-tools > .adm-filters {
+      flex-basis: 100%;
+    }
+  }
+
   /* Fluid columns sit 8 px apart (listColumns.tsx counts the same gap). */
   @media (min-width: 861px) {
     .adm-screen[data-fluid] .adm-list-head,

@@ -233,6 +233,13 @@
     bottom: var(--floor-front);
   }
 
+  /* (final18) Tiko's drawing square (.k-stage, 154% of his box) reaches over the views card's Next reel button, and its transparent part took up to
+     44% of the button's clicks. Here his own box takes the pointer (hover, tap and bubble unchanged; it holds his whole silhouette), as for every
+     non-interactive character in cast.css. */
+  .hero-tiko .k-stage {
+    pointer-events: none;
+  }
+
   .hero-sochu {
     z-index: 1;
     right: calc(100% - var(--deck-x) + var(--bolu-off) + var(--c-bolu) - 34 * var(--k));

@@ -1,12 +1,13 @@
 import type { Video } from '@kreators/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Character, type CharacterHandle } from '../../cast';
 import { CastBubble, useCastLine } from '../../components/chat';
 import { DeckCard, ReelPause, deckOrder, previewAllowed, usePlayback } from '../../components/frames';
 import { Cta, Reveal, RollNumber, SectionHead, Tile, whenSeen } from '../../components/ui';
 import { TileSkeletons, VideoTile } from '../../components/video';
-import { HERO, IMPACT, RESULTS_NOTE, type Stat } from '../../lib/content';
+import { IMPACT, RESULTS_NOTE, type Stat } from '../../lib/content';
+import { posterFirst, shuffleForLoad } from '../../lib/videoFind';
 import { motionOk } from '../../lib/motionOk';
 
 // Work (V2-SPEC 5.2 row 2): the three biggest reels as full 9:16 frames with stickers (home11: the lead used to be a near-square cell that cropped the
@@ -165,17 +166,22 @@ const usePhone = () => useSyncExternalStore(onPhoneChange, () => matchMedia(PHON
 export function Work({ videos, loading, failed, onRetry, onOpen }: { videos: Video[]; loading: boolean; failed: boolean; onRetry: () => void; onOpen: (v: Video) => void }) {
   const phone = usePhone();
   const slots = phone ? 2 : SLOTS.length;
-  const byViews = [...videos].sort((a, b) => b.views - a.views);
-  // The bento's three frames are 9:16, so vertical reels take them first (a landscape one would be cropped); the rail gets the rest, in views order.
-  const order = [...byViews.filter((v) => v.aspect !== 'landscape'), ...byViews.filter((v) => v.aspect === 'landscape')];
-  // (homefix17) Phones: the hero has just shown its front reel alone, so the two bento reels are the next ones and that reel leads the rail.
-  const heroFront = phone ? deckOrder(videos, HERO.firstId)[0] : undefined;
+  // (r18) This page load's random order (the same on every render of the visit, new on each load), so every reel gets its turn here. The bento's
+  // three frames are 9:16, so vertical reels with a poster take them first (a landscape one would be cropped, a posterless one is a blank card);
+  // the rail gets the rest in the same order, posters first.
+  const mixed = useMemo(() => shuffleForLoad(videos, 'work', { tier: (v) => (v.aspect === 'landscape' ? 2 : 0) + posterFirst(v) }), [videos]);
+  const order = [...mixed];
+  // The hero's front reel (the same random deck, deckOrder) never opens the bento. (homefix17) Phones: the hero has just shown it alone, so the two
+  // bento reels are the next ones and that reel leads the rail; wider screens move it to the bento's second frame.
+  const heroFront = deckOrder(videos)[0];
   const heroAt = heroFront ? order.indexOf(heroFront) : -1;
-  if (heroAt >= 0 && heroAt < slots && order.length > slots) order.splice(slots, 0, ...order.splice(heroAt, 1));
+  if (phone && heroAt >= 0 && heroAt < slots && order.length > slots) order.splice(slots, 0, ...order.splice(heroAt, 1));
+  else if (!phone && heroAt === 0 && order.length > 1) order.splice(1, 0, ...order.splice(0, 1));
   const picks = order.slice(0, SLOTS.length);
   const reels = picks.slice(0, slots);
   // Phones: the third pick (the hero's front reel, when it was moved) leads the rail, then the rail's usual six.
-  const rail = [...picks.slice(slots), ...byViews.filter((v) => !picks.includes(v)).slice(0, 6)];
+  const rest = useMemo(() => shuffleForLoad(videos, 'work', { tier: posterFirst }), [videos]);
+  const rail = [...picks.slice(slots), ...rest.filter((v) => !picks.includes(v)).slice(0, 6)];
   const [first] = reels;
   const empty = !loading && !first;
 
@@ -224,7 +230,7 @@ export function Work({ videos, loading, failed, onRetry, onOpen }: { videos: Vid
           </div>
         </div>
 
-        {(loading || rail.length > 0) && <Rail videos={rail} all={byViews} onOpen={onOpen} loading={loading} />}
+        {(loading || rail.length > 0) && <Rail videos={rail} all={rest} onOpen={onOpen} loading={loading} />}
       </div>
     </section>
   );

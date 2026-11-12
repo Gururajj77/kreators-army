@@ -1,6 +1,6 @@
 import { formatViews, type Video } from '@kreators/shared';
 import { ArrowRight } from 'lucide-react';
-import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode, type RefObject } from 'react';
 import { Link } from 'react-router';
 import { type CharacterHandle } from '../../cast';
 import { useCastLine } from '../../components/chat';
@@ -10,6 +10,7 @@ import { Cta, PrimaryCta, Reveal, whenSeen } from '../../components/ui';
 import { VideoTile, useVideoPlayer } from '../../components/video';
 import { IDEAS_CAPTION, formatVideos, type CastLineKey, type FormatPageContent, type FormatSlug } from '../../lib/content';
 import { useVideos } from '../../lib/queries';
+import { posterFirst, shuffleForLoad } from '../../lib/videoFind';
 import { TextArrow } from '../../components/TextArrow';
 
 // What Founders, Events and Retail share. Only the small parts: each page owns its own layout.
@@ -17,10 +18,14 @@ import { TextArrow } from '../../components/TextArrow';
 /** The format's slug, from its path. */
 export const formatSlug = (content: FormatPageContent) => content.path.replace('/', '') as FormatSlug;
 
-/** The format's own videos, and one player that steps through them. */
+/** The format's own videos, and one player that steps through them. (r18) In this page load's random order, posters first: the format's own list
+ *  shuffled, or, when none of them is live, four drawn at random from the whole library (not always the same top four). */
 export function useFormat(content: FormatPageContent) {
   const { data: videos = [], isPending } = useVideos();
-  const picks = formatVideos(content, videos);
+  const picks = useMemo(() => {
+    const salt = `format:${content.path}`;
+    return shuffleForLoad(formatVideos(content, shuffleForLoad(videos, salt, { tier: posterFirst })), salt, { tier: posterFirst });
+  }, [content, videos]);
   const player = useVideoPlayer(picks);
   return { picks, player, pending: isPending };
 }

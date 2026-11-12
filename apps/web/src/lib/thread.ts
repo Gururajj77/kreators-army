@@ -1,8 +1,10 @@
 import type { Video } from '@kreators/shared';
 import { INTERACTION_THREAD, type CastId } from './content';
+import { shuffleForLoad } from './videoFind';
 
-// Home #interaction: INTERACTION_THREAD resolved against the live library (also the kit's thread). The first four candidates with a live video, each
-// asked by the next character in THREAD_CAST order; a video never answers twice.
+// Home #interaction: INTERACTION_THREAD resolved against the live library (also the kit's thread and the Founders page's examples). The candidates
+// are taken in this page load's random order (r18: which questions show, and their order, change on every load), and the first four with a live
+// video are shown, each asked by the next character in THREAD_CAST order; a video never answers twice.
 
 /** Who asks, in display order: the first question is Bolu's, the fourth Gola's. */
 export const THREAD_CAST: readonly CastId[] = ['bolu', 'tiko', 'sochu', 'gola'];
@@ -37,11 +39,14 @@ function findByTitle(videos: readonly Video[], brand: string, titles: readonly s
   return undefined;
 }
 
-/** The thread for this library: up to `max` pairs, in candidate order, the askers in THREAD_CAST order. */
+/** This load's order of the candidates: the same on every surface and every render of the visit, new on each page load. */
+const candidates = () => shuffleForLoad(INTERACTION_THREAD, 'thread', { key: (t) => t.q });
+
+/** The thread for this library: up to `max` pairs, in this load's candidate order, the askers in THREAD_CAST order. */
 export function resolveThread(videos: readonly Video[], max = THREAD_CAST.length): ThreadPair[] {
   const used = new Set<string>();
   const pairs: ThreadPair[] = [];
-  for (const { q, videoId, alsoIds = [], brand, titles } of INTERACTION_THREAD) {
+  for (const { q, videoId, alsoIds = [], brand, titles } of candidates()) {
     if (pairs.length >= max) break;
     const ids = videoId ? [videoId, ...alsoIds] : alsoIds;
     const video = ids.map((id) => videos.find((v) => v.id === id && !used.has(v.id))).find(Boolean) ?? findByTitle(videos, brand, titles, used);
