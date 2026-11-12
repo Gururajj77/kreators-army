@@ -22,7 +22,7 @@ import {
 } from 'react';
 import { Link } from 'react-router';
 import { brandLogo } from '../lib/content';
-import { posterFirst, shuffleForLoad, uploadMonth } from '../lib/videoFind';
+import { posterFirst, randomPool, shuffleForLoad, uploadMonth } from '../lib/videoFind';
 import { canAutoplay, finePointer, motionOk, useMotionOk, useRunning } from '../lib/motionOk';
 import { warmClip } from '../lib/previewWarm';
 import { spring } from '../lib/spring';
@@ -741,12 +741,14 @@ const DWELL = 4500;
  * The deck's videos (V2-SPEC 3.4; r18: random on every page load, so each reel gets its turn at the front): `count` videos in this load's order
  * (lib/videoFind shuffleForLoad, the same order on every render and route change of the visit). Videos with a thumbnail lead (the founder's
  * imported library starts without them, and a deck of blank cards reads as broken), vertical before landscape within each group.
- * `firstId` (the kit's fixed sample) still puts that video first when it is live.
+ * `firstId` (the kit's fixed sample) still puts that video first when it is live. (r19) Only brands with 2 or more videos are dealt (lib/videoFind
+ * randomPool); a brand's only video fills in just when fewer than `count` are left.
  */
 export function deckOrder(videos: Video[], firstId?: string, count = 4): Video[] {
   const first = firstId ? videos.find((v) => v.id === firstId) : undefined;
-  const rest = videos.filter((v) => v !== first);
-  const ordered = shuffleForLoad(rest, 'hero-deck', { tier: (v) => posterFirst(v) * 2 + (v.aspect === 'landscape' ? 1 : 0) });
+  const tier = (v: Video) => posterFirst(v) * 2 + (v.aspect === 'landscape' ? 1 : 0);
+  const rest = randomPool(videos.filter((v) => v !== first), count - (first ? 1 : 0), 'hero-deck', videos, tier);
+  const ordered = shuffleForLoad(rest, 'hero-deck', { tier });
   return (first ? [first, ...ordered] : ordered).slice(0, count);
 }
 

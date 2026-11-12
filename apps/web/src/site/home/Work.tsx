@@ -7,7 +7,7 @@ import { DeckCard, ReelPause, deckOrder, previewAllowed, usePlayback } from '../
 import { Cta, Reveal, RollNumber, SectionHead, Tile, whenSeen } from '../../components/ui';
 import { TileSkeletons, VideoTile } from '../../components/video';
 import { IMPACT, RESULTS_NOTE, type Stat } from '../../lib/content';
-import { posterFirst, shuffleForLoad } from '../../lib/videoFind';
+import { posterFirst, randomPool, shuffleForLoad } from '../../lib/videoFind';
 import { motionOk } from '../../lib/motionOk';
 
 // Work (V2-SPEC 5.2 row 2): the three biggest reels as full 9:16 frames with stickers (home11: the lead used to be a near-square cell that cropped the
@@ -153,6 +153,10 @@ function WorkEmpty({ failed, onRetry, shown }: { failed: boolean; onRetry: () =>
 }
 
 const SLOTS = ['a', 'b', 'c'] as const;
+/** The rail's own reels after the bento's (a phone's third pick leads it). */
+const RAIL = 6;
+/** The bento's frames are 9:16: vertical reels before landscape ones, posters first within each. */
+const bentoTier = (v: Video) => (v.aspect === 'landscape' ? 2 : 0) + posterFirst(v);
 
 // (work16) Phones show two reels in the bento and move the third to the head of the rail, and put the results note under the stats row.
 const PHONE = '(max-width: 734px)';
@@ -169,7 +173,11 @@ export function Work({ videos, loading, failed, onRetry, onOpen }: { videos: Vid
   // (r18) This page load's random order (the same on every render of the visit, new on each load), so every reel gets its turn here. The bento's
   // three frames are 9:16, so vertical reels with a poster take them first (a landscape one would be cropped, a posterless one is a blank card);
   // the rail gets the rest in the same order, posters first.
-  const mixed = useMemo(() => shuffleForLoad(videos, 'work', { tier: (v) => (v.aspect === 'landscape' ? 2 : 0) + posterFirst(v) }), [videos]);
+  // (r19) Only brands with 2 or more videos are dealt here (lib/videoFind randomPool); a brand's only video fills in just when the bento and the
+  // rail would otherwise be short.
+  // (r19fix) Top-ups follow the bento's own rule too: vertical reels with a poster first.
+  const pool = useMemo(() => randomPool(videos, SLOTS.length + RAIL, 'work', videos, bentoTier), [videos]);
+  const mixed = useMemo(() => shuffleForLoad(pool, 'work', { tier: bentoTier }), [pool]);
   const order = [...mixed];
   // The hero's front reel (the same random deck, deckOrder) never opens the bento. (homefix17) Phones: the hero has just shown it alone, so the two
   // bento reels are the next ones and that reel leads the rail; wider screens move it to the bento's second frame.
@@ -180,8 +188,8 @@ export function Work({ videos, loading, failed, onRetry, onOpen }: { videos: Vid
   const picks = order.slice(0, SLOTS.length);
   const reels = picks.slice(0, slots);
   // Phones: the third pick (the hero's front reel, when it was moved) leads the rail, then the rail's usual six.
-  const rest = useMemo(() => shuffleForLoad(videos, 'work', { tier: posterFirst }), [videos]);
-  const rail = [...picks.slice(slots), ...rest.filter((v) => !picks.includes(v)).slice(0, 6)];
+  const rest = useMemo(() => shuffleForLoad(pool, 'work', { tier: posterFirst }), [pool]);
+  const rail = [...picks.slice(slots), ...rest.filter((v) => !picks.includes(v)).slice(0, RAIL)];
   const [first] = reels;
   const empty = !loading && !first;
 

@@ -1,4 +1,4 @@
-import { seededRandom, seededShuffle, type SeededShuffleOptions, type Video } from '@kreators/shared';
+import { multiBrand, seededRandom, seededShuffle, type SeededShuffleOptions, type Video } from '@kreators/shared';
 
 // The video library's finding rules, kept free of React so they read (and test) on their own: the facets and their counts, the sorts, the search
 // and its suggestions, and the upload date as words. Used by site/VideoLibrary.tsx, and for the date by the tiles and the player.
@@ -336,6 +336,23 @@ export const posterFirst = (v: Video) => (v.posterUrl ? 0 : 1);
 /** This load's order of `list` for one surface (`salt`: each surface its own order). Stable for the visit; `tier` puts lower tiers first. */
 export function shuffleForLoad<T>(list: readonly T[], salt: string, options?: SeededShuffleOptions<T>): T[] {
   return seededShuffle(list, `${pageLoadSeed()}:${salt}`, options);
+}
+
+/**
+ * (r19) The videos of `subset` a random surface may draw from, in `subset`'s order: those whose brand has 2 or more videos in `all` (the whole
+ * published library, never a filtered part), so a brand's only video is skipped (the founder). Only when those are fewer than the surface's `need`
+ * do single-brand videos fill up to it, in this load's random order by the surface's own `tier` (default posters first; r19fix: the hero and the
+ * Work bento pass theirs, so a top-up is a vertical reel with a poster before a landscape one). Call it before the surface's own shuffle;
+ * seededShuffle places each video by its own key, so the multi-brand videos keep the order they would have had.
+ */
+export function randomPool<T extends Video>(
+  subset: readonly T[],
+  need: number,
+  salt: string,
+  all: readonly Video[] = subset,
+  tier: (v: T) => number = posterFirst,
+): T[] {
+  return multiBrand(subset, { all, need, rank: (singles) => shuffleForLoad(singles, `${salt}:top-up`, { tier }) });
 }
 
 /** Missing values (no date, unknown views, no length) go last in both directions. Ties keep the library's order. */

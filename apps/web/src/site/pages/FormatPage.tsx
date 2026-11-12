@@ -10,7 +10,7 @@ import { Cta, PrimaryCta, Reveal, whenSeen } from '../../components/ui';
 import { VideoTile, useVideoPlayer } from '../../components/video';
 import { IDEAS_CAPTION, formatVideos, type CastLineKey, type FormatPageContent, type FormatSlug } from '../../lib/content';
 import { useVideos } from '../../lib/queries';
-import { posterFirst, shuffleForLoad } from '../../lib/videoFind';
+import { posterFirst, randomPool, shuffleForLoad } from '../../lib/videoFind';
 import { TextArrow } from '../../components/TextArrow';
 
 // What Founders, Events and Retail share. Only the small parts: each page owns its own layout.
@@ -18,13 +18,20 @@ import { TextArrow } from '../../components/TextArrow';
 /** The format's slug, from its path. */
 export const formatSlug = (content: FormatPageContent) => content.path.replace('/', '') as FormatSlug;
 
+/** How many a format page draws from the library when none of its own videos is live (lib/content formatVideos). */
+const FORMAT_DRAW = 4;
+
 /** The format's own videos, and one player that steps through them. (r18) In this page load's random order, posters first: the format's own list
- *  shuffled, or, when none of them is live, four drawn at random from the whole library (not always the same top four). */
+ *  shuffled, or, when none of them is live, four drawn at random from the whole library (not always the same top four). (r19) That random draw
+ *  takes only brands with 2 or more videos (lib/videoFind randomPool; a brand's only video fills in just when fewer than four are left). The
+ *  format's own list is the founder's choice, not a draw, and stays as listed. */
 export function useFormat(content: FormatPageContent) {
   const { data: videos = [], isPending } = useVideos();
   const picks = useMemo(() => {
     const salt = `format:${content.path}`;
-    return shuffleForLoad(formatVideos(content, shuffleForLoad(videos, salt, { tier: posterFirst })), salt, { tier: posterFirst });
+    const ownLive = content.videoIds.some((id) => videos.some((v) => v.id === id));
+    const from = ownLive ? videos : randomPool(videos, FORMAT_DRAW, salt);
+    return shuffleForLoad(formatVideos(content, shuffleForLoad(from, salt, { tier: posterFirst })), salt, { tier: posterFirst });
   }, [content, videos]);
   const player = useVideoPlayer(picks);
   return { picks, player, pending: isPending };

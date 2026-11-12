@@ -7,7 +7,7 @@ import { CLOSING, FOOTER_CAST_ORDER, FOOTER_GROUPS, OWN_ACTION_ROUTES, SITE, SOC
 import { useMotionOk, useRunning } from '../lib/motionOk';
 import { previewSource } from './frames';
 import { useVideos } from '../lib/queries';
-import { shuffleForLoad } from '../lib/videoFind';
+import { randomPool, shuffleForLoad } from '../lib/videoFind';
 import { spring } from '../lib/spring';
 import { useStill } from '../lib/store';
 import { Street } from './street';
@@ -75,9 +75,9 @@ function ringFill(posters: number): number {
 }
 
 /** Videos with a poster, in this page load's random order (r18: each load shows other reels), dealt round the brands so neighbours differ. Up to
- *  RING_MAX. */
+ *  RING_MAX. (r19) Only brands with 2 or more videos in the whole library; a brand's only video fills in just when fewer than RING_MAX are left. */
 function ringPosters(videos: Video[]): Video[] {
-  const sorted = shuffleForLoad(videos.filter((v) => v.posterUrl), 'footer-ring');
+  const sorted = shuffleForLoad(randomPool(videos.filter((v) => v.posterUrl), RING_MAX, 'footer-ring', videos), 'footer-ring');
   const groups = new Map<string, Video[]>();
   for (const v of sorted) {
     const list = groups.get(v.brand);

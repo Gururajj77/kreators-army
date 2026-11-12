@@ -11,3 +11,4 @@ export * from './grade.ts';
 export * from './brief.ts';
 export * from './pricing.ts';
 export * from './shuffle.ts';
+export * from './brands.ts';

@@ -3,7 +3,7 @@ import { DeckCard } from '../../components/frames';
 import { HeroCopy, Reveal, ResultsNote, Seo, Tile, TileBody, type TileTone } from '../../components/ui';
 import { FOUNDER_QUOTE, TESTIMONIALS } from '../../lib/content';
 import { useVideos } from '../../lib/queries';
-import { shuffleForLoad } from '../../lib/videoFind';
+import { randomPool, shuffleForLoad } from '../../lib/videoFind';
 
 // A wall, not a row of cards: three sizes on one tight grid, the number first and the words after it. No characters here: a mascot beside a client's words undercuts them (R42).
 
@@ -27,8 +27,12 @@ function Cell({ slot, i, children }: { slot: string; i: number; children: ReactN
 
 export default function Testimonials() {
   // The "Watch the videos" tile is a deck of real posters from the library (M8): three at random for this page load (r18), so each reel has its turn.
+  // (r19) Only brands with 2 or more videos in the library; a brand's only video fills in just when fewer than three are left.
   const { data } = useVideos();
-  const posters = useMemo(() => shuffleForLoad((data ?? []).filter((v) => v.posterUrl), 'testimonials').slice(0, 3), [data]);
+  const posters = useMemo(() => {
+    const all = data ?? [];
+    return shuffleForLoad(randomPool(all.filter((v) => v.posterUrl), 3, 'testimonials', all), 'testimonials').slice(0, 3);
+  }, [data]);
   return (
     <>
       <Seo title="Testimonials" description="What founders and marketing teams say about working with Kreators.Army on vox pop street interviews: the format, the shoot and the videos, in their own words." />
