@@ -5,9 +5,9 @@
 export const BRAND_GUIDE_TITLE = 'What a simple brand guide covers';
 
 export const BRAND_GUIDE_COVERS = [
-  { lead: 'Brand identity:', rest: 'personality in 3 to 5 words, positive keywords, negative keywords, things to avoid' },
+  { lead: 'Brand identity:', rest: "your brand's personality in 3 to 5 words, words that fit it, words that don't, and things to avoid" },
   {
     lead: 'Editing and design:',
-    rest: 'overall editing style (fast-paced, premium, cinematic, documentary, raw UGC and so on), typography, brand colours, motion graphics style, caption style, music direction, sound effects (minimal, energetic, meme-style and so on), transitions, pacing, logo usage, product shot guidelines',
+    rest: 'your editing style (fast, premium, cinematic, documentary, raw creator-style and so on), fonts, brand colours, motion graphics, captions, music, sound effects (minimal, energetic, meme-style and so on), transitions, pace, logo use and how to shoot the product',
   },
 ] as const;

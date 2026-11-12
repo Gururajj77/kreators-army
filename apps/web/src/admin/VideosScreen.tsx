@@ -1,10 +1,13 @@
 // Owner: A4 Admin; inline editing and columns by adm (round 3). The videos list (admin brief 5.3, V2-SPEC 4.3): search, filter chips with counts, rows
 // with the Published switch, reorder by drag and by keyboard, the row menu, delete to the bin with Undo, the bin view, and the add and edit drawer on top
 // (/admin/videos/new, /admin/videos/:id). On desktop widths the cells edit in place (inlineEdit.tsx) and the columns can be chosen (listColumns.tsx).
+// (admin14) The list fills the window (fluid columns, a sideways scroll only when the chosen columns can't fit), Columns sits left of the search, and
+// the rows come in pages (10, 25, 50 or 100; ?page= in the address) with the pager under the list: the numbers on the left, the pages on the right.
 import { BLOCKING_PROBLEMS, type AdminVideo, type AdminVideoList, type BulkAction, type BulkFields, type VideoProblem } from '@kreators/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowDownToLine, ArrowUpToLine, Copy, Pencil, Plus, RefreshCw, Search, Trash2, Upload, X } from 'lucide-react';
-import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { ArrowDownToLine, ArrowUpToLine, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Copy, Pencil, Plus, RefreshCw, Search, Trash2, Upload, X } from 'lucide-react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { motionOk } from '../lib/motionOk';
 import { Link, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ChipRail } from '../components/tabs';
 import { Seo } from '../components/ui';
@@ -50,6 +53,86 @@ function useWide() {
   );
 }
 
+// ---------- (admin14) pages ----------
+
+export const PAGE_SIZES = [10, 25, 50, 100] as const;
+const PAGE_STORE = 'ka-admin-page-size';
+function readPageSize(): number {
+  try {
+    const n = Number(localStorage.getItem(PAGE_STORE));
+    return (PAGE_SIZES as readonly number[]).includes(n) ? n : 25;
+  } catch {
+    return 25;
+  }
+}
+
+/** 1 … 4 5 6 … 12: the first, the last, and the pages around the current one. */
+export function pageItems(page: number, pages: number): (number | 'gap')[] {
+  if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1);
+  const out: (number | 'gap')[] = [1];
+  const from = Math.max(2, Math.min(page - 1, pages - 4));
+  const to = Math.min(pages - 1, Math.max(page + 1, 5));
+  if (from > 2) out.push('gap');
+  for (let n = from; n <= to; n++) out.push(n);
+  if (to < pages - 1) out.push('gap');
+  out.push(pages);
+  return out;
+}
+
+function Pager({ page, pages, per, total, onPage, onPer }: { page: number; pages: number; per: number; total: number; onPage: (n: number) => void; onPer: (n: number) => void }) {
+  const sizeId = useId();
+  const from = total ? (page - 1) * per + 1 : 0;
+  const to = Math.min(total, page * per);
+  const btn = (n: number, label: string, icon: React.ReactNode, disabled: boolean) => (
+    <button type="button" className="adm-pager-btn" aria-label={label} title={label} disabled={disabled} onClick={() => onPage(n)}>
+      {icon}
+    </button>
+  );
+  return (
+    <div className="adm-pager" data-pager>
+      <div className="adm-pager-info">
+        <label className="adm-pager-size" htmlFor={sizeId}>
+          <span>Rows per page</span>
+          <select id={sizeId} value={per} onChange={(e) => onPer(Number(e.target.value))}>
+            {PAGE_SIZES.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="adm-pager-count" data-pager-count>
+          Showing {from}–{to} of {total}
+        </p>
+      </div>
+      <nav className="adm-pager-nav" aria-label="Pages">
+        {btn(1, 'First page', <ChevronsLeft className="size-4" aria-hidden />, page <= 1)}
+        {btn(page - 1, 'Previous page', <ChevronLeft className="size-4" aria-hidden />, page <= 1)}
+        {pageItems(page, pages).map((it, i) =>
+          it === 'gap' ? (
+            <span key={`gap-${i}`} className="adm-pager-gap" aria-hidden>
+              …
+            </span>
+          ) : (
+            <button
+              key={it}
+              type="button"
+              className="adm-pager-btn adm-pager-num"
+              aria-label={`Page ${it}`}
+              aria-current={it === page ? 'page' : undefined}
+              onClick={() => it !== page && onPage(it)}
+            >
+              {it}
+            </button>
+          ),
+        )}
+        {btn(page + 1, 'Next page', <ChevronRight className="size-4" aria-hidden />, page >= pages)}
+        {btn(pages, 'Last page', <ChevronsRight className="size-4" aria-hidden />, page >= pages)}
+      </nav>
+    </div>
+  );
+}
+
 function SkeletonRows() {
   return (
     <ul className="adm-rows" aria-busy="true" aria-label="Loading the videos">
@@ -88,7 +171,20 @@ export function VideosScreen() {
   const screenRef = useRef<HTMLElement>(null);
   const [saveNote, setSaveNote] = useState('');
   const wide = useWide();
-  const cols = useColumns(screenRef, bin);
+  const cols = useColumns(bin);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const [tableWidth, setTableWidth] = useState(0);
+  useLayoutEffect(() => {
+    const el = tableRef.current;
+    if (!el) return;
+    setTableWidth(el.clientWidth);
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver((entries) => setTableWidth(Math.round(entries[0]?.contentRect.width ?? el.clientWidth)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // Sideways scroll only when the chosen columns' floors are wider than the window (the Video column then stays put on the left).
+  const sideways = wide && tableWidth > 0 && tableWidth < cols.minWidth;
   // (sel) Multi-select: the rows a bulk action left behind ("Show these"), its summary, the purge confirm, the header checkbox.
   const [only, setOnly] = useState<ReadonlySet<string> | null>(null);
   const [summary, setSummary] = useState<BulkSummary | null>(null);
@@ -164,11 +260,74 @@ export function VideosScreen() {
     );
   }, [bin, binList.data, reorder.order, byId, q, importId, filter, only]);
 
+  // ---------- (admin14) pages ----------
+  const [per, setPerState] = useState(readPageSize);
+  const pages = Math.max(1, Math.ceil(shown.length / per));
+  const asked = Math.max(1, Number.parseInt(params.get('page') ?? '1', 10) || 1);
+  const page = Math.min(asked, pages);
+  const pageRows = useMemo(() => shown.slice((page - 1) * per, page * per), [shown, page, per]);
+  const paged = pages > 1;
+  const setPage = useCallback(
+    (n: number) =>
+      setParams(
+        (p) => {
+          const next = new URLSearchParams(p);
+          if (n <= 1) next.delete('page');
+          else next.set('page', String(n));
+          return next;
+        },
+        { replace: true },
+      ),
+    [setParams],
+  );
+  // A new search, filter, view or page size starts at page 1.
+  const viewKey = `${bin}|${filter}|${q.trim()}|${importId ?? ''}|${only ? [...only].join(',') : ''}|${per}`;
+  const lastView = useRef(viewKey);
+  useEffect(() => {
+    if (lastView.current === viewKey) return;
+    lastView.current = viewKey;
+    if (params.get('page')) setPage(1);
+  }, [viewKey, params, setPage]);
+  const goPage = (n: number) => {
+    const to = Math.min(Math.max(1, n), pages);
+    setPage(to);
+    announce(`Page ${to} of ${pages}.`);
+    const head = tableRef.current;
+    if (head) {
+      const top = head.getBoundingClientRect().top + window.scrollY - 88;
+      if (window.scrollY > top) window.scrollTo({ top: Math.max(0, top), behavior: motionOk() ? 'smooth' : 'auto' });
+    }
+  };
+  const changePer = (n: number) => {
+    setPerState(n);
+    try {
+      localStorage.setItem(PAGE_STORE, String(n));
+    } catch {
+      // private window: the choice lasts for this visit
+    }
+  };
+  // A row lifted by keyboard that moves past the page's edge takes the page with it.
+  useEffect(() => {
+    if (reorder.mode !== 'keyboard' || !reorder.lifted) return;
+    const i = shown.findIndex((v) => v.id === reorder.lifted);
+    if (i < 0) return;
+    const want = Math.floor(i / per) + 1;
+    if (want !== page) setPage(want);
+  }, [reorder.mode, reorder.lifted, shown, per, page, setPage]);
+
   // ---------- (sel) multi-select and bulk actions ----------
   const viewIds = useMemo(() => shown.map((v) => v.id), [shown]);
+  const pageIds = useMemo(() => pageRows.map((v) => v.id), [pageRows]);
   const sel = useSelection(viewIds, bin ? 'bin' : 'list');
   const bulk = useBulkActions({ inline, onSummary: setSummary });
   const selected = useMemo(() => shown.filter((v) => sel.ids.has(v.id)), [shown, sel.ids]);
+  const pageSel = pageIds.filter((id) => sel.ids.has(id)).length;
+  const pickPage = () => {
+    if (pageIds.length && pageSel === pageIds.length) {
+      const drop = new Set(pageIds);
+      sel.replace([...sel.ids].filter((id) => !drop.has(id)));
+    } else sel.replace([...sel.ids, ...pageIds]);
+  };
 
   // Switching between the list and the bin starts afresh.
   useEffect(() => {
@@ -396,12 +555,18 @@ export function VideosScreen() {
     );
   } else {
     body = (
-      <ul className="adm-rows" data-bin={bin ? '' : undefined} data-reorder={reorderOn ? '' : undefined} aria-label={bin ? 'Videos in the bin' : 'Videos, in the order the site shows them'}>
-        {shown.map((v, i) => (
+      <ul
+        className="adm-rows"
+        data-bin={bin ? '' : undefined}
+        data-reorder={reorderOn ? '' : undefined}
+        data-featured-col={cols.shown.has('featured') && wide ? '' : undefined}
+        aria-label={bin ? 'Videos in the bin' : 'Videos, in the order the site shows them'}
+      >
+        {pageRows.map((v, i) => (
           <VideoRow
             key={v.id}
             video={v}
-            index={i}
+            index={(page - 1) * per + i}
             reorder={reorder}
             reorderOn={reorderOn}
             hintId={hintId}
@@ -427,7 +592,14 @@ export function VideosScreen() {
   }
 
   return (
-    <section ref={screenRef} className="adm-screen" aria-labelledby="adm-videos-title" style={{ '--adm-cols': cols.template } as CSSProperties} data-selecting={sel.count ? '' : undefined}>
+    <section
+      ref={screenRef}
+      className="adm-screen"
+      aria-labelledby="adm-videos-title"
+      style={{ '--adm-cols': cols.template, '--adm-min': `${cols.minWidth}px` } as CSSProperties}
+      data-selecting={sel.count ? '' : undefined}
+      data-fluid=""
+    >
       <Seo title={bin ? 'Bin · Library admin' : 'Videos · Library admin'} description="Library admin" noindex />
       <div className="adm-head">
         <h1 id="adm-videos-title" className="adm-title">
@@ -445,6 +617,7 @@ export function VideosScreen() {
       </div>
 
       <div className="adm-tools">
+        {wide && <ColumnsMenu cols={cols} />}
         <label className="adm-search">
           <Search className="size-4" aria-hidden />
           <span className="sr-only">Search title, brand or file name</span>
@@ -495,6 +668,7 @@ export function VideosScreen() {
             onExport={() => bulk.exportCsv(selected)}
             onRecheck={() => void bulk.recheck(selected)}
             onRegenerate={() => regen.request(selected)}
+            allLabel={paged ? `Select all ${sel.total} matching` : undefined}
             onPurge={() => setConfirmBulkPurge(selected.length)}
           />
         )}
@@ -528,28 +702,30 @@ export function VideosScreen() {
             </button>
           </p>
         )}
-        {editable && <p className="adm-hint adm-edit-hint">Click a cell to edit it. Enter saves, Esc cancels.</p>}
-        {wide && <ColumnsMenu cols={cols} />}
+        {editable && <p className="adm-hint adm-edit-hint">Click a cell to edit it. Enter saves, Esc cancels, Tab moves on.</p>}
       </div>
 
       <BulkNote summary={summary} showing={!!only} onShow={showFailed} onDismiss={() => setSummary(null)} />
+      <div ref={tableRef} className="adm-table" data-scroll={sideways ? '' : undefined}>
       <div className="adm-list-head">
         <span className="adm-head-check">
           {!loading && !failed && shown.length > 0 && (
             <SelectBox
-              checked={sel.count > 0 && sel.count === sel.total}
-              indeterminate={sel.count > 0 && sel.count < sel.total}
-              label={`Select all ${sel.total}`}
+              checked={pageIds.length > 0 && pageSel === pageIds.length}
+              indeterminate={pageSel > 0 && pageSel < pageIds.length}
+              label={paged ? `Select all ${pageIds.length} on this page` : `Select all ${sel.total}`}
               inputRef={selectAllRef}
-              onPick={() => (sel.count === sel.total ? sel.clear() : sel.selectAll())}
+              onPick={pickPage}
             >
-              <span className="adm-head-check-text">Select all {sel.total}</span>
+              <span className="adm-head-check-text">{paged ? `Select all ${pageIds.length} on this page` : `Select all ${sel.total}`}</span>
             </SelectBox>
           )}
         </span>
         <span aria-hidden />
         <span aria-hidden />
-        <span aria-hidden>Video</span>
+        <span aria-hidden className="adm-head-video">
+          Video
+        </span>
         {COLUMNS.filter((c) => cols.shown.has(c.key)).map((c) => (
           <span key={c.key} data-col={c.key} aria-hidden>
             {c.key === 'updated' && bin ? 'Deleted' : c.label}
@@ -558,6 +734,8 @@ export function VideosScreen() {
         <span aria-hidden />
       </div>
       {body}
+      </div>
+      {!loading && !failed && shown.length > 0 && <Pager page={page} pages={pages} per={per} total={shown.length} onPage={goPage} onPer={changePer} />}
       <Announcer text={announcement} assertive />
       <Announcer text={saveNote} />
       <Announcer text={selNote} />

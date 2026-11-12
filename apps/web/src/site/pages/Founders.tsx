@@ -63,6 +63,7 @@ function QuestionOfTheWeek({ name, body, videos, onOpen }: { name: string; body:
   const ok = useMotionOk();
   const count = cards.length;
   const cardAt = (tape: number) => cards[((tape % count) + count) % count] as Card;
+  const index = ((pos % count) + count) % count;
   const current = cardAt(pos);
   const transition = ok ? spring.snappy : { duration: 0 };
 
@@ -122,8 +123,8 @@ function QuestionOfTheWeek({ name, body, videos, onOpen }: { name: string; body:
                   >
                     {card.action ? (
                       <div className="fp-card-action">
+                        <Mic className="fp-card-mic" aria-hidden />
                         <p className="fp-card-q">{card.question}</p>
-                        <PrimaryCta intent={{ format: formatSlug(content) }} className="self-start" />
                       </div>
                     ) : card.video ? (
                       <VideoFrame video={card.video} variant="polaroid" width="100%" onOpen={front ? onOpen : undefined} preview="hover" />
@@ -135,31 +136,43 @@ function QuestionOfTheWeek({ name, body, videos, onOpen }: { name: string; body:
               })}
             </AnimatePresence>
           </div>
+        </div>
 
-          <div className="fp-qotw-caption" aria-hidden={current.action ? true : undefined}>
-            <p className="fp-card-week">
+        {/* The front card's question and the controls that change it, together: on a wide plate they close the copy column and line up with the
+            deck's foot; on a phone they sit under the deck they describe. */}
+        <div className="fp-qotw-now">
+          {/* The last card's action sits here, not on the card: a polaroid is too narrow for the button on a phone or a tablet. */}
+          <div className="fp-qotw-caption">
+            <p className="fp-card-week" aria-hidden={current.action ? true : undefined}>
               <Mic className="size-4" aria-hidden />
               {current.week}
             </p>
-            {!current.action && (
+            {current.action ? (
+              <PrimaryCta intent={{ format: formatSlug(content) }} className="fp-qotw-cta" />
+            ) : (
               <>
                 <p className="fp-card-q">{current.question}</p>
                 <p className="fp-card-hint">Asked again and again.</p>
               </>
             )}
           </div>
-        </div>
 
-        <div className="fp-qotw-nav">
-          <div className="flex gap-2">
-            <button type="button" className="nav-icon fp-deck-btn" onClick={() => go(-1)} aria-label="Previous question">
-              <ChevronLeft className="size-5" aria-hidden />
-            </button>
-            <button type="button" className="nav-icon fp-deck-btn" onClick={() => go(1)} aria-label="Next question">
-              <ChevronRight className="size-5" aria-hidden />
-            </button>
+          <div className="fp-qotw-nav">
+            <div className="fp-qotw-controls">
+              <button type="button" className="nav-icon fp-deck-btn" onClick={() => go(-1)} aria-label="Previous question">
+                <ChevronLeft className="size-5" aria-hidden />
+              </button>
+              <span className="fp-qotw-dots" aria-hidden>
+                {cards.map((card, i) => (
+                  <span key={card.week} data-on={i === index ? '' : undefined} />
+                ))}
+              </span>
+              <button type="button" className="nav-icon fp-deck-btn" onClick={() => go(1)} aria-label="Next question">
+                <ChevronRight className="size-5" aria-hidden />
+              </button>
+            </div>
+            <p className="small m-0 fp-qotw-note">Example questions, from topics we have filmed.</p>
           </div>
-          <p className="small m-0 fp-qotw-note">Example questions, from topics we have filmed.</p>
         </div>
 
         <p className="sr-only" aria-live="polite">

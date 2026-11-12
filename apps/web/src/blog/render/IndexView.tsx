@@ -4,7 +4,7 @@
 import { Fragment, type ReactNode } from 'react';
 import { foldWords } from '../videoRef';
 import { BLOG_CATEGORIES, type BlogCategory, type PostMeta, type PostSummary } from '../types';
-import { Bento, CtaTile, PostTile, StatsTile, bentoLayout, type BentoSlot, type SlotSpans, type TileSize } from './bento';
+import { Bento, PostTile, StatsTile, bentoLayout, type BentoSlot, type SlotSpans, type TileSize } from './bento';
 import { categorySlug } from './PostView';
 
 /** One line under each cluster's heading. */
@@ -99,18 +99,12 @@ export function IndexView({ metas, summaries = NONE, tools, results, empty, medi
       </div>
     ),
   };
-  const cta: Item = {
-    key: 'cta',
-    slot: { size: 'small', role: 'fill' },
-    draw: (spans) => <CtaTile spans={spans} />,
-  };
 
   const items: Item[] = [];
   if (results) {
     items.push(toolsTile);
     if (results.length) {
       results.forEach((m, i) => items.push(tile(m, 'small', { flex: i === 0 })));
-      items.push(cta);
     } else {
       items.push({
         key: 'empty',
@@ -140,7 +134,8 @@ export function IndexView({ metas, summaries = NONE, tools, results, empty, medi
     if (wides[2]) items.push(tile(wides[2], 'wide', { hub: true }));
     // The rest in cluster order, every sixth one wide (with its library video, live), so the lower rows keep a rhythm instead of a plain grid.
     queue.splice(0).forEach((m, i) => items.push(tile(m, i % 6 === 3 ? 'wide' : 'small')));
-    items.push(cta);
+    // No closing CTA tile here: the footer's "Get started" band follows right below and says the same thing (founder, 2026-11-12).
+    // With no fill tile, bentoLayout stretches the last tile over whatever its row has left, so the grid still ends flush.
   }
   const spans = bentoLayout(items.map((i) => i.slot));
 

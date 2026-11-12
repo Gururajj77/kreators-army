@@ -55,7 +55,7 @@ export default function FaqPage() {
 
   return (
     <div className="faq">
-      <Seo title="FAQ" description="Straight answers about the format, the trial, packages, production, rights and results." />
+      <Seo title="FAQ" description="Straight answers about vox pop with Kreators.Army: the format, the trial, packages and pricing, production, usage rights and what we can promise." />
       <div className="ground" aria-hidden />
       <div className="wrap faq-in">
         <div className="faqp-side">

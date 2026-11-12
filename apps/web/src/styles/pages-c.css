@@ -49,6 +49,19 @@
     }
   }
 
+  /* Round 13, one column: the cast's speech bubble rises above the card's cast row, so the head keeps clear of it (it sat on the city line), and
+     on tablets the contact rules stop at the copy's measure instead of running on to the far edge. */
+  @media (max-width: 1068px) {
+    .contact-in {
+      row-gap: 88px;
+    }
+
+    .contact-head,
+    .contact-next {
+      max-width: 640px;
+    }
+  }
+
   /* Direct contacts: a compact list, one tap each. */
   .reach {
     display: flex;
@@ -122,6 +135,17 @@
     line-height: 20px;
   }
 
+  /* Round 13: wide enough that "WhatsApp / Call" stays one line instead of leaving "/ Call" on a second. */
+  @media (min-width: 735px) {
+    .reach-row {
+      grid-template-columns: 120px minmax(0, 1fr);
+    }
+
+    .reach-row > dt {
+      white-space: nowrap;
+    }
+  }
+
   /* Phones: a narrower label column, and the two call numbers one under the other with no separator left hanging. */
   @media (max-width: 734px) {
     .reach-row {
@@ -136,7 +160,8 @@
       flex-wrap: nowrap;
     }
 
-    .reach-calls {
+    /* Round 13: the row's own dd rule centres its items, which centred the stacked numbers; they start on the email's edge. */
+    .reach-row > .reach-calls {
       flex-direction: column;
       align-items: flex-start;
     }
@@ -1340,9 +1365,42 @@
       display: none;
     }
 
+    /* Round 13: Sochu used to stand on a row of his own under the lead, the left of it empty. He now stands beside the lead, centred on
+       it; the eyebrow and the title keep the full width. */
+    .faq-sticky {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 20px 24px;
+    }
+
+    .faq-sticky > .page-hero-copy {
+      display: contents;
+    }
+
+    .faq-sticky > .page-hero-copy > :not(.lead) {
+      grid-column: 1 / -1;
+    }
+
+    .faq-sticky .lead {
+      grid-column: 1;
+      align-self: center;
+    }
+
     .faq-rail {
+      grid-column: 2;
+      grid-row: 3;
       justify-content: flex-end;
-      margin-top: -16px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .faq {
+      --faq-k: 80px;
+    }
+
+    .faq-sticky {
+      column-gap: 12px;
     }
   }
 
@@ -1404,10 +1462,12 @@
   }
 
   /* ---------- Blog: an editorial index ---------- */
+  /* No bottom padding: the footer's lead-in is the one space under every page's last content (gate13: 96 px here put "Get started" ~252 px
+     under the last tile against ~164 elsewhere). */
   .blog {
     position: relative;
     padding-top: calc(var(--nav-offset) + 56px);
-    padding-bottom: 96px;
+    padding-bottom: 0;
   }
 
   .blog-in {
@@ -1772,7 +1832,8 @@
     width: var(--content-w);
     max-width: calc(31 * 19px);
     margin-inline: auto;
-    padding-bottom: 96px;
+    /* gate13: none, so a post ends ~164 px above "Get started" like every other page (was 96, ~256). */
+    padding-bottom: 0;
   }
 
   .next-tile {
@@ -1898,12 +1959,17 @@
   }
 
   @media (min-width: 1069px) {
+    /* Round 13: the words take the page's centre, the same column as an FAQ answer, and the section links start on the content edge under the
+       logo, so neither floats between the grid's lines. */
     .legal {
-      grid-template-columns: 220px minmax(0, var(--read-max));
+      grid-template-columns: minmax(0, 1fr) minmax(0, var(--read-max)) minmax(0, 1fr);
       grid-template-rows: auto 1fr;
-      grid-template-areas: 'index head' 'index body';
-      column-gap: 72px;
-      justify-content: center;
+      grid-template-areas: 'index head .' 'index body .';
+      column-gap: 40px;
+    }
+
+    .legal-index {
+      max-width: 220px;
     }
 
     .legal-index nav {
@@ -1914,6 +1980,11 @@
 
   /* Phones and tablets: the section links wrap as a short run of text, so the words start sooner. */
   @media (max-width: 1068px) {
+    /* Round 13: one centred reading column (as an FAQ answer), not a left-hand column with the right half of a tablet empty. */
+    .legal {
+      max-width: var(--read-max);
+    }
+
     .legal-index-links {
       display: flex;
       flex-wrap: wrap;

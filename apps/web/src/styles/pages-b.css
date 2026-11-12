@@ -216,41 +216,68 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
+    .fp-intro {
+      grid-column: auto;
+    }
+
     .fp-why-media {
       max-width: none;
     }
   }
 
   /* ---------- Founders: question of the week ---------- */
+  /* One plate on the 8 pt scale. Wide: the copy column opens with the heading (level with the deck's top) and closes with the front card's question
+     and its controls (level with the deck's foot), so neither column has an empty half. Phone: heading, deck, then the question and controls under it. */
   .fp-deck-section {
     padding-bottom: var(--section-y);
   }
 
   .fp-qotw {
     display: grid;
-    gap: 28px 56px;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 64px;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-rows: auto 1fr;
     grid-template-areas:
-      '. stack'
-      'copy stack'
-      'nav stack'
-      '. stack';
-    grid-template-rows: 1fr auto auto 1fr;
-    padding: 72px;
+      'copy deck'
+      'now deck';
+    padding: 64px 72px;
   }
 
   .fp-qotw-copy {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 16px;
     grid-area: copy;
+  }
+
+  .fp-qotw-copy .lead {
+    max-width: 30em;
+  }
+
+  .fp-qotw-now {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    grid-area: now;
+    align-self: end;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
   }
 
   .fp-qotw-nav {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    grid-area: nav;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 24px;
+  }
+
+  /* Previous, the position, next: one control group with 44 pt targets. */
+  .fp-qotw-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .fp-deck-btn {
@@ -259,19 +286,37 @@
     border-radius: var(--r-pill);
   }
 
-  .fp-qotw-deck {
+  .fp-qotw-dots {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    grid-area: stack;
-    align-self: center;
+    gap: 8px;
+    padding-inline: 8px;
   }
 
-  /* The deck of polaroids: posters only. Back cards tilt (media only, ±4 to 5°); the front one is level; the question sits under the deck. */
+  .fp-qotw-dots > span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--ink) 26%, transparent);
+    transition: background-color 0.24s ease;
+  }
+
+  .fp-qotw-dots > span[data-on] {
+    background: var(--ink);
+  }
+
+  .fp-qotw-deck {
+    display: grid;
+    grid-area: deck;
+    place-items: center;
+    /* Room for the back cards, which sit up to 22 px lower and tilt. */
+    padding-bottom: 32px;
+  }
+
+  /* The deck of polaroids: posters only. Back cards tilt (media only, ±4 to 5°); the front one is level; the question sits beside or under the deck. */
   .fp-stack {
     position: relative;
     z-index: 1;
-    width: min(100%, 264px);
+    width: min(calc(100% - 48px), 280px);
     aspect-ratio: 300 / 562;
     touch-action: pan-y;
   }
@@ -307,36 +352,52 @@
     box-shadow: var(--shadow-3);
   }
 
-  /* The last card: words and the action, on a plain plate, only ever read when it is in front (level). */
+  /* The last card: a blank polaroid with the question on it, only ever read when it is in front (level). White in both themes, like the others. */
   .fp-card[data-action] {
     display: flex;
-    border-radius: var(--r-tile);
-    background: var(--surface-3);
+    border-radius: 6px;
+    background: #ffffff;
     box-shadow: var(--shadow-3);
+    --ink: #1d1d1f;
   }
 
+  /* A title card: the mic and the question, set low like a poster's line. Its action is in the caption, where the button has room. */
   .fp-card-action {
     display: flex;
     flex: 1;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 16px;
-    padding: 28px;
+    padding: 24px;
     color: var(--ink);
+  }
+
+  .fp-card-mic {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* On the card the question is set to the card, not to the caption column: two lines at every width. */
+  .fp-card-action .fp-card-q {
+    font-size: 28px;
+    line-height: 32px;
   }
 
   .fp-card[data-action]:not([data-front]) .fp-card-action {
     visibility: hidden;
   }
 
+  /* Holds two lines of question, so stepping the deck never moves the rule or the controls. */
   .fp-qotw-caption {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    min-height: 120px;
-    margin-top: 28px;
-    text-align: center;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 144px;
+  }
+
+  .fp-qotw-cta {
+    margin-top: 8px;
   }
 
   .fp-card-week {
@@ -347,16 +408,16 @@
     color: var(--muted);
     font-size: 15px;
     font-weight: 600;
-    line-height: 19px;
+    line-height: 20px;
   }
 
   .fp-card-q {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 32px;
+    font-size: 40px;
     font-weight: 600;
     font-variation-settings: 'opsz' 32;
-    line-height: 36px;
+    line-height: 44px;
     letter-spacing: -0.016em;
     text-wrap: balance;
   }
@@ -365,7 +426,7 @@
     margin: 0;
     color: var(--muted);
     font-size: 15px;
-    line-height: 19px;
+    line-height: 20px;
   }
 
   .fp-qotw-note {
@@ -373,7 +434,9 @@
   }
 
   /* "We agree the introduction before the shoot…" under Founder with the mic. */
+  /* Under the body, in the body's column: as a third grid child it fell into the name column on its own row. */
   .fp-intro {
+    grid-column: 2;
     margin: 8px 0 0;
     color: var(--ink);
     font-weight: 600;
@@ -381,24 +444,78 @@
 
   @media (max-width: 1068px) {
     .fp-qotw {
-      gap: 32px;
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-areas:
-        'copy'
-        'stack'
-        'nav';
-      grid-template-rows: none;
-      padding: 48px 40px;
+      gap: 0 40px;
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      padding: 48px;
     }
-  }
 
-  @media (max-width: 734px) {
-    .fp-qotw {
-      padding: 32px 24px;
+    .fp-qotw-now {
+      margin-top: 40px;
+      padding-top: 24px;
     }
 
     .fp-stack {
-      width: min(100%, 240px);
+      width: min(calc(100% - 40px), 264px);
+    }
+
+    .fp-card-q {
+      font-size: 28px;
+      line-height: 32px;
+    }
+
+    .fp-qotw-caption {
+      min-height: 120px;
+    }
+
+    .fp-card-action {
+      padding: 20px;
+    }
+
+    .fp-card-action .fp-card-q {
+      font-size: 24px;
+      line-height: 28px;
+    }
+  }
+
+  /* Phone: heading, deck, then the question and controls centred under the deck they describe. */
+  @media (max-width: 734px) {
+    .fp-qotw {
+      gap: 0;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none;
+      grid-template-areas:
+        'copy'
+        'deck'
+        'now';
+      padding: 40px 24px 32px;
+    }
+
+    .fp-qotw-deck {
+      padding-block: 32px 24px;
+    }
+
+    .fp-stack {
+      width: min(calc(100% - 48px), 216px);
+    }
+
+    .fp-qotw-now {
+      align-items: center;
+      gap: 16px;
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+      text-align: center;
+    }
+
+    .fp-qotw-caption {
+      align-items: center;
+      gap: 4px;
+      min-height: 112px;
+    }
+
+    .fp-qotw-nav {
+      flex-direction: column;
+      gap: 8px;
     }
 
     .fp-card-action {
@@ -406,8 +523,13 @@
     }
 
     .fp-card-q {
-      font-size: 26px;
-      line-height: 30px;
+      font-size: 24px;
+      line-height: 28px;
+    }
+
+    .fp-card-action .fp-card-q {
+      font-size: 22px;
+      line-height: 26px;
     }
   }
 
@@ -475,16 +597,50 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
+    /* Stacked under the copy, the run of show spans the column as one row of three cues (Tiko standing on its right end), instead of a
+       400 px card that leaves the right half of the hero empty. */
     .ev-callsheet {
-      --ev-room: 232px;
-      max-width: 400px;
+      --ev-room: 200px;
+    }
+
+    .ev-cues {
+      display: grid;
+      gap: 4px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .ev-cue {
+      grid-template-columns: 12px minmax(0, 1fr);
+      gap: 2px 12px;
+      padding: 12px 16px;
+    }
+
+    .ev-cue-job {
+      grid-column: 2;
+      text-align: left;
     }
   }
 
   @media (max-width: 734px) {
     .ev-callsheet {
       --ev-room: 156px;
-      max-width: none;
+    }
+
+    .ev-cues {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .ev-cue {
+      grid-template-columns: 12px minmax(0, 1fr) auto;
+      gap: 14px;
+      padding: 8px 14px;
+    }
+
+    .ev-cue-job {
+      grid-column: auto;
+      text-align: right;
     }
 
     .ev-tiko {
@@ -909,7 +1065,9 @@
   }
 
   @media (max-width: 1068px) {
+    /* Stacked, the heading and its paragraph read as one block. */
     .rt-why {
+      gap: 24px;
       grid-template-columns: minmax(0, 1fr);
     }
   }
@@ -1001,11 +1159,20 @@
   }
 
   .cr-cell {
+    position: relative;
     display: flex;
+  }
+
+  /* The mascot's hover bubble rises above its head, past the card's top edge: the plate must not clip it, and the hovered card sits above its
+     neighbours so the bubble is never covered. The stage keeps its own rounded, tinted inset, so nothing else needs the clip. */
+  .cr-cell:hover,
+  .cr-cell:focus-within {
+    z-index: 3;
   }
 
   .cr-card {
     flex: 1;
+    overflow: visible;
   }
 
   .cr-stage {
@@ -1170,10 +1337,18 @@
   }
 
   .fmt-ideas-link {
+    position: relative;
     color: var(--ink);
     font-weight: 600;
     white-space: nowrap;
     text-decoration: none;
+  }
+
+  /* A 44 px target for the one-line link, without changing the sentence's line box. */
+  .fmt-ideas-link::before {
+    content: '';
+    position: absolute;
+    inset: -12px -6px;
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -1207,15 +1382,28 @@
     line-height: 20px;
   }
 
-  /* Events: what we lock before each shoot, on the call sheet. */
-  .ev-lock {
-    display: grid;
-    gap: 6px;
-    margin: 12px 0 0;
-    padding: 0 0 0 1.1em;
+  /* Events: what we lock before each shoot, on the call sheet. A compact checklist on the 8 pt scale: hairline rows of 12 px, so the sheet
+     stays about the height of the beat's copy instead of running 760 px down an empty column (the generic .ev-sheet rows are 24 px). */
+  .ev-sheet .ev-lock {
+    display: flex;
+    flex-direction: column;
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .ev-lock > li {
-    padding-left: 2px;
+  .ev-sheet .ev-lock > li,
+  .ev-sheet .ev-lock > li:first-child,
+  .ev-sheet .ev-lock > li:last-child {
+    display: block;
+    padding-block: 12px;
+    border-top: 1px solid var(--line);
+    font-size: 17px;
+    line-height: 24px;
+    letter-spacing: -0.012em;
+  }
+
+  .ev-sheet .ev-lock > li:last-child {
+    padding-bottom: 0;
   }
 }

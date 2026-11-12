@@ -616,6 +616,7 @@ export function BulkBar({
   onRecheck,
   onRegenerate,
   onPurge,
+  allLabel,
 }: {
   bin: boolean;
   sel: Selection;
@@ -628,6 +629,8 @@ export function BulkBar({
   /** (admin10) "Regenerate thumbnails & previews" for the selected rows. */
   onRegenerate?: () => void;
   onPurge: () => void;
+  /** (admin14) "Select all 98 matching" when the list is in pages. */
+  allLabel?: string;
 }) {
   const busy = bulk.busy !== null;
   const spin = (a: BulkAction | 'recheck') => (bulk.busy === a ? <Spinner className="adm-spin-sm" /> : null);
@@ -637,7 +640,7 @@ export function BulkBar({
         <span className="adm-bulk-count">{sel.count} selected</span>
         {sel.count < sel.total && (
           <button type="button" className="adm-link-btn" data-bulk="select-all" onClick={sel.selectAll}>
-            Select all {sel.total}
+            {allLabel ?? `Select all ${sel.total}`}
           </button>
         )}
         <button type="button" className="adm-link-btn adm-bulk-clear" data-bulk="clear" onClick={sel.clear}>

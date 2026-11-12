@@ -12,7 +12,7 @@ import { spring } from '../lib/spring';
 import { MenuButton, StatusChip, Switch, When, usePopover, type ChipTone, type MenuItem } from './bits';
 import { RegenBadge } from './mediaGen/Regenerate';
 import { SelectBox } from './bulk';
-import { EditCell, PROBLEM_WORDS, cellDisplay, type InlineEditor } from './inlineEdit';
+import { ASPECT_WORDS, EditCell, PROBLEM_WORDS, cellDisplay, type InlineEditor } from './inlineEdit';
 import type { ColKey } from './listColumns';
 import type { ReorderApi } from './useReorder';
 
@@ -145,6 +145,11 @@ export function VideoRow({
   };
 
   const text = (f: 'category' | 'platform' | 'uploadDate') => cellDisplay(video, f);
+  const chipEl = (
+    <StatusChip tone={chip.tone} title={chip.title ? `${chip.text}. ${chip.title}` : chip.text}>
+      {chip.text}
+    </StatusChip>
+  );
 
   return (
     <m.li
@@ -254,11 +259,37 @@ export function VideoRow({
         </div>
       </div>
 
-      {cols.has('stream') && (
-        <span className="adm-row-stream">
-          <StatusChip tone={chip.tone} title={chip.title ? `${chip.text}. ${chip.title}` : chip.text}>
-            {chip.text}
-          </StatusChip>
+      {cols.has('stream') &&
+        (inline ? (
+          // (admin14) The stream chip is also the MEGA link: a click opens the link to paste a new one; the server checks it before it saves.
+          <EditCell video={video} field="mega" inline={inline} className="adm-row-stream" tooltip={`${chip.text}${chip.title ? `. ${chip.title}` : ''}. Click to ${video.mega ? 'change' : 'add'} the MEGA link.`}>
+            {chipEl}
+          </EditCell>
+        ) : (
+          <span className="adm-row-stream">{chipEl}</span>
+        ))}
+
+      {cols.has('featured') && (
+        <span className="adm-row-cell adm-col-featured">
+          {inline ? (
+            <Switch
+              checked={video.featured}
+              label={`Featured: ${title}`}
+              busy={inline.stateOf(video.id, 'featured')?.kind === 'saving'}
+              onChange={(next) => inline.saveNow(video, 'featured', next)}
+              className="adm-row-switch adm-feat-switch"
+            />
+          ) : video.featured ? (
+            <Star className="size-4 adm-feat-star" aria-label="Featured" />
+          ) : null}
+          {inline && (() => {
+            const st = inline.stateOf(video.id, 'featured');
+            return st && (st.kind === 'error' || st.kind === 'stale') ? (
+              <span className="adm-cell-msg" role="alert" data-kind={st.kind}>
+                {st.message}
+              </span>
+            ) : null;
+          })()}
         </span>
       )}
 
@@ -272,6 +303,11 @@ export function VideoRow({
           <span className="adm-cell-text">{text('platform')}</span>
         </EditCell>
       )}
+      {cols.has('aspect') && (
+        <EditCell video={video} field="aspect" inline={inline} className="adm-row-cell adm-col-aspect">
+          <span className="adm-cell-text">{ASPECT_WORDS[video.aspect] ?? video.aspect}</span>
+        </EditCell>
+      )}
       {cols.has('uploaded') && (
         <EditCell video={video} field="uploadDate" inline={inline} className="adm-row-cell adm-col-uploaded" tooltip={video.uploadDate ? `Uploaded ${text('uploadDate')}` : undefined}>
           <span className="adm-cell-text">{text('uploadDate')}</span>
@@ -280,6 +316,12 @@ export function VideoRow({
       {cols.has('views') && (
         <EditCell video={video} field="views" inline={inline} className="adm-row-views" tooltip={video.views > 0 ? `${video.views.toLocaleString('en-IN')} views` : undefined}>
           <span className="adm-cell-text">{cellDisplay(video, 'views')}</span>
+        </EditCell>
+      )}
+
+      {cols.has('order') && (
+        <EditCell video={video} field="sortOrder" inline={inline} className="adm-row-cell adm-col-order">
+          <span className="adm-cell-text">{video.sortOrder}</span>
         </EditCell>
       )}
 

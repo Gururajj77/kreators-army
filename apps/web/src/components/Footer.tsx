@@ -5,6 +5,7 @@ import { Link, useLocation, useMatches } from 'react-router';
 import { Character, cascade, castLookAt, loadRig, type CastId, type CharacterHandle } from '../cast';
 import { CLOSING, FOOTER_CAST_ORDER, FOOTER_GROUPS, OWN_ACTION_ROUTES, SITE, SOCIALS, callPhone, whatsappHref, whatsappPhone, type FormatSlug } from '../lib/content';
 import { useMotionOk, useRunning } from '../lib/motionOk';
+import { previewSource } from './frames';
 import { useVideos } from '../lib/queries';
 import { spring } from '../lib/spring';
 import { useStill } from '../lib/store';
@@ -15,17 +16,6 @@ import { WORDMARK } from './wordmark';
 
 /** The word is cropped here, in viewBox units: below the baseline, partway down the tail of the y, which dives behind the ground band. */
 const WORD_FLOOR = 900;
-
-/** The wordmark's flute, in viewBox units: 14 CSS px at 1440, where the word is about 1371 px wide (--ft-word-w), as kreators.app's. */
-const WORD_RIB = Math.round((14 * WORDMARK.width) / 1371);
-/** kreators.app's rib across one flute: a dark seam, clear by 4/14, a white streak at 10/14, clear by 13/14, the next seam. */
-const WORD_RIB_STOPS: [number, string, number][] = [
-  [0, '#000', 0.22],
-  [4 / 14, '#000', 0],
-  [10 / 14, '#fff', 0.5],
-  [13 / 14, '#fff', 0],
-  [1, '#000', 0.22],
-];
 
 /**
  * Where each character stands, in the wordmark's own units: x is the centre of the letter, y the top of its ink. The word is mixed case, so a single cap line
@@ -42,6 +32,9 @@ const STANCE: Record<CastId, { x: number; y: number }> = {
 const CAST_SIZE = 'var(--ft-cast)';
 
 const GLANCE_MS = 1800;
+
+/** The parent brand, named above the contacts. */
+const PARENT = { name: 'Kreators.App', url: 'https://kreators.app' } as const;
 
 const pct = (n: number, of: number) => `${((n / of) * 100).toFixed(3)}%`;
 
@@ -63,7 +56,11 @@ const SOCIAL_ICON: Record<string, ReactNode> = {
   X: <path d="M17.75 2.5h3.07l-6.71 7.67L22 21.5h-6.18l-4.84-6.33-5.54 6.33H2.37l7.18-8.21L2 2.5h6.34l4.38 5.79 5.03-5.79Zm-1.08 17.2h1.7L7.4 4.2H5.57l11.1 15.5Z" />,
 };
 
-// ---------- The CTA's ring (library-slider-cta-spec §3): the site's own posters turning slowly behind the ask. Decoration only. ----------
+// ---------- The CTA's ring (library-slider-cta-spec §3; round 13: interactive, as the library's) ----------
+// The site's own posters turning slowly behind the ask. Like the library's ring: a fine pointer zooms the card under it where it stands (its
+// neighbours slide apart) and plays its stored clip, the keyboard walks the cards (one Tab stop, Left/Right/Home/End), a touch drags it sideways
+// (vertical swipes stay the page's), and a press opens that video in the library's player (/video-library?v=<id>, its deep link). Under Pause
+// animations or reduced motion it is the library's flat row of the same cards.
 
 /** Fewer posters than this: no ring, the band is words and buttons. */
 const RING_MIN_POSTERS = 4;
@@ -79,23 +76,26 @@ function ringFill(posters: number): number {
 /** Videos with a poster: featured first, then by views, then dealt round the brands so neighbours differ. Up to RING_MAX. */
 function ringPosters(videos: Video[]): Video[] {
   const sorted = videos.filter((v) => v.posterUrl).sort((x, y) => Number(y.featured) - Number(x.featured) || (y.views || 0) - (x.views || 0));
-  const byBrand = new Map<string, Video[]>();
+  const groups = new Map<string, Video[]>();
   for (const v of sorted) {
-    const list = byBrand.get(v.brand);
+    const list = groups.get(v.brand);
     if (list) list.push(v);
-    else byBrand.set(v.brand, [v]);
+    else groups.set(v.brand, [v]);
   }
   const out: Video[] = [];
-  while (out.length < RING_MAX && byBrand.size > 0) {
-    for (const [brand, list] of byBrand) {
+  while (out.length < RING_MAX && groups.size > 0) {
+    for (const [brand, list] of groups) {
       const v = list.shift();
       if (v) out.push(v);
-      if (list.length === 0) byBrand.delete(brand);
+      if (list.length === 0) groups.delete(brand);
       if (out.length >= RING_MAX) break;
     }
   }
   return out;
 }
+
+/** The video's page in the library: the library opens its player from ?v=. */
+const watchHref = (v: Video) => `/video-library?v=${encodeURIComponent(v.id)}`;
 
 function FooterRingCards() {
   const { data, isError } = useVideos();
@@ -107,16 +107,38 @@ function FooterRingCards() {
       className="ft-ring"
       items={cards}
       itemKey={(v) => v.id}
-      label=""
-      interactive={false}
+      label="Videos from the library"
+      interactive
       minCards={ringFill(cards.length)}
+      clipOf={(v) => v.previewUrl}
+      streamOf={(v) => {
+        const source = previewSource(v);
+        return source && !source.clip ? source.src : null;
+      }}
       // Eager, not lazy: a slot behind the ring's camera projects to no box at all, so the browser's lazy loader never starts its poster until the
       // card swings round to the front, and it arrives there as an empty grey card. The ring itself mounts only near the screen (FooterRing), so
       // eager costs nothing up front; low priority keeps the posters behind anything the page itself needs.
-      renderCard={(v) => (
-        <div className="cring-card">
+      renderCard={(v, { tabIndex, clip }) => (
+        // A link (it goes somewhere), so Space is added: in a toolbar a button's Space is expected.
+        <Link
+          to={watchHref(v)}
+          className="cring-card ft-ring-card"
+          tabIndex={tabIndex}
+          aria-label={`${v.brand}: ${v.title}`}
+          draggable={false}
+          onKeyDown={(e) => {
+            if (e.key !== ' ') return;
+            e.preventDefault();
+            e.currentTarget.click();
+          }}
+        >
           <img src={v.posterUrl ?? undefined} alt="" loading="eager" fetchPriority="low" decoding="async" draggable={false} />
-        </div>
+          {clip}
+          <span className="ft-ring-scrim" aria-hidden />
+          <span className="ft-ring-name" aria-hidden>
+            {v.brand}
+          </span>
+        </Link>
       )}
     />
   );
@@ -153,9 +175,8 @@ function FooterRing() {
       io?.disconnect();
     };
   }, [near, ok]);
-  if (!ok) return null;
   return (
-    <div ref={slot} className="ft-ring-slot" aria-hidden>
+    <div ref={slot} className="ft-ring-slot" data-flat={ok ? undefined : ''}>
       {near && <FooterRingCards />}
     </div>
   );
@@ -321,6 +342,11 @@ export function Footer() {
           <div className="ft-top">
             <div className="ft-lead">
               <div className="ft-reach">
+                {/* The parent brand first (round 13): its mark and "Part of Kreators.App", one link to it. */}
+                <a className="ft-link ft-parent" href={PARENT.url} target="_blank" rel="noopener">
+                  <img className="ft-parent-logo" src="/logos/kreators-app.svg" alt="" width={22} height={22} decoding="async" />
+                  Part of {PARENT.name}
+                </a>
                 <ul className="ft-contacts">
                   <li>
                     <a className="ft-link ft-mail" href={`mailto:${SITE.email}`}>
@@ -348,7 +374,6 @@ export function Footer() {
                       </li>
                     )
                   )}
-                  <li className="ft-city">{SITE.city}</li>
                 </ul>
                 <ul className="ft-socials" onPointerEnter={(e) => e.pointerType === 'mouse' && wink()} onFocus={wink}>
                   {SOCIALS.map((s, i) => (
@@ -361,6 +386,7 @@ export function Footer() {
                     </li>
                   ))}
                 </ul>
+                <p className="ft-city">{SITE.city}</p>
               </div>
             </div>
 
@@ -435,22 +461,10 @@ export function Footer() {
                     <stop offset={6171 / WORDMARK.width} stopColor="#47c349" />
                     <stop offset={6171 / WORDMARK.width} stopColor="#ff8d3a" />
                   </linearGradient>
-                  {/* Fluted like kreators.app's wordmark: its 14 px rib (a dark seam, a clear body, a white streak right of centre), drawn in the
-                      word's own units so the flutes scale with it (14 px at 1440). */}
-                  <linearGradient id="ft-word-rib">
-                    {WORD_RIB_STOPS.map(([at, color, alpha], i) => (
-                      <stop key={i} offset={at} stopColor={color} stopOpacity={alpha} />
-                    ))}
-                  </linearGradient>
-                  <pattern id="ft-word-ribs" patternUnits="userSpaceOnUse" width={WORD_RIB} height={WORDMARK.height}>
-                    <rect width={WORD_RIB} height={WORDMARK.height} fill="url(#ft-word-rib)" />
-                  </pattern>
                 </defs>
+                {/* Round 13: clean letterforms, no flutes. Faint at rest, full strength lit. */}
                 {['rest', 'lit'].map((k) => (
-                  <g key={k} className={`ft-word-${k}`}>
-                    <use href="#ft-word-path" fill="url(#ft-word-four)" />
-                    <use href="#ft-word-path" fill="url(#ft-word-ribs)" />
-                  </g>
+                  <use key={k} className={`ft-word-${k}`} href="#ft-word-path" fill="url(#ft-word-four)" />
                 ))}
               </svg>
             </Link>

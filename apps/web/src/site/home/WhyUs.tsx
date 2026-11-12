@@ -11,7 +11,7 @@ import { ArmySentence } from './ArmySentence';
 // the Meet the Army bento (id="features"): the copy tile, four army tiles that are real buttons, the team figures, and the mascots note under it.
 
 const LEDE_INK = 'We build videos around real reactions.';
-const LEDE_REST = 'Natural conversations with real people, made into native short-form content. Planned for attention and retention, never scripted.';
+const LEDE_REST = 'Natural chats with real people, made for the feed. Planned to grab attention and hold it, never scripted.';
 
 /** The statement's words for the scrub, numbered across both tones so the whole sentence brightens in one reading order. */
 function Lede() {
@@ -111,7 +111,7 @@ export function WhyUs() {
                 <div className="why-copy">
                   <span className="eyebrow">Meet the Army</span>
                   <h3 className="why-copy-title">Not another editing agency</h3>
-                  <p className="why-copy-body">Most influencer and UGC videos today feel scripted. So we do the opposite: we take the conversation to the street and capture real reactions around your product category.</p>
+                  <p className="why-copy-body">Most influencer and creator videos today feel scripted. So we do the opposite. We take the conversation to the street and film real reactions to what you sell.</p>
                   <p className="why-copy-foot">Every batch carries what we've learned from campaigns across consumer brands.</p>
                   <Link to="/careers" className="why-copy-link">
                     Who makes the videos <ArrowRight className="size-4" aria-hidden />

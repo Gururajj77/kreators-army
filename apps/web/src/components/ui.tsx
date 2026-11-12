@@ -42,7 +42,7 @@ function dropPrerenderedHead() {
 export function Seo({ title, fullTitle, description, noindex, canonical }: { title?: string; fullTitle?: string; description: string; noindex?: boolean; canonical?: string }) {
   useEffect(() => {
     dropPrerenderedHead();
-    document.title = fullTitle ?? (title ? `${title} | ${SITE_TITLE}` : 'Vox Pop Street Interview Agency for D2C Brands | Kreators.Army');
+    document.title = fullTitle ?? (title ? `${title} | ${SITE_TITLE}` : 'Vox Pop Street Interviews for D2C Brands | Kreators.Army');
     document.querySelector('meta[name="description"]')?.setAttribute('content', description);
   }, [title, fullTitle, description]);
   useHeadTag('meta', noindex ? { name: 'robots', content: 'noindex,nofollow' } : null);

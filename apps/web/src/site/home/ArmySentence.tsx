@@ -4,7 +4,7 @@ import { Character, cascade, type CastId, type CharacterHandle } from '../../cas
 import { ARMY_SENTENCE, FOOTER_CAST_ORDER } from '../../lib/content';
 import { useMotionOk } from '../../lib/motionOk';
 
-// The Army sentence (motion M2, V2-SPEC 5.2 row 3): a screen-tall box that scrolls with the page (home11: no longer a pinned 220 vh stage, which held
+// The Army sentence (motion M2, V2-SPEC 5.2 row 3): a box that hugs the sentence (grpE13; was screen-tall) and scrolls with the page (home11: no longer a pinned 220 vh stage, which held
 // the page still under the visitor's scroll and read as stuck). The four stand in a line-up at the bottom; as the box rises up the screen each flies
 // into its slot in the sentence, just before its own phrase, which brightens as it lands. All four have landed by the time the box is centred.
 //
@@ -99,8 +99,9 @@ export function ArmySentence() {
       const from = {} as Geo['from'];
       const slot = {} as Geo['slot'];
       order.forEach((who, i) => {
-        // The line-up: centres spread across the middle of the stage, feet on its floor.
-        from[who] = { x: r.width / 2 - span / 2 + (span * i) / Math.max(1, order.length - 1) - size / 2, y: r.height - h - (phone ? 24 : 40) };
+        // The line-up: centres spread across the middle of the stage, just under the box (grpE13: the box hugs the sentence now, so the four wait
+        // below it, under the fold when their flights start, and rise into their slots).
+        from[who] = { x: r.width / 2 - span / 2 + (span * i) / Math.max(1, order.length - 1) - size / 2, y: r.height + (phone ? 8 : 16) };
         const s = slots.current[who]?.getBoundingClientRect();
         // The slot's centre is the flyer's centre at the end of its flight; it scales about its own centre.
         slot[who] = s ? { x: s.left - r.left + s.width / 2 - size / 2, y: s.top - r.top + s.height / 2 - h / 2, s: s.width / size } : { ...from[who], s: 1 };

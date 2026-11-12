@@ -182,7 +182,7 @@ export default function Numbers() {
 
   return (
     <>
-      <Seo title="The numbers" description="The reach behind Kreators.Army vox pop street interviews, video by video." />
+      <Seo title="The numbers" description="The reach behind Kreators.Army vox pop street interviews: views, followers and engagement from past work, and our top videos ranked by views." />
 
       <section className="nb-top">
         <div className="ground" aria-hidden />

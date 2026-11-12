@@ -1,6 +1,6 @@
 import { averagePerVideo, formatInr, quoteFee, type Quote } from '@kreators/shared';
 import { Minus, Plus } from 'lucide-react';
-import { useId, useState, type ChangeEvent, type CSSProperties } from 'react';
+import { useId, useState, type ChangeEvent, type CSSProperties, type ReactNode } from 'react';
 import { AddOnRow, BatchStrip, PackageCards, PackageIncludes, PricingRules } from '../../components/Packages';
 import { ChipRail } from '../../components/tabs';
 import { PageHero, PrimaryCta, Reveal, RollNumber, SectionHead, Seo } from '../../components/ui';
@@ -19,6 +19,20 @@ const PICKS = ['5', '10', '20', '25', '30'] as const;
 const FIRST = PACKAGES[0];
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
+
+/** (grpD13) Keeps "pre-production" on one line: at most widths the browser broke it at its hyphen ("pre- / production"). Text unchanged. */
+function keepPre(s: string): ReactNode {
+  return s.split('pre-production').flatMap((part, i) =>
+    i
+      ? [
+          <span key={i} className="whitespace-nowrap">
+            pre-production
+          </span>,
+          part,
+        ]
+      : [part],
+  );
+}
 
 function Stepper({
   id,
@@ -212,13 +226,13 @@ function Calculator() {
             )}
             {q.kind === 'package' && (
               <p className="calc-line">
-                {PACKAGES.find((p) => p.videos === q.videos)?.name} · {perVideoLine(q)}
+                {PACKAGES.find((p) => p.videos === q.videos)?.name}&nbsp;· {perVideoLine(q)}
               </p>
             )}
             {q.kind === 'blocks' && (
               <>
                 <p className="calc-line">
-                  {blocksLine(q.blocks)} · {perVideoLine(q)}
+                  {blocksLine(q.blocks)}&nbsp;· {perVideoLine(q)}
                 </p>
                 <p className="calc-small">
                   Each extra block of {ADD_ON.blockOf} is {formatInr(ADD_ON.fee)} ({formatInr(ADD_ON.perVideo)} a video).
@@ -230,7 +244,7 @@ function Calculator() {
           </div>
           {q.kind === 'written' && <div className="calc-snaps">{[q.lower, q.upper].map(snap)}</div>}
           {q.kind === 'below' && <div className="calc-snaps">{snap(FIRST.videos)}</div>}
-          <p className="calc-terms">+ GST where applicable · Paid in full before production · Usage rights on full payment</p>
+          <p className="calc-terms">+ GST where it applies · Paid in full before production · Usage rights on full payment</p>
           <PrimaryCta intent={{ videos, brands }} className="calc-cta" />
         </div>
         <BatchStrip quote={q} animate className="calc-strip" />
@@ -250,7 +264,7 @@ function Payment() {
               <span className="pr-track-n" aria-hidden>
                 {i + 1}
               </span>
-              <p className="pr-track-text">{s}</p>
+              <p className="pr-track-text">{keepPre(s)}</p>
             </li>
           ))}
         </Reveal>
@@ -266,8 +280,8 @@ function Payment() {
             </div>
           </Reveal>
           <div className="pr-pay-lines">
-            <p>Refund and delivery guarantee terms are set out in the pilot agreement.</p>
-            <p>Delivery timelines are confirmed in the pilot agreement once pre-production alignment is complete.</p>
+            <p>Refund and delivery guarantee terms are in the pilot agreement.</p>
+            <p>{keepPre('We confirm delivery dates in the pilot agreement, once planning for the shoot is done.')}</p>
           </div>
         </div>
       </div>
@@ -307,7 +321,7 @@ export default function Pricing() {
           <Reveal className="pr-packages-in">
             <PackageCards />
             <AddOnRow />
-            <p className="pr-fine">All amounts in Indian rupees (INR), excluding GST where applicable.</p>
+            <p className="pr-fine">All amounts are in Indian rupees (INR). GST is extra where it applies.</p>
           </Reveal>
         </div>
       </section>

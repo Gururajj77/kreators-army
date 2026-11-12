@@ -146,7 +146,7 @@ export const TEAM: Stat[] = [
 
 /** Beside every result the site shows (content §2.8). `short` for tight spots such as a stat tile caption. */
 export const RESULTS_NOTE = {
-  long: 'Past results from our work. How a video performs also depends on the platform, audience, account history, media spend, offer and distribution, so we never promise views.',
+  long: 'These are past results from our work. How a video does also depends on the platform, the audience, your account history, ad spend, the offer and how it gets shared. So we never promise views.',
   short: 'Past results, not a promise.',
 };
 
@@ -167,26 +167,26 @@ export const PLATFORMS_HEAD = { strong: 'Vox pop as a service for brands.', rest
 
 /** Five steps, trial to batch (content §2.4). Home How it works, Why Kreators, Contact. */
 export const JOURNEY = [
-  { name: 'Send the brief', body: 'Tell us the objective, how your brand should show up and what every video must include.' },
+  { name: 'Send the brief', body: 'Tell us your goal, how your brand should show up and what every video must include.' },
   { name: 'The trial', body: 'We make a short trial on your brand, so you can see the format before you commit. Scope, the number of videos and any fee are confirmed in writing.' },
-  { name: 'Feedback and a package', body: 'Share consolidated feedback through one point of contact, then choose a 5, 10 or 20 video package for one brand.' },
-  { name: 'Prepay and plan', body: 'Sign the pilot agreement and pay the package in advance. Before each shoot we lock the objective, products, audience and must-haves.' },
-  { name: 'Shoot, edit, deliver', body: 'We produce the batch in one planned cycle, with review checkpoints where useful and minor revisions included. Usage rights transfer on full payment.' },
+  { name: 'Feedback and a package', body: 'Send all your feedback through one contact. Then pick a 5, 10 or 20 video package for one brand.' },
+  { name: 'Prepay and plan', body: 'Sign the pilot agreement and pay for the package up front. Before each shoot, we lock the goal, products, audience and must-haves.' },
+  { name: 'Shoot, edit, deliver', body: 'We make the batch in one planned cycle, with check-ins where useful. Minor edits are included. Usage rights pass to you on full payment.' },
 ];
 
 /** After the trial: the paid pilot, seven steps (content §2.5). /trial#after. */
 export const PILOT_STEPS = [
-  { name: 'Trial review', body: 'We share the trial videos with you for evaluation.' },
-  { name: 'Consolidated feedback', body: 'You share feedback through one main point of contact. Edit-level changes are handled as described under revisions.' },
+  { name: 'Trial review', body: 'We share the trial videos for you to review.' },
+  { name: 'Consolidated feedback', body: 'You send feedback through one main contact. Edit changes follow our rules on revisions.' },
   { name: 'Package selection', body: 'You choose a 5, 10 or 20 video package for a single brand.' },
-  { name: 'Pilot agreement and prepayment', body: 'We sign a pilot agreement, raise an invoice, and you pay the full package fee in advance. Production begins when payment arrives.' },
-  { name: 'Pre-production alignment', body: 'Before each shoot, we lock the objective, products, audience, message and must-haves. Your completed brief is the starting point.' },
-  { name: 'Shoot, edit and delivery', body: 'We produce the agreed batch in a planned production cycle, with review checkpoints where useful and minor revisions included.' },
-  { name: 'Usage rights', body: 'Usage rights for the final videos transfer on full payment, on the terms of the pilot agreement.' },
+  { name: 'Pilot agreement and prepayment', body: 'We sign a pilot agreement and send an invoice. You pay the full package fee up front. Work starts when the payment arrives.' },
+  { name: 'Pre-production alignment', body: 'Before each shoot, we lock the goal, products, audience, message and must-haves. Your brief is where we start.' },
+  { name: 'Shoot, edit and delivery', body: 'We make the agreed batch in one planned cycle, with check-ins where useful. Minor edits are included.' },
+  { name: 'Usage rights', body: 'The rights to use the final videos pass to you on full payment, on the terms of the pilot agreement.' },
 ];
 
 /** Always under the pilot steps, outside any animation. */
-export const PILOT_FOOTNOTE = 'Delivery timelines are confirmed in the pilot agreement, once pre-production alignment is complete.';
+export const PILOT_FOOTNOTE = 'We confirm delivery dates in the pilot agreement, once planning for the shoot is done.';
 
 // ---------- Packages and pricing (content §2.1 to §2.3, §3.4, §4) ----------
 
@@ -206,14 +206,14 @@ export const quote = (n: number) => quoteBatch(n, { PACKAGES, ADD_ON });
 
 /** Every package includes the same things (content §2.2). Home shows the first five on phones. */
 export const PACKAGE_INCLUDES = [
-  'Concepts, questions and interactions planned for your objective',
+  'Ideas, questions and moments planned around your goal',
   'Creative variety across the batch, not one question repeated',
-  'Interviewer, participant selection and on-ground direction',
-  'Street shoot with professional framing and audio',
+  'An interviewer, the right people and direction on the street',
+  'A street shoot with pro framing and sound',
   'Editing for short-form: strong openings, tight pacing, captions, clean endings',
-  'Pre-production alignment before each shoot',
-  'Review checkpoints where useful',
-  'Minor edit-level revisions',
+  'Planning together before each shoot',
+  'Check-ins where useful',
+  'Minor edit changes',
   'Vertical videos ready for Reels, Shorts and other short-form feeds',
   'Usage rights on full payment',
 ];
@@ -223,39 +223,39 @@ export const PACKAGE_INCLUDES = [
  * into its `body`: render `<strong>{title}</strong> {body}`.
  */
 export const PRICING_RULES = [
-  { title: 'One brand per package.', body: "Packages can't be combined, pooled or split across brands. That includes agencies working for several brands: each brand needs its own package." },
+  { title: 'One brand per package.', body: "You can't combine, pool or split packages across brands. That goes for agencies too: each brand needs its own package." },
   { title: 'Beyond 20 videos,', body: 'add blocks of 5 at ₹35,000 a block (₹7,000 a video).' },
   { title: 'Quantities in between', body: 'the packages are quoted in writing before work begins.' },
-  { title: 'Taxes:', body: 'fees exclude applicable taxes, including GST where applicable.' },
-  { title: 'Fully prepaid:', body: 'the whole package fee is paid in advance, before pre-production starts.' },
-  { title: 'Usage rights', body: 'for the final videos transfer on full payment.' },
+  { title: 'Taxes:', body: 'GST and any other taxes that apply are extra.' },
+  { title: 'Fully prepaid:', body: 'you pay the whole package fee up front, before planning starts.' },
+  { title: 'Usage rights', body: 'for the final videos pass to you on full payment.' },
 ];
 
 /** How payment works, four steps (content §3.4 #payment). */
 export const PAYMENT_STEPS = [
   'You confirm the package and sign the pilot agreement.',
-  'We raise an invoice.',
-  'You pay the full package fee in advance, before pre-production or production begins.',
-  'Production begins when payment arrives.',
+  'We send an invoice.',
+  'You pay the full package fee up front, before planning or filming starts.',
+  'Work starts when the payment arrives.',
 ];
 
 /** The box under the payment steps. */
 export const LATE_PAYMENT = {
   title: 'If a payment is late or partial',
-  lines: ['Work may be paused', 'Delivery of edited videos and/or raw footage may be withheld', 'Usage rights stay suspended'],
+  lines: ['Work may be paused', 'We may hold back edited videos or raw footage', 'Usage rights stay on hold'],
 };
 
 // ---------- The creative system (content §2.6) ----------
 
 export const WE_CONTROL = [
   'The objective and creative direction',
-  'Question and concept framing',
-  'How participants are approached',
-  'The setup of the interaction',
+  'How the idea and question are framed',
+  'How we approach people',
+  'How each moment is set up',
   'The interviewer and follow-up questions',
-  'On-ground direction',
-  'Participant selection',
-  'Editing, pacing and final presentation',
+  'Direction on the street',
+  'Who we pick to interview',
+  'The edit, the pace and the final look',
 ];
 
 export const WE_CANNOT = 'Exactly how a stranger will respond in the moment.';
@@ -289,20 +289,20 @@ export const INTERACTION_EXAMPLES: { text: string; mechanism: Mechanism }[] = [
 
 export const VIDEO_JOBS = ['Create curiosity', 'Address a specific problem', 'Generate product interest', 'Demonstrate a benefit', 'Build social proof', 'Drive consideration'];
 
-export const EDIT_PRIORITIES = ['Strong opening moments', 'No unnecessary pauses or repetition', 'Clear context', 'Tight storytelling', 'Strong reaction moments', 'Appropriate pacing', 'Clean endings'];
+export const EDIT_PRIORITIES = ['Strong opening moments', 'No dead air or repeats', 'Clear context', 'Tight storytelling', 'Strong reaction moments', 'The right pace', 'Clean endings'];
 
 export const QUALITY = ['Framing', 'Audio', 'Camera positioning', 'Lighting where possible', 'Participant presentation', 'Background distractions', 'Overall composition'];
 
 export const LOCK_LIST = [
-  'Primary objective',
-  'Product or products featured',
-  'Target audience',
-  'Core message or value proposition',
-  'Desired audience response',
-  'Required brand and product information',
-  'Mandatory requirements',
+  'Main goal',
+  'Product or products to feature',
+  'Who the videos are for',
+  'Core message or main selling point',
+  'How you want viewers to react',
+  'Brand and product facts we must get right',
+  'Must-haves',
   'Things to avoid',
-  'Any special production requirements',
+  'Any special shoot needs',
 ];
 
 /** The creative loop; the last step arrows back to the first. */
@@ -368,7 +368,7 @@ export const FAQS: Faq[] = [
     slug: 'will-this-work-for-my-brand',
     group: 'The format',
     q: 'Will this format work for my brand?',
-    a: 'It works best for brands with physical products, because real people can try the product and react honestly on camera. If you have several products, we can plan the batch across them, with one main objective per video.',
+    a: 'It works best for brands with physical products, because real people can try the product and react honestly on camera. Got several products? We can plan the batch across them, with one main goal per video.',
   },
   {
     slug: 'are-the-answers-scripted',
@@ -380,13 +380,13 @@ export const FAQS: Faq[] = [
     slug: 'who-asks-the-questions',
     group: 'The format',
     q: 'Who asks the questions?',
-    a: "Our interviewer, or your founder if you'd like them on camera with our team beside them. Where the interviewer represents your brand, we agree the introduction and positioning before the shoot, so it's clear who they're speaking for.",
+    a: "Our interviewer, or your founder if you'd like them on camera, with our team beside them. When the interviewer speaks for your brand, we agree how they introduce themselves before the shoot. That way, it's clear who they're speaking for.",
   },
   {
     slug: 'do-participants-get-anything',
     group: 'The format',
     q: 'Do the people you interview get anything?',
-    a: 'Sometimes. A simple incentive helps people stop and spend enough time with us, ideally something physical or redeemable on the spot. It never decides what they say. The exact incentive is agreed in pre-production.',
+    a: 'Sometimes. A small thank-you helps people stop and spend time with us. It works best as something they can hold or use on the spot. It never decides what they say. We agree the exact gift before the shoot.',
   },
   {
     slug: 'is-the-trial-free',
@@ -404,19 +404,19 @@ export const FAQS: Faq[] = [
     slug: 'what-do-you-need-for-the-trial',
     group: 'The trial',
     q: 'What do you need from me for the trial?',
-    a: 'The brief: the objective, how prominently the brand should appear, what every video must include, what viewers should think, feel or do, a simple brand guide, and 3 to 5 reference videos. The request form walks you through it.',
+    a: 'The brief. It covers your goal, how much the brand should show, what every video must include, and what viewers should think, feel or do. Add a simple brand guide and 3 to 5 reference videos. The request form walks you through it.',
   },
   {
     slug: 'can-i-post-the-trial-video',
     group: 'The trial',
     q: 'Can I post the trial video?',
-    a: "No. Trial content is for evaluation only. It can't be published, boosted, used in ads, repurposed or sublicensed unless a paid engagement is confirmed in writing. If we don't go ahead, unpublished trial content stays unused, and anything published must come down if we ask.",
+    a: "No. Trial videos are for review only. They can't be posted, boosted, used in ads, reused or sublicensed unless a paid project is confirmed in writing. If we don't go ahead, unposted trial videos stay unused. Anything already posted must come down if we ask.",
   },
   {
     slug: 'how-much-does-it-cost',
     group: 'Packages and pricing',
     q: 'How much do the videos cost?',
-    a: '5 videos for ₹50,000 (₹10,000 each), 10 for ₹85,000 (₹8,500 each), or 20 for ₹1,50,000 (₹7,500 each). Beyond 20, add blocks of 5 at ₹35,000 a block. GST is extra where applicable.',
+    a: '5 videos for ₹50,000 (₹10,000 each), 10 for ₹85,000 (₹8,500 each), or 20 for ₹1,50,000 (₹7,500 each). Beyond 20, add blocks of 5 at ₹35,000 a block. GST is extra where it applies.',
   },
   {
     slug: 'is-this-a-monthly-plan',
@@ -428,7 +428,7 @@ export const FAQS: Faq[] = [
     slug: 'can-i-order-a-different-number',
     group: 'Packages and pricing',
     q: 'Can I order 7 or 15 videos?',
-    a: 'Quantities between the packages are quoted in writing before work begins. Beyond 20, videos are added in blocks of 5.',
+    a: 'We quote any number between the packages in writing before work begins. Beyond 20, you add videos in blocks of 5.',
   },
   {
     slug: 'can-an-agency-split-a-package',
@@ -440,37 +440,37 @@ export const FAQS: Faq[] = [
     slug: 'are-taxes-included',
     group: 'Packages and pricing',
     q: 'Are taxes included?',
-    a: 'No. Fees exclude applicable taxes, including GST where applicable.',
+    a: "No. Fees don't include taxes. GST is added where it applies.",
   },
   {
     slug: 'how-does-payment-work',
     group: 'Packages and pricing',
     q: 'How does payment work?',
-    a: 'Everything is prepaid. We raise an invoice when you confirm the package and sign the pilot agreement, the full fee is paid in advance, and production begins when payment arrives. If a payment is late or partial, work may pause, delivery may be held and usage rights stay suspended. Refund and delivery guarantee terms are in the pilot agreement.',
+    a: 'Everything is prepaid. When you confirm the package and sign the pilot agreement, we send an invoice. You pay the full fee up front, and work starts when the payment arrives. If a payment is late or partial, work may pause, delivery may be held and usage rights stay on hold. Refund and delivery guarantee terms are in the pilot agreement.',
   },
   {
     slug: 'how-long-does-production-take',
     group: 'Production',
     q: 'How long does it take?',
-    a: 'Delivery timelines are confirmed in the pilot agreement once pre-production alignment is complete. We then produce the agreed batch in one planned cycle rather than one video at a time.',
+    a: 'We confirm delivery dates in the pilot agreement, once planning for the shoot is done. Then we make the agreed batch in one planned cycle, not one video at a time.',
   },
   {
     slug: 'do-you-handle-the-shoot',
     group: 'Production',
     q: 'Do you handle the shoot as well as the edit?',
-    a: 'Yes. We plan the concepts and questions, choose and approach participants, run the interviews and on-ground direction, shoot, and edit.',
+    a: 'Yes. We plan the ideas and questions, pick and approach the people, run the interviews and direct on the street. Then we shoot and edit.',
   },
   {
     slug: 'can-i-request-revisions',
     group: 'Production',
     q: 'Can I request revisions?',
-    a: 'Yes. Minor, edit-level revisions such as text changes, trims, sequencing and captions are included. A fundamentally different concept, format or setup, new footage or a reshoot is discussed separately first. Please send feedback through one main point of contact.',
+    a: 'Yes. Minor edit changes are included, such as text, trims, clip order and captions. Bigger changes are discussed separately first. That means a whole new idea, format or setup, new footage or a reshoot. Please send feedback through one main contact.',
   },
   {
     slug: 'can-we-change-direction-after-the-shoot',
     group: 'Production',
     q: 'What if we change direction after the shoot?',
-    a: "It's best to lock creative direction, branding and must-haves before filming. New requirements after the shoot may need extra editing, revised deliverables, or a reshoot if they depend on footage we didn't capture.",
+    a: "It's best to lock the creative direction, branding and must-haves before filming. New asks after the shoot may need extra editing, changed deliverables, or a reshoot if they need footage we didn't film.",
   },
   {
     slug: 'how-long-is-each-video',
@@ -482,7 +482,7 @@ export const FAQS: Faq[] = [
     slug: 'will-every-video-look-different',
     group: 'Production',
     q: 'Will every video look different?',
-    a: 'Each video gets its own creative mechanism, such as a reveal, an A/B comparison or a challenge, and visual variety comes from different people, backgrounds, framing and places. We batch-shoot, so a special location or large prop is agreed in pre-production.',
+    a: 'Each video gets its own mechanism, such as a reveal, an A/B comparison or a challenge. The look changes too, with new people, backdrops, framing and places. We shoot in batches, so we agree any special place or big prop before the shoot.',
   },
   {
     slug: 'where-can-i-use-the-videos',
@@ -493,20 +493,20 @@ export const FAQS: Faq[] = [
   {
     slug: 'do-i-post-on-your-channel',
     group: 'Rights and results',
-    q: 'Do I need to post the videos on your channel?',
+    q: 'Do I need to post on your channel?',
     a: 'No. The videos are delivered to you, so they become long-term content assets for your own brand channels.',
   },
   {
     slug: 'do-you-guarantee-views',
     group: 'Rights and results',
     q: 'Do you guarantee views or sales?',
-    a: 'No. We optimise every video for attention, retention, engagement and your objective, but performance also depends on the platform, audience, account history, media spend, offer and distribution. We cannot guarantee views, virality, reach, engagement, conversions, CAC, ROAS or sales.',
+    a: "No. We build every video to grab attention, keep people watching and serve your goal. But results also hang on things we don't control. That means the platform, the people who see it, your account history, ad spend, the offer and how it gets shared. So we can't guarantee results. That covers views, virality, reach and engagement. It also covers sales, conversions, cost per customer and return on ad spend.",
   },
   {
     slug: 'will-you-keep-our-information-confidential',
     group: 'Rights and results',
     q: 'Will you keep our information confidential?',
-    a: 'Yes. Our agreements keep non-public information confidential on both sides, for five years after the engagement ends.',
+    a: 'Yes. Our agreements keep non-public information private on both sides. That lasts for five years after our work together ends.',
   },
 ];
 
@@ -540,7 +540,7 @@ export interface FormatPageContent {
 }
 
 /** The caption under every "Ideas that suit this format" row; it ends in a link "How we work" to /how-we-work. */
-export const IDEAS_CAPTION = 'Every batch mixes mechanisms, so no two videos repeat the same question.';
+export const IDEAS_CAPTION = 'Every batch mixes mechanisms, and we take care not to repeat a question.';
 
 export const FORMATS: Record<FormatSlug, FormatPageContent> = {
   founders: {
@@ -556,7 +556,7 @@ export const FORMATS: Record<FormatSlug, FormatPageContent> = {
       { name: 'Product in hand', body: 'People try the product in front of the person who made it and say what they think.' },
       { name: 'Question of the week', body: 'One sharp question from your category, asked again and again, built into a repeatable series.' },
     ],
-    metaDescription: 'Founder-led vox pop street interviews from Kreators.Army, built for Reels and Shorts.',
+    metaDescription: 'Founder-led vox pop from Kreators.Army. Your founder takes the mic, asks real people about the problem you solve, and we cut it for Reels and Shorts.',
     videoIds: ['seed-fyndflow', 'seed-brandingbum'],
     ideas: ['Personal experiences', 'Product reactions', 'Debates and opposing opinions', 'Unexpected questions'],
     introLine: "We agree the introduction before the shoot, so people know who's asking.",
@@ -574,7 +574,7 @@ export const FORMATS: Record<FormatSlug, FormatPageContent> = {
       { name: 'Meetups and community nights', body: 'Real conversations with the people who turned up, like our meetup work with Ansh Mehra.' },
       { name: 'Shows and tours', body: 'Short recaps that bring people who missed it into the room, like our work with Rode.' },
     ],
-    metaDescription: 'Vox pop interviews at launches, meetups and shows, turned into short-form video by Kreators.Army.',
+    metaDescription: 'Vox pop at launches, pop-ups, meetups and shows. Kreators.Army brings the mic, talks to the crowd and turns the best reactions into short-form video.',
     videoIds: ['seed-ansh-mehra', 'seed-rode'],
     ideas: ['Audience participation', 'Challenges', 'Rankings', 'Humour and playful interactions'],
   },
@@ -591,7 +591,7 @@ export const FORMATS: Record<FormatSlug, FormatPageContent> = {
       { name: 'Category questions', body: 'Questions about the category come first, so the product arrives as the answer.' },
       { name: 'Where to find it', body: 'Each edit can close on where your product is sold, in store or online.' },
     ],
-    metaDescription: 'Street interviews for physical products, built to send people to where you sell. Kreators.Army.',
+    metaDescription: 'Street interviews for physical products. Real people try yours on camera, and each video can close on where to buy it. Vox pop by Kreators.Army.',
     videoIds: ['seed-circlestore-1', 'seed-circlestore-2', 'seed-circlestore-3', 'seed-waxys'],
     ideas: ['Product reactions', 'A/B comparisons', 'Guessing and reveals', 'Rankings'],
   },
@@ -757,7 +757,7 @@ export const CAST_LINES = {
   'home.army.bolu': { who: 'bolu', line: 'I ask. Strangers answer. Nobody reads a script.' },
   'home.army.tiko': { who: 'tiko', line: 'Framing, sound, background. I watch all three.' },
   'home.army.gola': { who: 'gola', line: 'As tight as the story allows. Not tighter.' },
-  'home.army.sochu': { who: 'sochu', line: 'Clear objective. Right mechanism. Real people.' },
+  'home.army.sochu': { who: 'sochu', line: 'Clear goal. Right mechanism. Real people.' },
   'home.how.1': { who: 'sochu', line: 'What must every video include? Write it down.' },
   'home.how.2': { who: 'bolu', line: "Trial day. Let's see it on your brand." },
   'home.how.3': { who: 'sochu', line: 'One point of contact, one clear direction.' },
@@ -767,7 +767,7 @@ export const CAST_LINES = {
   'home.work.error': { who: 'tiko', line: "Hmm, the reels didn't load." },
   'hww.cannot': { who: 'bolu', line: "I can't script a stranger. I can set up a moment." },
   'hww.chain': { who: 'tiko', line: 'Setup. Question. Then I keep rolling.' },
-  'hww.mechanisms': { who: 'sochu', line: 'Eleven ways in. No question asked twice.' },
+  'hww.mechanisms': { who: 'sochu', line: 'Eleven ways in, so we rarely ask the same thing twice.' },
   'hww.reason': { who: 'bolu', line: 'A small thank-you helps. It never picks the answer.' },
   'hww.follow': { who: 'bolu', line: 'If a chat gets good, I follow it.' },
   'hww.varied': { who: 'tiko', line: 'New corner, new people, same day.' },

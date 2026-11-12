@@ -1,7 +1,7 @@
 // The card ring (library-slider-cta-spec §1): tall rounded portrait cards on the inside of a slowly turning cylinder, seen from just outside it, so
 // the far wall faces you and the cards grow and bend toward both edges. Pure CSS 3D: the stage holds the camera (perspective), the ring turns
 // (rotateY, written straight to its style every frame, never through React state) and each slot pushes its card out to the wall. Backface culling
-// hides the near half. Used twice: the brand filter at the top of /video-library (interactive) and the footer CTA (decorative).
+// hides the near half. Used twice, both interactive: the brand filter at the top of /video-library and the footer CTA (round 13: links to videos).
 //
 // Order: item 0 faces you first and item 1 sits to its right. The angle grows, so the wall drifts right to left and the items arrive at the centre
 // in order. Fewer items than `minCards` are cycled into clones (aria-hidden, inert, never focusable). Under Pause animations or reduced motion the

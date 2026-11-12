@@ -536,6 +536,29 @@
     letter-spacing: -0.02em;
   }
 
+  /* grpE13: every stat tile keeps a row for the note under its figure, so the three figures sit at the same height in their tiles (the note had
+     pushed the last figure 30 px above the other two). Tablets and desktops; phones centre their compact tiles below. */
+  @media (min-width: 735px) {
+    .work-stat-in {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto 23px;
+      padding-block: 20px 16px;
+    }
+
+    .work-stat-label {
+      grid-row: 1;
+    }
+
+    .work-stat-figure {
+      grid-row: 3;
+    }
+
+    .work-stat-note {
+      grid-row: 4;
+      align-self: end;
+    }
+  }
+
   .work-empty {
     grid-column: span 3;
     grid-row: span 3;
@@ -1044,26 +1067,24 @@
   /* The Army sentence (M2). Without JavaScript, under Pause animations and as the default markup: a centred sentence with the four sitting in their
      slots, nothing pinned. Armed: a screen-tall box that scrolls with the page (home11: no longer pinned, so the scroll never holds still) while the
      four fly in, driven by the box's own pass up the screen. */
+  /* grpE13: the box hugs the sentence in both states (no screen-tall box, so no ~270 px of empty floor under it once the four have landed): 80 px
+     from the statement above, 80 px to the bento below (32 here + the bento's 48). The line-up waits just under the box, below the fold when the
+     flights start, so the box clips sideways only; z-index keeps the flyers over the bento while they rise. */
   .army {
     position: relative;
-    margin-top: 56px;
+    z-index: 1;
   }
 
   .army-sticky {
     position: relative;
     display: grid;
     place-items: center;
-    padding: 24px var(--page-pad, 6.25%);
-  }
-
-  .army[data-armed] {
-    margin-top: 0;
+    padding: 80px var(--page-pad, 6.25%) 32px;
   }
 
   .army[data-armed] .army-sticky {
-    height: clamp(460px, 66svh, 640px);
-    padding-block: 24px 0;
-    overflow: clip;
+    overflow-x: clip;
+    overflow-y: visible;
   }
 
   .army-sentence {
@@ -1077,10 +1098,6 @@
     letter-spacing: -0.016em;
     text-align: center;
     text-wrap: balance;
-  }
-
-  .army[data-armed] .army-sentence {
-    margin-bottom: 14vh;
   }
 
   .army-phrase {
@@ -1125,21 +1142,14 @@
   }
 
   @media (max-width: 734px) {
-    .army {
-      margin-top: 40px;
-    }
-
-    .army[data-armed] .army-sticky {
-      height: clamp(420px, 62svh, 540px);
+    /* 56 px from the statement, 56 px to the bento (24 + its 32). */
+    .army-sticky {
+      padding-block: 56px 24px;
     }
 
     .army-sentence {
       font-size: 29px;
       line-height: 1.34;
-    }
-
-    .army[data-armed] .army-sentence {
-      margin-bottom: 22vh;
     }
   }
 
@@ -1236,7 +1246,8 @@
   /* The five feeds, each on a plate with a glyph that pops on hover (the footer's dock pop). */
   .platforms {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    /* Four feeds: four columns (five left an empty fifth of the plate), two by two on tablets, a list on phones. */
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--gap);
     margin: 40px 0 0;
     padding: 0;
@@ -1330,7 +1341,7 @@
 
   @media (max-width: 1068px) {
     .platforms {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
@@ -1659,6 +1670,53 @@
     }
   }
 
+  /* grpE13: tablets. The shared stack is a 560 px column centred in a 934 px content box, off the edges the add-on band and everything else on
+     the page align to. Here each package runs the full content width instead, as two columns: what it is and its strip on the left, the price
+     and the button on the right, so no half of a wide card sits empty. */
+  @media (max-width: 1068px) and (min-width: 735px) {
+    .price-cards {
+      max-width: none;
+      margin-inline: 0;
+    }
+
+    .price-cards .pkg {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto auto 1fr;
+      column-gap: 40px;
+      row-gap: 6px;
+    }
+
+    .price-cards .pkg-name {
+      grid-area: 1 / 1;
+    }
+
+    .price-cards .pkg-line {
+      grid-area: 2 / 1;
+      margin: 0;
+    }
+
+    .price-cards .pkg-strip {
+      grid-area: 3 / 1;
+      align-self: end;
+      margin: 16px 0 12px;
+    }
+
+    .price-cards .pkg-fee {
+      grid-area: 1 / 2;
+    }
+
+    .price-cards .pkg-per {
+      grid-area: 2 / 2;
+    }
+
+    .price-cards .pkg-cta {
+      grid-area: 3 / 2;
+      align-self: end;
+      margin-top: 16px;
+    }
+  }
+
   @media (max-width: 734px) {
     .price-cards {
       margin-top: 32px;
@@ -1690,5 +1748,13 @@
     .home-faqchat {
       margin-top: 28px;
     }
+  }
+}
+
+@layer components {
+  /* gate13: Work and Why us wrap their padding in an inner .section, so the shared sibling step (components.css) can't see them. The same step
+     here: one section's padding plus 48 px between the reels' arrows and "Why us", like every other pair of open sections on the page. */
+  .work-section + .why-section > .section {
+    padding-top: 48px;
   }
 }

@@ -12,6 +12,13 @@
     padding-block: var(--section-y);
   }
 
+  /* Bands no longer paint, so two neighbouring open sections would stack two full paddings (about 240 px of empty field). The second one keeps
+     only a short step: one section's padding plus 48 px between them. A dark panel keeps its own padding inside it, and anything that follows a
+     panel keeps the full space. Specificity stays at one class, so any page's own padding rule (loaded later) still wins. */
+  :where(.section:not(.band-dark)) + .section:where(:not(.band-dark)) {
+    padding-top: 48px;
+  }
+
   /* One continuous field (styles/backdrop.css) runs behind every public page, so bands no longer paint: spacing, not colour blocks, separates
      sections. The alternate band keeps its class but none of its swap: page and plate tokens stay the page's, so its tiles still read on the field. */
   .band-alt {

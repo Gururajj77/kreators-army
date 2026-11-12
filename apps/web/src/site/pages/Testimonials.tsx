@@ -30,7 +30,7 @@ export default function Testimonials() {
   const posters = [...(data ?? [])].filter((v) => v.posterUrl).sort((a, b) => b.views - a.views).slice(0, 3);
   return (
     <>
-      <Seo title="Testimonials" description="What clients say about working with Kreators.Army on vox pop street interviews." />
+      <Seo title="Testimonials" description="What founders and marketing teams say about working with Kreators.Army on vox pop street interviews: the format, the shoot and the videos, in their own words." />
       <section className="tm-page">
         <div className="ground" aria-hidden />
         <div className="wrap tm-wall">

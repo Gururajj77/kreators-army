@@ -1,85 +1,71 @@
-// Owner: adm (round 3). The videos list's columns: which show, and the grid they make. The founder can hide any optional column (kept in this
-// browser); when the window is too narrow for the title to stay readable, the least useful ones step aside first (Updated, Platform, Category,
-// Uploaded, Posted; in the bin the Deleted date goes last) and the Columns menu says so. Under 861 px the phone layout in admin.css takes over.
+// Owner: adm (round 3); fluid widths by admin14. The videos list's columns: which show, and the grid they make. The founder can hide any optional
+// column (kept in this browser). Every column has a floor and a share of the room left (fr), so the list fills the window at any width and the title
+// grows most; when the chosen columns' floors are wider than the window, the list scrolls sideways with the Video column held at the left (admin.css).
+// Under 861 px the phone layout in admin.css takes over.
 import { Columns3 } from 'lucide-react';
-import { useCallback, useId, useLayoutEffect, useMemo, useState, type RefObject } from 'react';
+import { useCallback, useId, useMemo, useState } from 'react';
 import { usePopover } from './bits';
 
-export type ColKey = 'status' | 'stream' | 'category' | 'platform' | 'uploaded' | 'views' | 'posted' | 'updated';
+export type ColKey = 'status' | 'stream' | 'featured' | 'category' | 'platform' | 'aspect' | 'uploaded' | 'views' | 'order' | 'posted' | 'updated';
 
-export const COLUMNS: { key: ColKey; label: string; width: number; optional: boolean }[] = [
-  { key: 'status', label: 'Status', width: 124, optional: false },
-  { key: 'stream', label: 'Stream', width: 164, optional: true },
-  { key: 'category', label: 'Category', width: 104, optional: true },
-  { key: 'platform', label: 'Platform', width: 96, optional: true },
-  { key: 'uploaded', label: 'Uploaded', width: 100, optional: true },
-  { key: 'views', label: 'Views', width: 64, optional: true },
-  { key: 'posted', label: 'Posted', width: 64, optional: true },
-  { key: 'updated', label: 'Updated', width: 76, optional: true },
+export const COLUMNS: { key: ColKey; label: string; min: number; fr: number; optional: boolean }[] = [
+  { key: 'status', label: 'Status', min: 100, fr: 0.9, optional: false },
+  { key: 'stream', label: 'Stream', min: 138, fr: 1.4, optional: true },
+  { key: 'featured', label: 'Featured', min: 64, fr: 0.5, optional: true },
+  { key: 'category', label: 'Category', min: 80, fr: 1, optional: true },
+  { key: 'platform', label: 'Platform', min: 72, fr: 0.9, optional: true },
+  { key: 'aspect', label: 'Shape', min: 88, fr: 0.7, optional: true },
+  { key: 'uploaded', label: 'Uploaded', min: 88, fr: 0.8, optional: true },
+  { key: 'views', label: 'Views', min: 60, fr: 0.6, optional: true },
+  { key: 'order', label: 'Order', min: 56, fr: 0.5, optional: true },
+  { key: 'posted', label: 'Posted', min: 60, fr: 0.5, optional: true },
+  { key: 'updated', label: 'Updated', min: 68, fr: 0.6, optional: true },
 ];
 
-const DROP_FIRST: ColKey[] = ['updated', 'platform', 'category', 'uploaded', 'posted'];
-/** In the bin the date is when it was deleted (the 30 days run from it): it goes last. */
-const DROP_FIRST_BIN: ColKey[] = ['platform', 'category', 'uploaded', 'posted', 'updated'];
-const GAP = 10;
+/** Columns that start hidden (the founder can show them from Columns). */
+const DEFAULT_HIDDEN: ColKey[] = ['aspect', 'order'];
+const GAP = 8;
 /** (sel) The multi-select checkbox column, first. */
 const CHECK = 32;
-const MIN_TITLE = 200;
-const STORE = 'ka-admin-hidden-columns';
+const TITLE_MIN = 200;
+const TITLE_FR = 4;
+const STORE_OLD = 'ka-admin-hidden-columns';
+const STORE = 'ka-admin-columns-v2';
 
 function readHidden(): Set<ColKey> {
+  const valid = (raw: unknown) => (Array.isArray(raw) ? (raw.filter((k) => COLUMNS.some((c) => c.optional && c.key === k)) as ColKey[]) : []);
   try {
-    const raw = JSON.parse(localStorage.getItem(STORE) ?? '[]') as unknown;
-    return new Set(Array.isArray(raw) ? (raw.filter((k) => COLUMNS.some((c) => c.optional && c.key === k)) as ColKey[]) : []);
+    const now = localStorage.getItem(STORE);
+    if (now !== null) return new Set(valid((JSON.parse(now) as { hidden?: unknown }).hidden));
+    // First visit since admin14: the old choice, plus the new columns that start hidden.
+    return new Set([...valid(JSON.parse(localStorage.getItem(STORE_OLD) ?? '[]')), ...DEFAULT_HIDDEN]);
   } catch {
-    return new Set();
+    return new Set(DEFAULT_HIDDEN);
   }
 }
 
 export interface Columns {
   shown: ReadonlySet<ColKey>;
-  /** Wanted, but the window is too narrow for them. */
-  squeezed: ReadonlySet<ColKey>;
   hidden: ReadonlySet<ColKey>;
   toggle: (k: ColKey) => void;
   /** grid-template-columns for the head and the rows. */
   template: string;
+  /** The narrowest the list can be before it scrolls sideways (px). */
+  minWidth: number;
 }
 
-export function useColumns(ref: RefObject<HTMLElement | null>, bin: boolean): Columns {
+export function useColumns(bin: boolean): Columns {
   const [hidden, setHidden] = useState(readHidden);
-  const [width, setWidth] = useState(0);
+  const shown = useMemo(() => new Set(COLUMNS.filter((c) => !c.optional || !hidden.has(c.key)).map((c) => c.key)), [hidden]);
 
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    setWidth(el.clientWidth);
-    if (typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver((entries) => setWidth(Math.round(entries[0]?.contentRect.width ?? el.clientWidth)));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [ref]);
-
-  const { shown, squeezed } = useMemo(() => {
-    const menu = bin ? 260 : 44;
-    // The list's own padding (6 + 6) and the row's (8 + 12); the checkbox (sel), the handle, the poster and the menu.
-    const room = (ks: ColKey[]) => width - 32 - (CHECK + 40 + 36 + menu) - ks.reduce((s, k) => s + COLUMNS.find((c) => c.key === k)!.width, 0) - GAP * (ks.length + 4);
-    let ks = COLUMNS.filter((c) => !hidden.has(c.key)).map((c) => c.key);
-    const out = new Set<ColKey>();
-    for (const k of bin ? DROP_FIRST_BIN : DROP_FIRST) {
-      if (!width || room(ks) >= MIN_TITLE) break;
-      if (ks.includes(k)) {
-        ks = ks.filter((x) => x !== k);
-        out.add(k);
-      }
-    }
-    return { shown: new Set(ks), squeezed: out };
-  }, [hidden, width, bin]);
-
-  const template = useMemo(
-    () => [`${CHECK}px`, '40px', '36px', 'minmax(0, 1fr)', ...COLUMNS.filter((c) => shown.has(c.key)).map((c) => `${c.width}px`), bin ? 'minmax(0, 260px)' : '44px'].join(' '),
-    [shown, bin],
-  );
+  const { template, minWidth } = useMemo(() => {
+    const cols = COLUMNS.filter((c) => shown.has(c.key));
+    const menu = bin ? 'minmax(220px, 260px)' : '44px';
+    const template = [`${CHECK}px`, '40px', '36px', `minmax(${TITLE_MIN}px, ${TITLE_FR}fr)`, ...cols.map((c) => `minmax(${c.min}px, ${c.fr}fr)`), menu].join(' ');
+    // The list's own padding (6 + 6) and the row's (8 + 12).
+    const minWidth = 32 + CHECK + 40 + 36 + TITLE_MIN + cols.reduce((s, c) => s + c.min, 0) + (bin ? 220 : 44) + GAP * (cols.length + 4);
+    return { template, minWidth };
+  }, [shown, bin]);
 
   const toggle = useCallback((k: ColKey) => {
     setHidden((old) => {
@@ -87,7 +73,7 @@ export function useColumns(ref: RefObject<HTMLElement | null>, bin: boolean): Co
       if (next.has(k)) next.delete(k);
       else next.add(k);
       try {
-        localStorage.setItem(STORE, JSON.stringify([...next]));
+        localStorage.setItem(STORE, JSON.stringify({ hidden: [...next] }));
       } catch {
         // private window: the choice lasts for this visit
       }
@@ -95,12 +81,12 @@ export function useColumns(ref: RefObject<HTMLElement | null>, bin: boolean): Co
     });
   }, []);
 
-  return { shown, squeezed, hidden, toggle, template };
+  return { shown, hidden, toggle, template, minWidth };
 }
 
-/** "Columns": a small popover of checkboxes. */
+/** "Columns": a small popover of checkboxes, at the start of the toolbar. */
 export function ColumnsMenu({ cols }: { cols: Columns }) {
-  const { pop, anchor, open, toggle } = usePopover('end');
+  const { pop, anchor, open, toggle } = usePopover('start');
   const id = useId();
   return (
     <span className="adm-cols">
@@ -113,7 +99,6 @@ export function ColumnsMenu({ cols }: { cols: Columns }) {
           <label key={c.key} className="adm-cols-opt">
             <input type="checkbox" checked={!cols.hidden.has(c.key)} onChange={() => cols.toggle(c.key)} />
             <span>{c.label}</span>
-            {cols.squeezed.has(c.key) && <span className="adm-cols-note">Needs a wider window</span>}
           </label>
         ))}
       </div>

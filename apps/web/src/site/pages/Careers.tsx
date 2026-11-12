@@ -13,7 +13,7 @@ const ROLE_BODY: Record<CastId, string> = {
   bolu: 'Take the mic to the street and get real people answering on camera.',
   tiko: 'Go out with the anchors and capture real reactions, picture and sound.',
   gola: 'Turn the best reactions into short videos for Reels and Shorts.',
-  sochu: 'Design simple but powerful questions that trigger honest responses.',
+  sochu: 'Write simple, sharp questions that get honest answers.',
 };
 
 const mailto = (subject: string) => `mailto:${SITE.email}?subject=${encodeURIComponent(subject)}`;
@@ -61,7 +61,7 @@ export default function Careers() {
   const cast = useLineOnView('careers.hero', bolu, hero, 900);
   return (
     <>
-      <Seo title="Careers" description="Work on real street interviews with Kreators.Army." />
+      <Seo title="Careers" description="Work on real street interviews with Kreators.Army. Take the mic, film real reactions, cut short videos or plan the questions. Send us your work." />
 
       <section className="page-hero cr-hero" data-align="left">
         <div className="ground" aria-hidden />
@@ -73,7 +73,7 @@ export default function Careers() {
                 Talk to <span className="g-word">strangers</span> for a living
               </>
             }
-            lead="We are a team of creative professionals who take the conversation to the street and turn real reactions into content people actually watch."
+            lead="We're a team of creative people. We take the conversation to the street and turn real reactions into videos people actually watch."
           />
           <Character ref={bolu} who="bolu" size="clamp(112px, 30vw, 150px)" prop expression="talking" className="cr-hero-bolu">
             <CastBubble {...cast.bubble('careers.hero')} side="end" />

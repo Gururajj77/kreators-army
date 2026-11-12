@@ -2,12 +2,25 @@
 // with PATCH /videos/:id and expectUpdatedAt, Esc cancels, Tab and Shift+Tab save and move to the next or previous cell. The change shows at once
 // (optimistic) and rolls back on an error; a 409 stale keeps the other tab's value and says so. Saves of one row run one after another, so a second
 // edit never trips over the first one's new updated_at. The validation wording is the drawer's.
-import { formatViews, parseInstagram, parseViews, parseYouTube, type AdminVideo, type AdminVideoList, type VideoProblem, type VideoWrite } from '@kreators/shared';
+import {
+  formatViews,
+  parseInstagram,
+  parseMegaLink,
+  parseViews,
+  parseYouTube,
+  VIDEO_ASPECTS,
+  type AdminVideo,
+  type AdminVideoList,
+  type VideoAspect,
+  type VideoProblem,
+  type VideoWrite,
+} from '@kreators/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { AdminApiError, adminApi, keys } from './api';
 import { Spinner } from './bits';
+import { attachQueryClient, canMake, enqueue as makeMedia, sourceKey } from './mediaGen/runner';
 import { toast } from './Toasts';
 import { mergeVideo } from './videoCache';
 
@@ -19,7 +32,8 @@ export const PROBLEM_WORDS: Partial<Record<VideoProblem, string>> = {
   'mega-unreachable': 'The MEGA link no longer works',
 };
 
-export type CellField = 'title' | 'brand' | 'category' | 'platform' | 'uploadDate' | 'views' | 'instagram' | 'youtube';
+// (admin14) Also the aspect (a select), the site order (a number), Featured (a switch, saved at once) and the MEGA link (checked by the server on save).
+export type CellField = 'title' | 'brand' | 'category' | 'platform' | 'uploadDate' | 'views' | 'instagram' | 'youtube' | 'aspect' | 'sortOrder' | 'featured' | 'mega';
 
 /** The field's name in a sentence ("Edit upload date, …"). */
 export const CELL_LABEL: Record<CellField, string> = {
@@ -31,6 +45,10 @@ export const CELL_LABEL: Record<CellField, string> = {
   views: 'views',
   instagram: 'Instagram link',
   youtube: 'YouTube link',
+  aspect: 'shape',
+  sortOrder: 'site order',
+  featured: 'featured',
+  mega: 'MEGA link',
 };
 
 const INPUT_LABEL: Record<CellField, string> = {
@@ -42,6 +60,10 @@ const INPUT_LABEL: Record<CellField, string> = {
   views: 'Views',
   instagram: 'Instagram link',
   youtube: 'YouTube link',
+  aspect: 'Shape',
+  sortOrder: 'Site order',
+  featured: 'Featured',
+  mega: 'MEGA link',
 };
 
 const PROP = {
@@ -53,9 +75,24 @@ const PROP = {
   views: 'views',
   instagram: 'instagramUrl',
   youtube: 'youtubeUrl',
+  aspect: 'aspect',
+  sortOrder: 'sortOrder',
+  featured: 'featured',
+  mega: 'mega',
 } as const satisfies Record<CellField, keyof AdminVideo>;
 
-type CellValue = string | number | null;
+type CellValue = string | number | boolean | null;
+
+export const ASPECT_WORDS: Record<VideoAspect, string> = { vertical: 'Vertical', landscape: 'Landscape' };
+
+/** The MEGA link problems in the drawer's words (MegaField). */
+const MEGA_PARSE: Record<string, string> = {
+  'not-mega': "That isn't a MEGA file link.",
+  'bad-link': "That isn't a MEGA file link.",
+  'no-key': 'This link has no key. Copy it again from MEGA with the key included.',
+  'bad-key': "This link's key doesn't open the file.",
+  folder: "That's a folder. Use Import links to add every video in it.",
+};
 
 const VIEWS_MESSAGE = 'Write the views as a number, like 60000, 60K or 1.2M.';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -86,6 +123,14 @@ export function cellDisplay(v: AdminVideo, f: CellField): string {
       return v.instagramUrl ?? '';
     case 'youtube':
       return v.youtubeUrl ?? '';
+    case 'aspect':
+      return ASPECT_WORDS[v.aspect] ?? v.aspect;
+    case 'sortOrder':
+      return String(v.sortOrder);
+    case 'featured':
+      return v.featured ? 'Featured' : '';
+    case 'mega':
+      return v.mega ? 'MEGA' : '';
   }
 }
 
@@ -95,6 +140,10 @@ function cellText(v: AdminVideo, f: CellField): string {
   if (f === 'uploadDate') return v.uploadDate ?? '';
   if (f === 'instagram') return v.instagramUrl ?? '';
   if (f === 'youtube') return v.youtubeUrl ?? '';
+  if (f === 'sortOrder') return String(v.sortOrder);
+  if (f === 'featured') return v.featured ? '1' : '';
+  // The drawer's MEGA field shows the saved link (with its key) to the admin the same way; it never leaves this input.
+  if (f === 'mega') return v.mega?.url ?? '';
   return (v[PROP[f]] as string | null) ?? '';
 }
 
@@ -124,11 +173,27 @@ export function parseCell(f: CellField, raw: string | null): { ok: true; value: 
       const r = f === 'instagram' ? parseInstagram(s) : parseYouTube(s);
       return r.ok ? { ok: true, value: r.url } : { ok: false, message: f === 'instagram' ? "That isn't an Instagram link." : "That isn't a YouTube link." };
     }
+    case 'aspect':
+      return (VIDEO_ASPECTS as readonly string[]).includes(s) ? { ok: true, value: s } : { ok: false, message: 'Pick Vertical or Landscape.' };
+    case 'sortOrder': {
+      const n = Number(s.replace(/[,\s]/g, ''));
+      return s && Number.isInteger(n) && Math.abs(n) <= 1e9 ? { ok: true, value: n } : { ok: false, message: 'Write the order as a whole number, like 10.' };
+    }
+    case 'featured':
+      return { ok: true, value: s === '1' || s === 'true' };
+    case 'mega': {
+      if (!s) return { ok: true, value: null };
+      const r = parseMegaLink(s);
+      if (!r.ok) return { ok: false, message: MEGA_PARSE[r.problem] ?? MEGA_PARSE['not-mega']! };
+      if (r.link.kind === 'folder') return { ok: false, message: MEGA_PARSE.folder! };
+      return { ok: true, value: s };
+    }
   }
 }
 
-const sameValue = (v: AdminVideo, f: CellField, value: CellValue) => (v[PROP[f]] ?? null) === value;
-const withValue = (v: AdminVideo, f: CellField, value: CellValue): AdminVideo => ({ ...v, [PROP[f]]: value });
+const sameValue = (v: AdminVideo, f: CellField, value: CellValue) => (f === 'mega' ? (v.mega?.url ?? null) === value : (v[PROP[f]] ?? null) === value);
+/** The MEGA link is not shown optimistically (the server checks it first): the cell says "Checking MEGA…" until it answers. */
+const withValue = (v: AdminVideo, f: CellField, value: CellValue): AdminVideo => (f === 'mega' ? v : { ...v, [PROP[f]]: value });
 
 function saveError(e: unknown): string {
   if (!(e instanceof AdminApiError)) return "Couldn't save. Try again.";
@@ -137,6 +202,7 @@ function saveError(e: unknown): string {
     return `${words[0] ?? 'Fix the video'} to keep it published, or hide it first.`;
   }
   if (e.code === 'server') return e.requestId ? `Something broke on our side. Request ${e.requestId}.` : 'Something broke on our side.';
+  if (e.code === 'duplicate') return `${e.message}.`;
   return e.message;
 }
 
@@ -163,6 +229,8 @@ export interface InlineEditor {
   justClosed: () => boolean;
   /** Another write (the Published switch) moved this row's updated_at: later inline saves expect the new one. */
   noteAdvance: (id: string, from: string, to: string) => void;
+  /** (admin14) A save without an editor (the Featured switch): optimistic, queued behind the row's other saves, rolled back on an error. */
+  saveNow: (v: AdminVideo, f: CellField, value: CellValue) => void;
   /** Datalist ids for brand, category and platform suggestions. */
   lists: { brand: string; category: string; platform: string };
 }
@@ -249,6 +317,7 @@ export function useInlineEditor(lists: InlineEditor['lists'], announce: (text: s
     if (!o) overlays.current.set(id, (o = new Map()));
     o.set(field, { token, value });
     const now = current(id);
+    const before = now ?? base;
     void qc.cancelQueries({ queryKey: keys.videos(false) });
     if (now) mergeVideo(qc, withValue(now, field, value));
     setState(key, { kind: 'saving' });
@@ -273,6 +342,15 @@ export function useInlineEditor(lists: InlineEditor['lists'], announce: (text: s
         }
         // Only the link just saved: every later save of the row would repeat it.
         for (const w of r.warnings) if (w.code === `${field}-in-use`) toast(w.message);
+        if (field === 'mega') {
+          // What the server's MEGA check said (heavy, HEVC, …), as the drawer shows it; then the hover preview and thumbnail for the new file.
+          const notes = r.warnings.filter((w) => w.code !== 'no-header-info');
+          if (mine) toast(notes.length ? notes.map((w) => w.message).join(' ') : r.video.mega ? 'MEGA link saved and checked.' : 'MEGA link removed.');
+          if (canMake(r.video) && sourceKey(r.video) !== sourceKey(before)) {
+            attachQueryClient(qc);
+            makeMedia([r.video], { mode: r.video.preview ? 'regenerate' : 'missing' });
+          }
+        }
       } catch (e) {
         const mine = newest();
         drop();
@@ -355,8 +433,12 @@ export function useInlineEditor(lists: InlineEditor['lists'], announce: (text: s
 
   const stateOf = useCallback((id: string, f: CellField) => states.get(cellKey(id, f)), [states]);
   const justClosed = useCallback(() => Date.now() - closedAt.current < 400, []);
+  const saveNow = (v: AdminVideo, f: CellField, value: CellValue) => {
+    const now = current(v.id) ?? v;
+    if (!sameValue(now, f, value)) save(now, f, value);
+  };
 
-  return { editing, stateOf, start, cancel, commit, justClosed, noteAdvance, lists };
+  return { editing, stateOf, start, cancel, commit, justClosed, noteAdvance, saveNow, lists };
 }
 
 // ---------------------------------------------------------------- one cell
@@ -365,6 +447,8 @@ const PLACEHOLDER: Partial<Record<CellField, string>> = {
   views: '60K',
   instagram: 'https://www.instagram.com/reel/…',
   youtube: 'https://www.youtube.com/shorts/…',
+  mega: 'https://mega.nz/file/…#…',
+  sortOrder: '10',
 };
 const MAX: Partial<Record<CellField, number>> = { title: 140, brand: 60, category: 40, platform: 40 };
 
@@ -372,22 +456,25 @@ function CellEditor({ video, field, inline }: { video: AdminVideo; field: CellFi
   const [text, setText] = useState(() => cellText(video, field));
   const [error, setError] = useState<string | null>(null);
   const done = useRef(false);
-  const ref = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
+  const setRef = (el: HTMLInputElement | HTMLSelectElement | null) => {
+    ref.current = el;
+  };
   const msgId = useId();
-  const isLink = field === 'instagram' || field === 'youtube';
+  const isLink = field === 'instagram' || field === 'youtube' || field === 'mega';
   const list = field === 'brand' || field === 'category' || field === 'platform' ? inline.lists[field] : undefined;
 
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     el.focus({ preventScroll: true });
-    if (el.type !== 'date') el.select();
+    if (el instanceof HTMLInputElement && el.type !== 'date') el.select();
   }, []);
 
   const read = () => {
     const el = ref.current;
     if (!el) return text;
-    return field === 'uploadDate' && el.validity.badInput ? null : el.value;
+    return field === 'uploadDate' && el instanceof HTMLInputElement && el.validity.badInput ? null : el.value;
   };
 
   const finish = (how: How) => {
@@ -399,7 +486,7 @@ function CellEditor({ video, field, inline }: { video: AdminVideo; field: CellFi
     done.current = true;
   };
 
-  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       finish('enter');
@@ -414,26 +501,64 @@ function CellEditor({ video, field, inline }: { video: AdminVideo; field: CellFi
     }
   };
 
-  const parsed = isLink && text.trim() ? (field === 'instagram' ? parseInstagram(text) : parseYouTube(text)) : null;
+  const parsed = isLink && field !== 'mega' && text.trim() ? (field === 'instagram' ? parseInstagram(text) : parseYouTube(text)) : null;
   const openHref = parsed?.ok ? parsed.url : null;
+  const name = `${INPUT_LABEL[field]}, ${video.title || 'Untitled video'}`;
+
+  if (field === 'aspect') {
+    return (
+      <span className="adm-cell-editor" data-field={field}>
+        <select
+          ref={setRef}
+          className="adm-cell-input adm-cell-select"
+          value={text}
+          aria-label={name}
+          onChange={(e) => {
+            setText(e.target.value);
+            // A pick saves at once, like a click on a menu item.
+            done.current = true;
+            const msg = inline.commit(e.target.value, 'enter');
+            if (msg) {
+              done.current = false;
+              setError(msg);
+            }
+          }}
+          onKeyDown={onKeyDown}
+          onBlur={() => {
+            if (done.current) return;
+            done.current = true;
+            inline.commit(read(), 'blur');
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {VIDEO_ASPECTS.map((a) => (
+            <option key={a} value={a}>
+              {ASPECT_WORDS[a]}
+            </option>
+          ))}
+        </select>
+      </span>
+    );
+  }
 
   return (
     <span className="adm-cell-editor" data-field={field}>
       <input
-        ref={ref}
+        ref={setRef}
         className="adm-cell-input"
-        type={field === 'uploadDate' ? 'date' : 'text'}
+        type={field === 'uploadDate' ? 'date' : field === 'sortOrder' ? 'number' : 'text'}
+        step={field === 'sortOrder' ? 1 : undefined}
         value={text}
         min={field === 'uploadDate' ? '2000-01-01' : undefined}
         max={field === 'uploadDate' ? today() : undefined}
         maxLength={MAX[field]}
         list={list}
         placeholder={PLACEHOLDER[field]}
-        inputMode={isLink ? 'url' : undefined}
+        inputMode={isLink ? 'url' : field === 'sortOrder' ? 'numeric' : undefined}
         spellCheck={isLink ? false : undefined}
         autoCapitalize={isLink ? 'off' : undefined}
         autoComplete="off"
-        aria-label={`${INPUT_LABEL[field]}, ${video.title || 'Untitled video'}`}
+        aria-label={name}
         aria-invalid={!!error || undefined}
         aria-describedby={error ? msgId : undefined}
         onChange={(e) => {
@@ -454,6 +579,7 @@ function CellEditor({ video, field, inline }: { video: AdminVideo; field: CellFi
           Open<span className="sr-only"> (opens in a new tab)</span>
         </a>
       )}
+      {field === 'mega' && !error && <span className="adm-cell-msg adm-cell-help" data-kind="help">Paste the file link with its key. Enter checks it with MEGA and saves.</span>}
       {error && (
         <span className="adm-cell-msg" id={msgId} role="alert" data-kind="error">
           {error}
@@ -486,13 +612,13 @@ export function EditCell({
   const msgId = useId();
   const key = cellKey(video.id, field);
   const text = cellDisplay(video, field);
-  const empty = !text && field !== 'brand';
+  const empty = !text && field !== 'brand' && field !== 'mega';
   const isGlyph = field === 'instagram' || field === 'youtube';
   const state = inline?.stateOf(video.id, field);
   const editing = !!inline && inline.editing?.id === video.id && inline.editing.field === field;
   const label = useMemo(() => {
     const name = video.title || 'Untitled video';
-    const shown = field === 'title' || isGlyph ? '' : text || (field === 'brand' ? 'Brand needed' : 'empty');
+    const shown = field === 'title' || isGlyph ? '' : field === 'mega' ? (video.mega ? 'set' : 'none') : text || (field === 'brand' ? 'Brand needed' : 'empty');
     return `Edit ${CELL_LABEL[field]}, ${name}${shown ? `. ${shown}` : ''}`;
   }, [video.title, field, isGlyph, text]);
 
@@ -530,13 +656,14 @@ export function EditCell({
             }
           }}
         >
-          {empty && !isGlyph ? (
+          {field === 'mega' && state?.kind === 'saving' ? null : empty && !isGlyph ? (
             <span className="adm-cell-add" aria-hidden>
               Add
             </span>
           ) : (
             children
           )}
+          {state?.kind === 'saving' && field === 'mega' && <span className="adm-cell-checking">Checking MEGA…</span>}
           {state?.kind === 'saving' && <Spinner className="adm-spin-sm adm-cell-spin" />}
           {state?.kind === 'saved' && <Check className="adm-cell-tick" aria-hidden />}
         </button>

@@ -359,7 +359,7 @@ function StepCast() {
 export default function WhyKreators() {
   return (
     <>
-      <Seo title="Why Kreators" description="Most UGC feels scripted. Kreators.Army takes the conversation to the street and captures real reactions around your product." />
+      <Seo title="Why Kreators" description="Most influencer and creator videos feel scripted. Kreators.Army takes the conversation to the street and films real reactions to what you sell." />
 
       <section className="wk-top">
         <div className="ground" aria-hidden />
@@ -372,7 +372,7 @@ export default function WhyKreators() {
                 We take it to the <span className="g-word">street</span>
               </>
             }
-            lead="Most influencer and UGC videos today feel scripted. So, we do the opposite."
+            lead="Most influencer and creator videos today feel scripted. So, we do the opposite."
           />
           <Compare />
         </div>
@@ -380,7 +380,7 @@ export default function WhyKreators() {
 
       <section className="section wk-case">
         <div className="wrap wk-case-in">
-          <SectionHead center={false} title="Not another editing agency" lead="We take the conversation to the street and capture real reactions around your product category." />
+          <SectionHead center={false} title="Not another editing agency" lead="We take the conversation to the street and film real reactions to what you sell." />
           <Reveal className="wk-case-side">
             <dl className="wk-figures">
               {IMPACT.map((s) => (
@@ -425,8 +425,8 @@ export default function WhyKreators() {
             <h2 className="eyebrow wk-quote-eyebrow">What we've learned</h2>
             <blockquote className="wk-quote-text">
               <p>
-                The strongest vox pop campaigns don't come from asking more questions or making every video look completely different. They come from a clear objective, the right reaction mechanism, strong interactions with
-                real people, enough variety on the ground, and the strongest moments built in the&nbsp;edit.
+                Great vox pop doesn't come from asking more questions, or from making every video look totally different. It comes from a clear goal, the right mechanism, good chats with
+                real people, enough variety on the street and the best moments built into the&nbsp;edit.
               </p>
             </blockquote>
             <p className="wk-quote-who">From working with brands such as Hackdaily, CircleStore and others across consumer categories.</p>

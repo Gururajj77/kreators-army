@@ -383,14 +383,23 @@
       flex-direction: row;
     }
 
+    /* (grpD13) The copy gets the larger share: at 52 % the paragraph ran ~30 characters a line, ten lines deep; at 47 % it reads wider and the
+       tile no longer towers over its neighbour. The tall box crops the 16:10 scene from the centre, which cut the passer-by's speech bubble at
+       the edge; the picture is drawn 32 px wider and pulled left, so the crop frames the pair and the bubble instead. */
     .hww-tile-wide .hww-vignette {
-      flex: 0 0 52%;
+      flex: 0 0 47%;
       aspect-ratio: auto;
       min-height: 260px;
     }
 
     .hww-tile-wide .hww-vignette > .street-vignette-box {
       border-radius: var(--r-tile) 0 0 var(--r-tile);
+    }
+
+    .hww-tile-wide .hww-vignette > .street-vignette-box > svg {
+      width: calc(100% + 32px);
+      max-width: none;
+      margin-left: -32px;
     }
 
     .hww-tile-wide .hww-tile-copy {
@@ -529,6 +538,28 @@
 
   .hww-loop {
     padding-top: 8px;
+  }
+
+  /* (grpD13) Desktop: the ring stood centred under a left-aligned heading with empty columns either side, its caption a small centred footnote
+     ~700 px further down. Now the ring sits on the content edge and the caption reads beside it as the section's statement. */
+  @media (min-width: 1069px) {
+    .hww-loop.loop {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      justify-items: start;
+      column-gap: 48px;
+    }
+
+    .hww-loop .loop-caption {
+      max-width: 18em;
+      color: var(--ink);
+      font-size: 21px;
+      font-weight: 600;
+      line-height: 29px;
+      letter-spacing: -0.014em;
+      text-align: left;
+      text-wrap: balance;
+    }
   }
 
   .hww-quote {
@@ -739,8 +770,15 @@
     left: calc(50% + 120px);
   }
 
+  /* (grpD13) No band paints any more, so two full section paddings stacked into ~240 px of empty field between the tiles and the brief, and again
+     before the rules. One section's space plus 48 px keeps the stops calm without a dead gap. */
   .tr-what {
     padding-top: 72px;
+    padding-bottom: 48px;
+  }
+
+  .tr-content {
+    padding-top: 48px;
   }
 
   .tr-what-h {
@@ -853,6 +891,73 @@
     font-size: 14px;
     line-height: 18px;
     letter-spacing: -0.006em;
+  }
+
+  /* (grpD13) The two cards without options left a hollow lower half in a 3 x 2 grid of chip-filled siblings. Each now shows, drawn and decorative
+     (aria-hidden), what its answer looks like: a short write-in field for the viewer response, and three to five reference reels (the last two
+     dashed: optional). They sit where the chips sit, so the six cards share one structure. */
+  .tr-write {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    min-height: 112px;
+    margin-top: 6px;
+    padding: 18px 18px 20px;
+    border-radius: var(--r-inner);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .tr-write > i {
+    display: block;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--sunken);
+  }
+
+  .tr-write > i:nth-child(2) {
+    width: 84%;
+  }
+
+  .tr-write > i:nth-child(3) {
+    width: 56%;
+  }
+
+  .tr-refs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    max-width: 320px;
+    margin-top: 6px;
+  }
+
+  .tr-refs > i {
+    position: relative;
+    display: block;
+    aspect-ratio: 9 / 16;
+    border-radius: 10px;
+    background: var(--sunken);
+  }
+
+  .tr-refs > i::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-style: solid;
+    border-width: 6px 0 6px 10px;
+    border-color: transparent transparent transparent color-mix(in oklab, var(--ink) 34%, transparent);
+    transform: translate(-40%, -50%);
+  }
+
+  .tr-refs > i[data-opt] {
+    background: transparent;
+    box-shadow: none;
+    outline: 1.5px dashed color-mix(in oklab, var(--ink) 24%, transparent);
+    outline-offset: -1.5px;
+  }
+
+  .tr-refs > i[data-opt]::after {
+    border-left-color: color-mix(in oklab, var(--ink) 20%, transparent);
   }
 
   .tr-guide {
@@ -1105,14 +1210,51 @@
   }
 
   @media (max-width: 1068px) {
-    .tr-what-grid,
     .tr-brief-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .tr-what-tile {
+      padding: 24px 24px 26px;
+    }
+
+    /* (grpD13) Still two columns down to 900 px: stacked at 1068 the rules ran full width under a left heading while the phone and Tiko floated
+       centred below them, with half the band empty either side. */
+    .tr-content-in {
+      gap: 40px;
+    }
+  }
+
+  /* Under 900 px three tiles no longer fit side by side, and a 2-up grid would orphan the third: full-width rows, the glyph leading. */
+  @media (max-width: 899px) {
     .tr-content-in {
       grid-template-columns: minmax(0, 1fr);
       gap: 48px;
+    }
+
+    .tr-what-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .tr-what-tile {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      column-gap: 20px;
+      row-gap: 4px;
+      align-items: start;
+      padding: 24px;
+    }
+
+    .tr-what-tile > .tr-glyph {
+      grid-row: span 2;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+    }
+
+    .tr-what-tile > .h4 {
+      margin-top: 2px;
     }
   }
 
@@ -1136,9 +1278,13 @@
       right: 40px;
     }
 
-    .tr-what-grid,
     .tr-brief-grid {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    .tr-what-tile {
+      column-gap: 16px;
+      padding: 20px;
     }
 
     .tr-sochu {
@@ -1173,6 +1319,22 @@
   }
 
   /* =============================== Pricing =============================== */
+  /* (grpD13) One rhythm down the page. No band paints, so each pair of sections stacked two full paddings (~240 px of bare field); now every stop
+     is one section's space plus 48 px apart, and the calculator sits closer under the hero it answers. */
+  .pr > .section + .section {
+    padding-top: 48px;
+  }
+
+  /* The closing band brings the whole space into the footer (footer.css, --end-y), so the last section adds none (gate13: was 48 px, which put
+     "Get started" ~211 px under the last chip against ~164 on every other page). .pr sits one div deeper than the shared last-block rule sees. */
+  .pr > .section:last-child {
+    padding-bottom: 0;
+  }
+
+  .pr > .page-hero + .section {
+    padding-top: 24px;
+  }
+
   .pr-calc-in,
   .pr-packages-in,
   .pr-includes-in,
@@ -1193,6 +1355,54 @@
     font-size: 14px;
     line-height: 20px;
     text-align: center;
+  }
+
+  /* (grpD13) Tablets: the shared cards stack into one 560 px column (components.css), which on this page left ~200 px of bare field either side
+     of each card at 768 to 1068 and made the three packages a long scroll. Here each card runs the full content width as a row: name, line and
+     price on the left, the batch strip and the button in a fixed 316 px column on the right (the width of a 20-frame strip), the same in all
+     three cards. */
+  @media (min-width: 735px) and (max-width: 1068px) {
+    .pr-packages-in .pkgs {
+      max-width: none;
+    }
+
+    .pr-packages-in .pkg {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 316px;
+      grid-template-rows: auto auto 1fr auto;
+      column-gap: 40px;
+      row-gap: 6px;
+      align-items: start;
+    }
+
+    .pr-packages-in .pkg-name {
+      grid-area: 1 / 1;
+    }
+
+    .pr-packages-in .pkg-line {
+      grid-area: 2 / 1;
+      min-height: 0;
+    }
+
+    .pr-packages-in .pkg-fee {
+      grid-area: 3 / 1;
+      align-self: end;
+    }
+
+    .pr-packages-in .pkg-per {
+      grid-area: 4 / 1;
+    }
+
+    .pr-packages-in .pkg-strip {
+      grid-area: 1 / 2 / 3 / 3;
+      margin: 4px 0 0;
+    }
+
+    .pr-packages-in .pkg-cta {
+      grid-area: 3 / 2 / 5 / 3;
+      align-self: end;
+      margin: 0;
+    }
   }
 
   .pr-includes-in {
@@ -1521,10 +1731,7 @@
   }
 
   /* ---------- How payment works ---------- */
-  /* The rules and the payment are both on the page colour: one section's worth of space between them, not two. */
-  .pr-pay {
-    padding-top: 24px;
-  }
+  /* The space above it follows the page's one rhythm (.pr > .section + .section). */
 
   .pr-track {
     position: relative;
@@ -1685,6 +1892,18 @@
 
     .calc-cta {
       align-self: stretch;
+    }
+
+    /* (grpD13) A 44 px touch band for the slider (it was 32); the track stays centred in it. */
+    .calc-range {
+      height: 44px;
+    }
+
+    /* (grpD13) The five quick picks share the row (they were 56 px each and "30" ran off the plate's edge into a hidden scroll). */
+    .calc-picks .chip-opt {
+      flex: 1 1 0;
+      min-width: 44px;
+      padding: 0;
     }
 
     .pr-track {

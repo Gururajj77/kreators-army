@@ -509,6 +509,13 @@
     overflow-x: clip;
   }
 
+  /* (grpA13) One rhythm down the page: no band paints, so two stacked section paddings left ~240 px of bare field. Each stop is now one section's
+     space plus 48 px, the same step as Pricing. */
+  .wk-case + .wk-process,
+  .wk-process + .wk-learned {
+    padding-top: 48px;
+  }
+
   .wk-team {
     display: flex;
     flex-wrap: wrap;
@@ -779,7 +786,8 @@
     }
   }
 
-  /* The spread: photo out to the left edge, words on the band. */
+  /* The spread: a two-pane panel. The photo fills its pane edge to edge, clipped to the panel's own corners; the words sit on the metal and set
+     the height, so the photo never leaves dead space and the copy never squeezes. Stacked below 1069: the photo is a 16:9 band on top. */
   .vp-spread {
     display: grid;
     margin-top: var(--section-y);
@@ -788,9 +796,15 @@
   .vp-spread-photo {
     position: relative;
     overflow: hidden;
-    min-height: 620px;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--r-footer) var(--r-footer) 0 0;
+    background: #17171b;
+    container-type: size;
   }
 
+  /* The still is a 506 x 900 reel frame with burnt-in captions at 15-19% and 68-72% of its height. The frame is sized from the pane (cq units) so
+     the band between them, the three faces and the gift box, always covers the pane, whatever its shape: the image is at least 1.22 x the pane's
+     height wide, and the band's centre (43.5%) sits on the pane's centre. The fallback is a plain cover crop. */
   .vp-spread-photo > img {
     position: absolute;
     inset: 0;
@@ -798,40 +812,82 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* Faces and the gift in hand. A small static zoom puts the reel's own captions, top and middle, outside the frame. */
-    object-position: 50% 38.5%;
-    transform: scale(1.07);
-    transform-origin: 50% 43%;
+    object-position: 50% 43.5%;
+  }
+
+  @supports (width: 1cqh) {
+    .vp-spread-photo > img {
+      inset: auto;
+      --vp-w: max(100cqw, 122cqh);
+      top: calc(50cqh - var(--vp-w) * 0.7737);
+      left: calc(50cqw - var(--vp-w) / 2);
+      width: var(--vp-w);
+      max-width: none;
+      height: auto;
+      aspect-ratio: 506 / 900;
+      object-fit: fill;
+    }
   }
 
   .vp-spread-copy {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 48px;
-    padding: 72px max(6.25%, 24px);
+    --vp-gap: 48px;
+    gap: var(--vp-gap);
+    padding: 72px max(6.25%, 24px) 80px;
   }
 
+  /* Stacked, the column is wide: hold every line to a reading measure. */
+  .vp-spread-copy > * {
+    max-width: 600px;
+  }
+
+  .vp-spread-head .lead {
+    text-wrap: pretty;
+  }
+
+  /* The pull-quote: the panel's last row, across both panes on a faintly lighter strip of the metal, the founder's words at display size,
+     centred and balanced, the attribution set off by two short rules. */
   .vp-quote {
     margin: 0;
-    padding-top: 40px;
+    padding: 56px max(6.25%, 24px) 64px;
     border-top: 1px solid var(--line);
+    border-radius: 0 0 var(--r-footer) var(--r-footer);
+    background: rgb(255 255 255 / 0.025);
+    text-align: center;
   }
 
   .vp-quote > p {
-    margin: 0;
-    font-size: 28px;
+    max-width: 24em;
+    margin: 0 auto;
+    font-size: 32px;
     font-weight: 600;
     font-variation-settings: 'opsz' 32;
-    line-height: 34px;
-    letter-spacing: -0.008em;
+    line-height: 40px;
+    letter-spacing: -0.016em;
+    text-wrap: balance;
   }
 
   .vp-quote > footer {
-    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
     color: var(--muted);
     font-size: 15px;
     line-height: 20px;
+  }
+
+  .vp-quote > footer::before,
+  .vp-quote > footer::after {
+    content: '';
+    flex: none;
+    width: 24px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.6;
   }
 
   @media (min-width: 1069px) {
@@ -839,23 +895,35 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    /* The photo takes the row's height from the copy beside it: about 1.3:1, the whole trio and the gift box, no captions. */
+    .vp-spread-photo {
+      aspect-ratio: auto;
+      min-height: 440px;
+      border-radius: var(--r-footer) 0 0;
+    }
+
     .vp-spread-copy {
-      padding-inline: 88px max(6.25%, calc((100vw - 1260px) / 2));
+      padding: clamp(72px, 6.4vw, 96px) clamp(56px, 6.4vw, 88px);
+    }
+
+    .vp-quote {
+      grid-column: 1 / -1;
+      padding-block: 56px 64px;
     }
   }
 
   @media (max-width: 734px) {
     .vp-spread-photo {
-      min-height: 340px;
-    }
-
-    .vp-spread-photo > img {
-      object-position: 50% 38.5%;
+      aspect-ratio: 5 / 4;
     }
 
     .vp-spread-copy {
-      gap: 40px;
-      padding-block: 64px;
+      --vp-gap: 40px;
+      padding-block: 48px 56px;
+    }
+
+    .vp-quote {
+      padding-block: 40px 48px;
     }
 
     .vp-quote > p {
@@ -926,14 +994,14 @@
     display: grid;
     gap: var(--gap);
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-auto-rows: 150px;
+    /* (grpA13) Rows sized by their content, not a fixed 150 px: the old fixed rows left ~160 px of bare plate in the middle of each tall tile and
+       cut the deck tile's title against its bottom edge. Now the head sets row 1, the second pair of tiles row 3, the xl tile row 2, and the
+       siblings in each row share one height. */
+    grid-auto-rows: auto;
     grid-template-areas:
       'head head b c'
-      'head head b c'
-      'a a b d'
-      'a a e d'
-      'a a e d'
-      'f q q v'
+      'a a b c'
+      'a a d e'
       'f q q v';
   }
 
@@ -1050,15 +1118,21 @@
 
   .tm-quote-lg {
     margin: 0;
-    font-size: 36px;
+    font-size: clamp(32px, 2.8vw, 40px);
     font-weight: 600;
     font-variation-settings: 'opsz' 32;
-    line-height: 41px;
+    line-height: 1.15;
+    text-wrap: balance;
     letter-spacing: -0.012em;
   }
 
+  /* (grpA13) The pull-quote sits centred in its tile, attribution close under it, instead of quote-top / name-bottom with a bare middle. */
   .tm-figure[data-size='quote'] {
-    justify-content: space-between;
+    justify-content: center;
+  }
+
+  .tm-figure[data-size='quote'] .tm-who {
+    margin-top: 20px;
   }
 
   @media (max-width: 1068px) {
@@ -1070,13 +1144,8 @@
         'a a'
         'b c'
         'd e'
-        'f f'
-        'q q'
-        'v v';
-    }
-
-    .tm-v {
-      height: 260px;
+        'f v'
+        'q q';
     }
 
     .tm-head {
@@ -1134,9 +1203,6 @@
       line-height: 30px;
     }
 
-    .tm-v {
-      height: 240px;
-    }
   }
 
   /* ================ The numbers: bento, then the board ================ */
@@ -1653,7 +1719,7 @@
 
   /* Why Kreators: what we've learned, on the Tiko tile. */
   .wk-quote {
-    padding: 56px 64px;
+    padding: 64px;
   }
 
   .wk-quote-eyebrow {
@@ -1665,15 +1731,16 @@
     margin: 20px 0 0;
   }
 
+  /* (grpA13) Display size across the tile, about 55 characters a line, so the statement fills the tile instead of leaving its right half bare. */
   .wk-quote-text > p {
-    max-width: 30ch;
+    max-width: 26em;
     margin: 0;
     color: var(--ink);
-    font-size: 36px;
+    font-size: clamp(28px, 2.8vw, 40px);
     font-weight: 600;
     font-variation-settings: 'opsz' 32;
-    line-height: 42px;
-    letter-spacing: -0.016em;
+    line-height: 1.2;
+    letter-spacing: -0.018em;
     /* Seven lines and more at every width: past balance's six-line limit, so pretty. */
     text-wrap: pretty;
   }
@@ -1689,7 +1756,7 @@
 
   @media (max-width: 734px) {
     .wk-quote {
-      padding: 32px 24px;
+      padding: 40px 24px;
     }
 
     .wk-quote-text > p {
@@ -1718,11 +1785,12 @@
   /* Why vox pop: the [8.6] line in the spread, and the platform strip. */
   /* The [8.6] line sits with the lead, closer than the column's 48 px gap. */
   .vp-spread-line {
-    margin: -28px 0 0;
+    margin: calc(24px - var(--vp-gap, 48px)) 0 0;
     color: #f5f3ee;
     font-size: 19px;
-    line-height: 27px;
+    line-height: 28px;
     letter-spacing: -0.012em;
+    text-wrap: pretty;
   }
 
   /* Beside the sticky head: one column of row plates, glyph left, the words right. */
@@ -1807,6 +1875,35 @@
     .nb-views .vsticker b,
     .nb-row[data-lead] .nb-views .vsticker b {
       font-size: 13px;
+    }
+  }
+
+  /* (grpA13) Phones: the title takes the row's full width, so it reads in two lines instead of clamping to "FyndFlow street..." beside the
+     sticker; the bar and the sticker share the second line. */
+  @media (max-width: 734px) {
+    .nb-row {
+      grid-template-columns: 20px 44px minmax(0, 1fr) auto;
+      gap: 8px 12px;
+    }
+
+    .nb-info {
+      grid-column: 3 / 5;
+      grid-row: 1;
+    }
+
+    .nb-title {
+      -webkit-line-clamp: 3;
+    }
+
+    .nb-bar {
+      grid-column: 3;
+      grid-row: 2;
+      align-self: center;
+    }
+
+    .nb-views {
+      grid-column: 4;
+      grid-row: 2;
     }
   }
 }

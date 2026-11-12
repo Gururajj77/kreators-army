@@ -49,7 +49,7 @@ function StreetPlate() {
 export default function WhyVoxpop() {
   return (
     <>
-      <Seo title="Why vox pop" description="Vox pop means voice of the people. Real people answering real questions, built into short-form video." />
+      <Seo title="Why vox pop" description="Vox pop means voice of the people: real people on the street answering real questions, built into short videos for Reels, Shorts and other feeds." />
 
       <section className="vp-cover">
         <div className="ground" aria-hidden />
@@ -62,7 +62,7 @@ export default function WhyVoxpop() {
                 The voice of the <span className="g-word">people</span>
               </>
             }
-            lead="We capture real people answering questions around your product category, creating natural reactions that feel more engaging than scripted ads."
+            lead="We film real people answering questions about what you sell. Their reactions are natural, so they feel more real than scripted ads."
           >
             <PrimaryCta size="lg" />
           </HeroCopy>
@@ -135,15 +135,15 @@ export default function WhyVoxpop() {
           <img src={STILLS.giftBox.src} alt={STILLS.giftBox.alt} loading="lazy" />
         </div>
         <div className="vp-spread-copy">
-          <SectionHead center={false} size="h2" title="Best with a product in hand" lead="Vox pop works best for brands with physical products, because real people can try the product and share honest reactions on camera." />
+          <SectionHead className="vp-spread-head" center={false} size="h2" title="Best with a product in hand" lead="Vox pop works best for physical products. Real people can try yours and share honest reactions on camera." />
           <Reveal as="p" className="vp-spread-line">
             Your product can be part of the conversation. We just won't force a brand pitch onto a stranger.
           </Reveal>
-          <Reveal as="blockquote" className="vp-quote">
-            <p>“{FOUNDER_QUOTE.quote}”</p>
-            <footer>{FOUNDER_QUOTE.who}</footer>
-          </Reveal>
         </div>
+        <Reveal as="blockquote" className="vp-quote">
+          <p>“{FOUNDER_QUOTE.quote}”</p>
+          <footer>{FOUNDER_QUOTE.who}</footer>
+        </Reveal>
       </section>
 
       <section className="section">

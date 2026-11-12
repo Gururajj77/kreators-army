@@ -43,7 +43,7 @@ export function Home() {
 
   return (
     <>
-      <Seo description="Street interview (vox pop) videos for D2C brands. We take your question to the street and build real reactions into short-form videos for Reels, Shorts and more." />
+      <Seo description="Street interview (vox pop) videos for D2C brands. We take your question to the street and turn real reactions into short videos for Reels, Shorts and more." />
       <Hero videos={data} onOpen={open} paused={viewing} />
       <Work videos={videos} loading={isPending} failed={isError} onRetry={() => void refetch()} onOpen={open} />
       <WhyUs />

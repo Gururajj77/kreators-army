@@ -28,7 +28,7 @@ export function Pricing() {
           <p>
             More than {ADD_ON.after}? Add blocks of {ADD_ON.blockOf} videos at {formatInr(ADD_ON.fee)} a block.
           </p>
-          <p className="price-gst">Prices in INR. GST extra where applicable.</p>
+          <p className="price-gst">Prices in INR. GST extra where it applies.</p>
           <Link to="/pricing" className="price-link">
             See full pricing →
           </Link>

@@ -988,7 +988,7 @@
     cursor: pointer;
   }
 
-  /* The columns come from listColumns.tsx (--adm-cols on the screen): the ones chosen, minus those the window is too narrow for. */
+  /* The columns come from listColumns.tsx (--adm-cols on the screen): the ones chosen, each with a floor and a share of the room (admin14). */
   .adm-list-head,
   .adm-row {
     display: grid;
@@ -3963,6 +3963,293 @@
   @media (max-width: 734px) {
     .adm-done {
       min-width: 0;
+      width: 100%;
+    }
+  }
+
+  /* ---------- admin14: a full-width list, Columns beside the search, more cells in place, pages ---------- */
+  /* The Videos screen uses the whole window: the bar, the banners and the main area drop their 1360 px cap and keep a side gutter. */
+  .adm:has(.adm-screen[data-fluid]) {
+    --adm-max: none;
+    --adm-pad: clamp(20px, 2vw, 44px);
+  }
+
+  .adm-tools > .adm-cols {
+    flex: none;
+  }
+
+  /* Fluid columns sit 8 px apart (listColumns.tsx counts the same gap). */
+  @media (min-width: 861px) {
+    .adm-screen[data-fluid] .adm-list-head,
+    .adm-screen[data-fluid] .adm-row {
+      column-gap: 8px;
+    }
+  }
+
+  .adm-tools .adm-cols-btn {
+    min-height: 44px;
+    padding-inline: 14px 16px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1.5px var(--field-line);
+  }
+
+  /* The head and the rows, as they were in the screen's grid (16 px apart). */
+  .adm-table {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    min-width: 0;
+  }
+
+  /* Too many columns for the window: the list scrolls sideways (the page never does), and the Video column stays at the left. */
+  @media (min-width: 861px) {
+    .adm-table[data-scroll] {
+      margin: -4px;
+      padding: 4px 4px 12px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scrollbar-width: thin;
+    }
+
+    .adm-table[data-scroll] > .adm-list-head,
+    .adm-table[data-scroll] > .adm-rows {
+      min-width: var(--adm-min);
+    }
+
+    .adm-table[data-scroll] .adm-row-main,
+    .adm-table[data-scroll] .adm-head-video {
+      position: sticky;
+      z-index: 2;
+      left: 0;
+      align-self: stretch;
+      align-content: center;
+      margin-inline: -6px;
+      padding-inline: 6px;
+      background: inherit;
+    }
+
+    .adm-table[data-scroll] .adm-row-main {
+      box-shadow: 8px 0 10px -10px color-mix(in oklab, var(--ink) 40%, transparent);
+    }
+
+    .adm-table[data-scroll] .adm-head-video {
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+    }
+
+    .adm-table[data-scroll] .adm-row:has(.adm-vcell[data-editing]) .adm-row-main:has(.adm-vcell[data-editing]) {
+      z-index: 4;
+    }
+
+    /* The Featured column shows the switch; the chip in Status is for phones and when the column is hidden. */
+    .adm-rows[data-featured-col] .adm-row-status .adm-featured {
+      display: none;
+    }
+  }
+
+  .adm-col-featured {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .adm-feat-switch {
+    min-height: 32px;
+  }
+
+  .adm-feat-star {
+    color: var(--adm-info);
+  }
+
+  .adm-col-featured > .adm-cell-msg {
+    top: calc(100% + 2px);
+  }
+
+  .adm-col-order .adm-cell-text,
+  .adm-row-views .adm-cell-text {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .adm-cell-editor[data-field='sortOrder'] {
+    width: 108px;
+  }
+
+  .adm-cell-editor[data-field='aspect'] {
+    width: max(calc(100% + 20px), 140px);
+  }
+
+  .adm-cell-select {
+    padding-right: 28px;
+    appearance: auto;
+    cursor: pointer;
+  }
+
+  /* The MEGA link: a floating sheet wide enough for the whole link, with a line of help under it. */
+  .adm-row-stream.adm-vcell .adm-cell-btn {
+    cursor: pointer;
+  }
+
+  .adm-cell-editor[data-field='mega'] {
+    left: -10px;
+    flex-wrap: wrap;
+    width: min(460px, 40vw);
+    min-width: 320px;
+    padding: 4px;
+    border-radius: 14px;
+    background: var(--surface-5);
+    box-shadow:
+      var(--shadow-4),
+      0 0 0 0.5px var(--line);
+  }
+
+  .adm-cell-editor[data-field='mega'] .adm-cell-input {
+    box-shadow: none;
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 13px;
+  }
+
+  .adm-cell-editor[data-field='mega'] > .adm-cell-help {
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .adm-cell-checking {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .adm-vcell[data-state='saving'][data-field='mega'] .adm-cell-btn {
+    background: color-mix(in oklab, var(--focus) 10%, transparent);
+  }
+
+  /* Hover and focus: a quiet plate behind the cell, a pencil-free hint that it edits in place. */
+  @media (hover: hover) and (pointer: fine) {
+    .adm-row-cell .adm-cell-btn:hover,
+    .adm-row-views .adm-cell-btn:hover,
+    .adm-row-stream .adm-cell-btn:hover {
+      background: color-mix(in oklab, var(--ink) 6%, transparent);
+    }
+  }
+
+  /* ---------- pages: one bar under the list; the numbers on the left, the pages on the right ---------- */
+  .adm-pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding: 4px 6px;
+  }
+
+  .adm-pager-info {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 20px;
+  }
+
+  .adm-pager-size {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .adm-pager-size select {
+    min-height: 36px;
+    padding: 0 30px 0 12px;
+    border: 1.5px solid var(--field-line);
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .adm-pager-count {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .adm-pager-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .adm-pager-btn {
+    display: inline-grid;
+    place-items: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: background-color var(--dur-hover) ease;
+  }
+
+  .adm-pager-btn:disabled {
+    color: var(--muted);
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  .adm-pager-btn[aria-current='page'] {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .adm-pager-btn:focus-visible,
+  .adm-pager-size select:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .adm-pager-btn:not(:disabled, [aria-current='page']):hover {
+      background: color-mix(in oklab, var(--ink) 7%, transparent);
+    }
+  }
+
+  .adm-pager-gap {
+    min-width: 20px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  @media (max-width: 734px), (pointer: coarse) {
+    .adm-pager-btn,
+    .adm-pager-size select {
+      min-width: 44px;
+      height: 44px;
+      min-height: 44px;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .adm-pager {
+      justify-content: center;
+    }
+
+    .adm-pager-info {
+      justify-content: center;
       width: 100%;
     }
   }

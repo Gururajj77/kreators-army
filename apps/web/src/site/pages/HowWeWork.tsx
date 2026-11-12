@@ -81,7 +81,7 @@ function TheIdea() {
     <Chapter n={1} title="What we control, and what we don't">
       <ControlSplit
         className="hww-split"
-        foot="Our job is to create the strongest possible conditions for interesting reactions, then find and build around the strongest moments in the edit."
+        foot="Our job is to set up the best conditions for great reactions. Then we find the strongest moments and build the edit around them."
       />
       <div className="hww-sub">
         <h3 className="h3">The whole interaction counts</h3>
@@ -99,8 +99,8 @@ function TheIdea() {
           ))}
         </ul>
         <p className="hww-body">
-          The interviewer is free to follow an interesting answer and go deeper. Because we work with real strangers, we cannot guarantee that a particular
-          person will be funny, emotional, surprising or highly reactive. What we can do is deliberately create more chances for those moments to&nbsp;happen.
+          The interviewer is free to follow a good answer and dig deeper. We work with real strangers, so we can't promise any one person will be funny,
+          moved or surprised. What we can do is create more chances for those moments to&nbsp;happen.
         </p>
       </div>
     </Chapter>
@@ -120,8 +120,8 @@ function Variety() {
     <Chapter n={2} band="alt" title="Variety without a new set every time">
       <div className="hww-lede-row" data-bubble-bounds="">
         <p className="hww-body">
-          For a batch of five videos, we actively avoid repeating the same question or interaction. Each video gets its own creative mechanism, so it has its
-          own identity, while the production stays efficient and authentic.
+          In a batch of five videos, we take care not to repeat a question or setup. Each video gets its own mechanism, a different way to spark a reaction, so
+          each one feels new. The shoot stays quick, and the moments stay real.
         </p>
         <span className="hww-mech-sochu" aria-hidden>
           <Character ref={sochu} who="sochu" size="var(--hww-k)" expression="happy" prop>
@@ -133,14 +133,14 @@ function Variety() {
         {MECHANISMS.map((m, i) => (
           <MechanismCard key={m} as="li" name={m} tone={toneAt(i)} />
         ))}
-        <li className="hww-mechs-note">We've found this a far more sustainable way to create variety than treating every video as a separate production.</li>
+        <li className="hww-mechs-note">It's a far easier way to get variety than making every video its own shoot.</li>
       </ul>
 
       <div className="hww-sub">
         <h3 className="h3">One main job per video</h3>
         <p className="hww-body">
-          If you're featuring several products, we're happy to plan the batch across them. We recommend each video has one primary creative objective, rather
-          than trying to say every product, feature, benefit and call to action at once. A video might be built to:
+          Got several products? We're happy to plan the batch across them. We suggest one main goal per video. Don't try to fit every product, feature and
+          call to action into one. A video might be built to:
         </p>
         <ul className="hww-jobs">
           {VIDEO_JOBS.map((job, i) => {
@@ -177,33 +177,33 @@ const STREET: StreetTile[] = [
     vignette: 'passerby',
     wide: true,
     title: 'Natural, not a pitch',
-    body: "Vox pop feels different from a scripted ad, so we keep conversations spontaneous, natural and entertaining. Your product can be part of the conversation, but we won't push a set brand pitch onto a stranger. The brand becomes part of an interesting interaction, not an ad in disguise.",
+    body: "Vox pop should feel nothing like a scripted ad, so we keep each chat natural, loose and fun. Your product can be part of the talk, but we won't push a brand pitch onto a stranger. Your brand joins a good conversation. It's never an ad in disguise.",
   },
   {
     vignette: 'intro',
     title: "Clear about who's asking",
-    body: "Where our interviewer represents your brand, we make the relationship clear. We agree the introduction and positioning before the shoot, so there's no doubt who they're speaking for.",
+    body: "When our interviewer speaks for your brand, we say so. We agree how they introduce themselves before the shoot, so it's clear who they're speaking for.",
   },
   {
     vignette: 'gift',
     who: 'bolu',
     line: 'hww.reason',
     title: 'A reason to stop',
-    body: "We approach people on the street, so a simple incentive helps them stop, take part and spend enough time with us. Rewards work best when they're physical or redeemable on the spot. They never decide what anyone says; they just widen the pool of genuine conversations. The exact incentive is agreed in pre-production.",
+    body: "We stop people on the street, so a small thank-you helps them pause and spend time with us. It works best as something they can hold or use on the spot. It never decides what anyone says. It just means more people stop to talk. We agree the exact gift before the shoot.",
   },
   {
     vignette: 'branch',
     who: 'bolu',
     line: 'hww.follow',
     title: 'Room to follow a good moment',
-    body: "Once the objective and direction are agreed, our team needs reasonable flexibility on the ground. If a conversation starts working, the interviewer may follow it, ask more or adapt. We'd rather follow a genuinely interesting moment than force someone back to a script.",
+    body: "Once we agree the goal and direction, our team needs some freedom on the ground. If a chat starts to work, the interviewer may follow it, ask more or change course. We'd rather follow a great moment than push someone back to a script.",
   },
   {
     vignette: 'framing',
     who: 'tiko',
     line: 'hww.varied',
     title: 'Professional, and varied',
-    body: 'We hold professional standards on framing, audio, camera positioning, lighting where possible, participant presentation, background distractions and composition. We batch-shoot, and create visual variety through different people, backgrounds, framing, interaction styles, places and mechanisms. If a concept truly needs a special location, costume, tent, large prop or custom setup, we identify and agree it in pre-production so we can plan for it.',
+    body: 'We keep a pro standard for framing, sound, camera angle, light where we can, how people look, the background and the whole shot. We shoot in batches. The variety comes from new people, places, backdrops, framing, styles and mechanisms. If an idea truly needs a special place, costume, tent, big prop or custom setup, we agree it before the shoot so we can plan for it.',
   },
 ];
 
@@ -285,8 +285,8 @@ function InTheEdit() {
   return (
     <Chapter n={4} band="dark" title="As tight as the story allows">
       <p className="hww-body">
-        Every video is made for short-form viewing. We won't force one fixed length on every video if it cuts the context or payoff that makes an interaction
-        work. The goal isn't just shorter. It's as tight and engaging as the story allows.
+        Every video is made for short-form feeds. But we won't force one fixed length if it cuts the context or the payoff that makes a moment work. The
+        goal isn't just shorter. It's as tight and gripping as the story allows.
       </p>
       <div className="hww-edit-tl">
         <EditTimeline
@@ -307,22 +307,22 @@ function InTheEdit() {
         <div className="hww-two">
           <div className="plate hww-two-plate">
             <h4 className="hww-two-title">Included</h4>
-            <p>Minor, edit-level revisions such as text changes, trims, sequencing adjustments and captions.</p>
+            <p>Minor edit changes, such as text, trims, the order of clips and captions.</p>
           </div>
           <div className="plate hww-two-plate">
             <h4 className="hww-two-title">Discussed separately first</h4>
-            <p>Requests that need a fundamentally different concept, format, production setup, new footage or a reshoot.</p>
+            <p>Anything that needs a whole new idea, format or setup, new footage or a reshoot.</p>
           </div>
         </div>
         <p className="hww-line">
-          Please send feedback through one main point of contact, so the team gets one clear direction rather than several overlapping ones.
+          Please send feedback through one main contact. That way the team gets one clear direction, not several that clash.
         </p>
       </div>
       <div className="hww-sub">
         <h3 className="h3">One planned production cycle</h3>
         <p className="hww-body">
-          We complete the agreed batch in one planned cycle rather than changing direction between individual videos. We can share work at agreed checkpoints,
-          especially early on, while planning continues against the agreed batch direction. That efficiency is what keeps the pricing viable.
+          We make the agreed batch in one planned cycle. We don't change direction from one video to the next. We can share work at agreed check-ins, mostly
+          early on, while the batch keeps to its plan. Working this way is how we keep our prices where they are.
         </p>
       </div>
     </Chapter>
@@ -387,10 +387,10 @@ function BeforeTheShoot() {
       <LockList />
       <Reveal className="hww-split-line">
         <p className="two-tone hww-two-tone">
-          <strong>You bring the objective, the product truth and the requirements.</strong> We own the creative execution: concepts, questions, interactions and
+          <strong>You bring the goal, the facts about your product and the must-haves.</strong> We handle the creative side: ideas, questions, interactions and
           what happens on the street.
         </p>
-        <p className="hww-small">This split lets you give us the right context without having to manage how each interaction unfolds.</p>
+        <p className="hww-small">You give us the right context. You never have to manage each conversation.</p>
       </Reveal>
     </Chapter>
   );
@@ -402,24 +402,23 @@ function Results() {
   return (
     <Chapter n={6} band="alt" title="What we can promise, and what we can't">
       <p className="hww-body">
-        We always optimise the content for attention, retention, engagement and your campaign objective. But vox pop is distributed content, and how it performs
-        also depends on the platform, audience, account history, media spend, offer and distribution strategy.
+        We shape every video to win attention, keep people watching and serve your goal. But how a video performs also depends on things outside the edit: the
+        platform, the audience, your account history, ad spend, the offer and how it gets shared.
       </p>
       <div className="plate hww-callout" data-tone="ink">
-        <p>We cannot guarantee specific views, virality, reach, engagement, conversions, CAC, ROAS or sales outcomes.</p>
+        <p>We can't guarantee results. That covers views, virality, reach and engagement. It also covers sales, conversions, cost per customer and return on ad spend.</p>
       </div>
       <div className="hww-sub">
         <h3 className="h3">What we do control: the creative system</h3>
-        <CreativeLoop className="hww-loop" caption="Every batch teaches us what resonates, so the next one is stronger." />
+        <CreativeLoop className="hww-loop" caption="Every batch shows us what works, so the next one is stronger." />
       </div>
       <div className="hww-sub">
         <h3 className="h3">What we've learned</h3>
         <figure className="plate hww-quote" data-tone="sochu">
           <blockquote>
             <p>
-              The strongest vox pop campaigns don't come from asking more questions or making every video look completely different. They come from a clear
-              objective, the right reaction mechanism, strong interactions with real people, enough variety on the ground, and the strongest moments built in
-              the&nbsp;edit.
+              Great vox pop doesn't come from asking more questions, or from making every video look totally different. It comes from a clear goal, the right
+              mechanism, good chats with real people, enough variety on the street and the best moments built into the&nbsp;edit.
             </p>
           </blockquote>
           <figcaption>From working with brands such as Hackdaily, CircleStore and others across consumer categories.</figcaption>
@@ -450,7 +449,7 @@ export default function HowWeWork() {
     <div className="hww">
       <Seo
         title="How we work"
-        description="How Kreators.Army plans, shoots and edits vox pop street interviews: the interaction, creative variety, pre-production, revisions, and what we can and can't promise."
+        description="How Kreators.Army plans, shoots and edits vox pop street interviews: the setup, the variety, the planning, revisions, and what we can and can't promise."
       />
       <section className="page-hero hww-hero" data-align="center">
         <div className="ground" aria-hidden />
@@ -462,7 +461,7 @@ export default function HowWeWork() {
                 We engineer the <span className="g-word">interaction</span>, not the outcome
               </>
             }
-            lead="We make authentic, reaction-led videos with real people and real conversations. The answers aren't scripted. That's the point, and it's why the craft is in everything around them."
+            lead="We make videos with real people, real chats and real reactions. The answers aren't scripted. That's the point. Our craft is in everything around them."
             scrubLead
           >
             <PrimaryCta size="lg" />

@@ -120,7 +120,7 @@ export default function Contact() {
     <section className="contact">
       <Seo
         title="Request a trial video"
-        description="Send Kreators.Army your trial brief or a question. Email, phone and the guided brief form."
+        description="Ask Kreators.Army for a trial, or just ask us a question. Fill in the guided brief form, send us an email, or reach us on WhatsApp or by phone."
         canonical="/contact"
       />
       <div className="ground" aria-hidden />

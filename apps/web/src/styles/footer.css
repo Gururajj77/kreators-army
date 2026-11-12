@@ -39,7 +39,10 @@
     /* Round 9, the seam: no edge, no corners. The sheet's top --ft-blend is a dusk: the page (and its flutes) shows through and is covered on
        an eased curve until the sheet is the glass's own base. Nothing of the footer's sits in it, so the last section never looks cut. The
        band's glass rises out of the same zone (.ft-glass), on the page's flute pitch and phase. */
-    --ft-blend: clamp(240px, 25vw, 360px);
+    /* Round 13: an Apple-like section gap, not a 450 px dusk. With the band's 40 px lead-in the last line of the page sits about 160 px above the
+       "Get started" eyebrow at 1440 (180 at 1913, about 110 on a phone). The dusk and the glass's rise share it on the same eased curve, so the
+       page still crosses into the footer with no edge (each row moves under 3 levels of luminance). */
+    --ft-blend: clamp(76px, 8.4vw, 140px);
     --ft-dusk: linear-gradient(
       180deg,
       rgb(36 42 88 / 0) 0,
@@ -63,7 +66,8 @@
       radial-gradient(38% 380px at 46% calc(100% - 900px), rgb(26 122 74 / 0.16), transparent 72%);
 
     position: relative;
-    margin-top: calc(var(--end-y) / 2);
+    /* Round 13: no margin; the dusk is the whole gap above the band. */
+    margin-top: 0;
     padding-top: var(--ft-blend);
     overflow: clip;
     /* A stacking context, so the sheet's flutes and the band's glass (z-index -1) paint over the sheet and under all of the footer's content; it
@@ -170,21 +174,24 @@
   .ft-glass {
     /* The glass rises out of the page over the whole dusk: transparent at the footer's top, whole where the dusk ends (the band's top). Round 11:
        the whole dusk, not its lower 60%, so its colours cross into the page's own instead of surfacing out of a dark trough. */
-    --ft-up: var(--ft-blend);
+    /* Round 13: the glass keeps its old height above the band (its colour field, and so the band, look as before), but it is transparent down to
+       the footer's top (--ft-off above it, outside the footer) and rises over the short dusk only. */
+    --ft-up: max(var(--ft-blend), clamp(240px, 25vw, 360px));
+    --ft-off: calc(var(--ft-up) - var(--ft-blend));
     /* ...and dissolves at its foot: whole until --ft-down from its end, then out on the same eased curve. */
     --ft-down: 460px;
     --ft-rise-in: linear-gradient(
       180deg,
-      transparent 0,
-      rgb(0 0 0 / 0.03) calc(var(--ft-up) * 0.1),
-      rgb(0 0 0 / 0.1) calc(var(--ft-up) * 0.2),
-      rgb(0 0 0 / 0.22) calc(var(--ft-up) * 0.3),
-      rgb(0 0 0 / 0.35) calc(var(--ft-up) * 0.4),
-      rgb(0 0 0 / 0.5) calc(var(--ft-up) * 0.5),
-      rgb(0 0 0 / 0.65) calc(var(--ft-up) * 0.6),
-      rgb(0 0 0 / 0.78) calc(var(--ft-up) * 0.7),
-      rgb(0 0 0 / 0.9) calc(var(--ft-up) * 0.8),
-      rgb(0 0 0 / 0.97) calc(var(--ft-up) * 0.9),
+      transparent var(--ft-off),
+      rgb(0 0 0 / 0.03) calc(var(--ft-off) + var(--ft-blend) * 0.1),
+      rgb(0 0 0 / 0.1) calc(var(--ft-off) + var(--ft-blend) * 0.2),
+      rgb(0 0 0 / 0.22) calc(var(--ft-off) + var(--ft-blend) * 0.3),
+      rgb(0 0 0 / 0.35) calc(var(--ft-off) + var(--ft-blend) * 0.4),
+      rgb(0 0 0 / 0.5) calc(var(--ft-off) + var(--ft-blend) * 0.5),
+      rgb(0 0 0 / 0.65) calc(var(--ft-off) + var(--ft-blend) * 0.6),
+      rgb(0 0 0 / 0.78) calc(var(--ft-off) + var(--ft-blend) * 0.7),
+      rgb(0 0 0 / 0.9) calc(var(--ft-off) + var(--ft-blend) * 0.8),
+      rgb(0 0 0 / 0.97) calc(var(--ft-off) + var(--ft-blend) * 0.9),
       #000 var(--ft-up),
       #000 calc(100% - var(--ft-down)),
       rgb(0 0 0 / 0.97) calc(100% - var(--ft-down) * 0.9),
@@ -428,6 +435,53 @@
     margin-top: 0;
   }
 
+  /* Pause animations or reduced motion: the library's flat row of the same cards, as tall as its cards. */
+  .ft-ring-slot[data-flat] {
+    min-height: 258px;
+  }
+
+  @media (max-width: 734px) {
+    .ft-ring-slot[data-flat] {
+      min-height: 218px;
+    }
+  }
+
+  /* Round 13: the cards are links to their videos (/video-library?v=<id>), each with the brand on its foot, as the library's ring. */
+  /* Dark under the poster in both themes (as the decorative ring's was), so a poster still loading is a dark card, not a white one. */
+  .ft-ring-card,
+  :root:not([data-theme='dark']) .ft-ring-card {
+    background: #15151a;
+    color: #ffffff;
+  }
+
+  .ft-ring-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.38) 38%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .ft-ring-name {
+    position: absolute;
+    inset: auto 7.5cqw 7.5cqw;
+    z-index: 2;
+    display: -webkit-box;
+    overflow: hidden;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 10.8cqw;
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    text-align: left;
+    text-shadow: 0 1px 12px rgb(0 0 0 / 0.25);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow-wrap: anywhere;
+  }
+
   .ft-ring {
     animation: ft-ring-in 400ms var(--ease-out) both;
   }
@@ -499,10 +553,40 @@
     color: var(--ft-link);
   }
 
+  /* Round 13: the parent brand above the email, its mark and its name in one link, in the footer's link style. */
+  .ft-parent {
+    gap: 10px;
+    color: var(--ft-link);
+    font-weight: 600;
+  }
+
+  .ft-parent-logo {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px rgb(var(--ft-hair) / 0.12);
+  }
+
+  /* The underline runs under the words, not the mark. */
+  .ft-parent::after {
+    left: 32px;
+  }
+
+  /* gate13: side by side, the reach block's first line ("Part of Kreators.App", centred in its 44 px target) sits on the link groups' title
+     line instead of 13 px under it, so both columns start on one line. */
+  @media (min-width: 1180px) {
+    .ft-lead {
+      margin-top: -13px;
+    }
+  }
+
+  /* The city on its own line, under the socials. */
   .ft-city {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    min-height: 44px;
+    min-height: 32px;
+    margin: 0;
     color: var(--ft-soft);
     font-size: 16px;
     line-height: 22px;
@@ -891,8 +975,7 @@
     transition: transform 450ms var(--ease-open);
   }
 
-  /* At rest the word is fluted glass in the cast's four colours, faint, as kreators.app's; lit, the same at full strength. The flutes are an SVG
-     pattern over the word (Footer.tsx), so they stay crisp at every size. */
+  /* At rest the word is the cast's four colours, faint; lit, the same at full strength. Round 13: clean letterforms, no flutes. */
   .ft-word-rest {
     opacity: 0.3;
   }
@@ -1070,7 +1153,7 @@
     }
 
     .ft-band-cta {
-      padding-top: 64px;
+      padding-top: 40px;
     }
 
     .ft-band-cta + .ft-land {
@@ -1093,7 +1176,7 @@
     }
 
     .ft-band-cta {
-      padding-top: 40px;
+      padding-top: 32px;
     }
 
     .ft-ring-slot {

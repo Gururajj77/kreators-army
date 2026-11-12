@@ -990,7 +990,7 @@ export function VideoLibrary() {
 
   return (
     <>
-      <Seo title="Video library" description="Watch Kreators.Army vox pop street interviews. Filter by brand and reach." />
+      <Seo title="Video library" description="Watch Kreators.Army vox pop street interviews made for real brands. Filter by brand and reach, then play any video or open it where it was posted." />
 
       <header className="lib-head">
         <div className="ground" aria-hidden />

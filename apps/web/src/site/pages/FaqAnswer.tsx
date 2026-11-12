@@ -7,6 +7,20 @@ import { NotFound } from '../../screens/NotFound';
 
 // A quiet reading layout: no cast (content §9.1). Every v1 slug resolves (content §7.1 keeps them all).
 
+/** The answer as a meta description: whole sentences up to 160 characters, or the first sentence cut at a word with an ellipsis. */
+function metaOf(answer: string, max = 160): string {
+  if (answer.length <= max) return answer;
+  const sentences = answer.match(/[^.!?]+[.!?]+(\s+|$)/g) ?? [answer];
+  let out = '';
+  for (const s of sentences) {
+    if ((out + s).trim().length > max) break;
+    out += s;
+  }
+  if (out.trim().length >= 70) return out.trim();
+  const cut = answer.slice(0, max - 1);
+  return cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:\s]+$/, '') + '\u2026';
+}
+
 export default function FaqAnswer() {
   const { slug } = useParams();
   const faq = FAQS.find((f) => f.slug === slug);
@@ -16,7 +30,7 @@ export default function FaqAnswer() {
 
   return (
     <article className="read">
-      <Seo title={faq.q} description={faq.a} />
+      <Seo title={faq.q} description={metaOf(faq.a)} />
       <Link to="/faq" className="read-back">
         <ArrowLeft className="size-4" aria-hidden />
         All questions
