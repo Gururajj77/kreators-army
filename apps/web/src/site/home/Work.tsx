@@ -1,12 +1,12 @@
 import type { Video } from '@kreators/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Character, type CharacterHandle } from '../../cast';
 import { CastBubble, useCastLine } from '../../components/chat';
-import { DeckCard, ReelPause, previewAllowed, usePlayback } from '../../components/frames';
-import { Cta, Reveal, RollNumber, SectionHead, Tile, type TileTone, whenSeen } from '../../components/ui';
+import { DeckCard, ReelPause, deckOrder, previewAllowed, usePlayback } from '../../components/frames';
+import { Cta, Reveal, RollNumber, SectionHead, Tile, whenSeen } from '../../components/ui';
 import { TileSkeletons, VideoTile } from '../../components/video';
-import { IMPACT, RESULTS_NOTE, type Stat } from '../../lib/content';
+import { HERO, IMPACT, RESULTS_NOTE, type Stat } from '../../lib/content';
 import { motionOk } from '../../lib/motionOk';
 
 // Work (V2-SPEC 5.2 row 2): the three biggest reels as full 9:16 frames with stickers (home11: the lead used to be a near-square cell that cropped the
@@ -28,12 +28,11 @@ function LeadReel({ video, onOpen }: { video: Video; onOpen: (v: Video) => void 
   );
 }
 
-const STAT_TONES: TileTone[] = ['sochu', 'plate', 'plate'];
-
-function StatTile({ stat, tone, i, last }: { stat: Stat; tone: TileTone; i: number; last: boolean }) {
+// The stat cards are plain plates: the shared liquid glass (components.css, .lglass) with its hover ring.
+function StatTile({ stat, i, last }: { stat: Stat; i: number; last: boolean }) {
   return (
     <Reveal i={i + 3} className="work-stat">
-      <Tile tone={tone} className="h-full">
+      <Tile className="h-full">
         <div className="work-stat-in">
           <p className="work-stat-label">{stat.label}</p>
           <p className="work-stat-figure">
@@ -154,11 +153,29 @@ function WorkEmpty({ failed, onRetry, shown }: { failed: boolean; onRetry: () =>
 
 const SLOTS = ['a', 'b', 'c'] as const;
 
+// (work16) Phones show two reels in the bento and move the third to the head of the rail, and put the results note under the stats row.
+const PHONE = '(max-width: 734px)';
+const onPhoneChange = (cb: () => void) => {
+  const q = matchMedia(PHONE);
+  q.addEventListener('change', cb);
+  return () => q.removeEventListener('change', cb);
+};
+const usePhone = () => useSyncExternalStore(onPhoneChange, () => matchMedia(PHONE).matches, () => false);
+
 export function Work({ videos, loading, failed, onRetry, onOpen }: { videos: Video[]; loading: boolean; failed: boolean; onRetry: () => void; onOpen: (v: Video) => void }) {
+  const phone = usePhone();
+  const slots = phone ? 2 : SLOTS.length;
   const byViews = [...videos].sort((a, b) => b.views - a.views);
   // The bento's three frames are 9:16, so vertical reels take them first (a landscape one would be cropped); the rail gets the rest, in views order.
-  const reels = [...byViews.filter((v) => v.aspect !== 'landscape'), ...byViews.filter((v) => v.aspect === 'landscape')].slice(0, SLOTS.length);
-  const rest = byViews.filter((v) => !reels.includes(v));
+  const order = [...byViews.filter((v) => v.aspect !== 'landscape'), ...byViews.filter((v) => v.aspect === 'landscape')];
+  // (homefix17) Phones: the hero has just shown its front reel alone, so the two bento reels are the next ones and that reel leads the rail.
+  const heroFront = phone ? deckOrder(videos, HERO.firstId)[0] : undefined;
+  const heroAt = heroFront ? order.indexOf(heroFront) : -1;
+  if (heroAt >= 0 && heroAt < slots && order.length > slots) order.splice(slots, 0, ...order.splice(heroAt, 1));
+  const picks = order.slice(0, SLOTS.length);
+  const reels = picks.slice(0, slots);
+  // Phones: the third pick (the hero's front reel, when it was moved) leads the rail, then the rail's usual six.
+  const rail = [...picks.slice(slots), ...byViews.filter((v) => !picks.includes(v)).slice(0, 6)];
   const [first] = reels;
   const empty = !loading && !first;
 
@@ -179,9 +196,9 @@ export function Work({ videos, loading, failed, onRetry, onOpen }: { videos: Vid
           />
         </div>
 
-        <div className="wrap work-bento" data-reels={loading ? SLOTS.length : empty ? undefined : reels.length}>
+        <div className="wrap work-bento" data-reels={loading ? slots : empty ? undefined : reels.length}>
           {loading &&
-            SLOTS.map((k) => (
+            SLOTS.slice(0, slots).map((k) => (
               <div key={k} className={`work-slot work-slot-${k}`}>
                 <div className="work-reel skeleton" />
               </div>
@@ -198,12 +215,16 @@ export function Work({ videos, loading, failed, onRetry, onOpen }: { videos: Vid
               )}
             </Reveal>
           ))}
-          {IMPACT.map((stat, i) => (
-            <StatTile key={stat.label} stat={stat} tone={STAT_TONES[i] ?? 'plate'} i={i} last={i === IMPACT.length - 1} />
-          ))}
+          {/* The stats share the bento's grid on tablets and desktops (display: contents) and make their own row of three on phones. */}
+          <div className="work-stats">
+            {IMPACT.map((stat, i) => (
+              <StatTile key={stat.label} stat={stat} i={i} last={!phone && i === IMPACT.length - 1} />
+            ))}
+            {phone && <p className="work-stat-note work-stats-note">{RESULTS_NOTE.short}</p>}
+          </div>
         </div>
 
-        {(loading || rest.length > 0) && <Rail videos={rest.slice(0, 6)} all={byViews} onOpen={onOpen} loading={loading} />}
+        {(loading || rail.length > 0) && <Rail videos={rail} all={byViews} onOpen={onOpen} loading={loading} />}
       </div>
     </section>
   );

@@ -4,6 +4,8 @@ import { StrictMode, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { ApiError } from './lib/api';
+import { installButtonFx } from './lib/buttonFx';
+import { installSilhouettes } from './lib/silhouettes';
 import { spring } from './lib/spring';
 import { useStill } from './lib/store';
 import './app.css';
@@ -32,6 +34,12 @@ function Motion({ children }: { children: ReactNode }) {
     </LazyMotion>
   );
 }
+
+// Every button's liquid fill, press ripple and magnet: one set of delegated listeners (lib/buttonFx.ts).
+installButtonFx();
+
+// Numbers the glass cards so neighbours show different silhouettes (lib/silhouettes.ts).
+installSilhouettes();
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>

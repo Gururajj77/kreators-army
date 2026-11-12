@@ -8,6 +8,7 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState, type DragEvent 
 import { Link } from 'react-router';
 import { Character } from '../cast';
 import { ChipRail } from '../components/tabs';
+import { withArrows } from '../components/TextArrow';
 import { Seo } from '../components/ui';
 import { keys } from './api';
 import { attachQueryClient, enqueue, stop as stopMedia, useMediaGen } from './mediaGen/runner';
@@ -229,7 +230,7 @@ function AddStep() {
       </div>
       {(fileMsg || readError) && (
         <p className="adm-error" role="alert">
-          {fileMsg ?? readError}
+          {withArrows(fileMsg ?? readError)}
         </p>
       )}
     </div>

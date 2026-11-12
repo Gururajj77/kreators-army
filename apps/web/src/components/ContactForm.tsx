@@ -53,7 +53,8 @@ import { ChipRail, Segment } from './tabs';
 import { Cta } from './ui';
 
 // The guided trial brief (content §5, V2-SPEC 5.6, visual §1.5 and §2.5). Plan a trial: five short steps and a review, only step 1 required, answers kept
-// in sessionStorage until sent, and (form7) saved to the API as they go once step 1 has an email or phone: each Next, and leaving the page. Ask a question: step 1's contact fields and the question. The cast stands on the form's top edge and says its lines from
+// in sessionStorage until sent, and (form7, save16) saved to the API as they go once step 1 has an email or phone: every button press, each
+// choice, a field left, and leaving the page. Ask a question: step 1's contact fields and the question. The cast stands on the form's top edge and says its lines from
 // content §9.2 on their triggers, one at a time, once each. Everything the cast does is decoration: labels, errors and status lines carry the meaning.
 
 const STEP_TITLE = STEP_TITLES;
@@ -72,6 +73,11 @@ const STEP_LINE: Record<Step, CastLineKey> = {
 };
 
 const MAX_REFS = 5;
+/** (save16) The pause before a chip, card or tick (or a field left) is saved, so quick choices are one save; and after typing a valid email or phone. */
+const CHOICE_MS = 600;
+const TYPE_MS = 1000;
+/** The inputs whose blur saves. */
+const TEXT_TYPES = new Set(['text', 'email', 'tel', 'url', 'search']);
 const NOT_YET = 'Not yet. You can share this before the shoot.';
 
 type Errors = Partial<Record<'name' | 'email' | 'brand', string>>;
@@ -223,10 +229,23 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
   const live = useRef({ mode, step, reached, draft, intent, sent });
   live.current = { mode, step, reached, draft, intent, sent };
 
+  // (save16) Every button in the form saves: Back, Next, Skip, the review's Edit, the mode switch and "Add another link" at once; a chip,
+  // card or tick after CHOICE_MS, so a run of quick choices is one save; a text field when it loses focus, and the email or phone once it
+  // is valid and typing pauses. All of them share one timer, and a click sends at once and cancels whatever was waiting.
+  const timer = useRef(0);
+  /** What the save on its way carries, so the same answers are not sent twice at once. */
+  const inFlight = useRef<string | null>(null);
+  /** A save asked for while one is on its way: sent when that one is answered, so the server always gets them in order. */
+  const queued = useRef<{ at: Step; upTo: Step } | null>(null);
+  const seq = useRef(0);
+  /** Too many saves (429): this session stops saving. Sending the form still works. */
+  const stopped = useRef(false);
+
   /** Sends the answers so far when there is a way to reach the visitor and something changed since the last save. Silent either way. */
-  const saveProgress = useCallback((at: Step, upTo: Step, how: 'fetch' | 'beacon') => {
+  const saveProgress = useCallback(function run(at: Step, upTo: Step, how: 'fetch' | 'beacon') {
+    window.clearTimeout(timer.current);
     const s = live.current;
-    if (s.sent || !canSaveDraft(s.draft)) return;
+    if (s.sent || stopped.current || !canSaveDraft(s.draft)) return;
     const meta = draftMeta.current ?? { id: newDraftId(), sent: '' };
     if (!draftMeta.current) {
       draftMeta.current = meta;
@@ -235,10 +254,12 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
     const body = draftBody(s.mode, s.draft, s.intent, at, upTo, meta.id, trapRef.current?.value ?? '');
     // Which step it was saved from is not a change on its own: leaving from the step Next just saved sends nothing.
     const sig = JSON.stringify({ ...body, step: 0 });
-    if (sig === meta.sent) return;
+    if (sig === meta.sent || sig === inFlight.current) return;
     const json = JSON.stringify(body);
+    const mine = ++seq.current;
     const done = () => {
-      if (draftMeta.current?.id !== meta.id) return;
+      // An older answer arriving after a newer save went out does not overwrite what was last sent.
+      if (draftMeta.current?.id !== meta.id || mine !== seq.current) return;
       draftMeta.current = { id: meta.id, sent: sig };
       saveDraftMeta(draftMeta.current);
     };
@@ -249,10 +270,37 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
         // Falls through to fetch.
       }
     }
+    if (how === 'fetch' && inFlight.current !== null) {
+      --seq.current;
+      const q = queued.current;
+      queued.current = { at, upTo: q && q.upTo > upTo ? q.upTo : upTo };
+      return;
+    }
+    inFlight.current = sig;
     void fetch('/api/contact/draft', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: json, keepalive: json.length < 60_000 })
-      .then((r) => r.ok && done())
-      .catch(() => undefined);
+      .then((r) => {
+        if (r.ok) done();
+        else if (r.status === 429) stopped.current = true;
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (inFlight.current === sig) inFlight.current = null;
+        const q = queued.current;
+        queued.current = null;
+        if (q) run(q.at, q.upTo, 'fetch');
+      });
   }, []);
+
+  /** Saves after a pause; a later call (or a click's save) replaces it. */
+  const saveSoon = useCallback(
+    (ms: number) => {
+      window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => saveProgress(live.current.step, live.current.reached, 'fetch'), ms);
+    },
+    [saveProgress],
+  );
+  /** A click's save: now, from the step they are on. */
+  const saveNow = (at: Step = live.current.step, upTo: Step = live.current.reached) => saveProgress(at, upTo, 'fetch');
 
   // Leaving with unsaved changes: closing the tab, switching away on a phone (pagehide does not always fire there), or another page of the site.
   useEffect(() => {
@@ -397,6 +445,8 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
         }
         emailWasValid.current = valid;
       }
+      // Once there is a way to reach them, the email or phone is saved when typing pauses: closing the tab next loses nothing.
+      if ((field === 'email' || field === 'phone') && canSaveDraft({ ...live.current.draft, [field]: value })) saveSoon(TYPE_MS);
       if (field === 'guide' && linkErrors.guide) setLinkErrors((l) => ({ ...l, guide: linkError(value) }));
       if (field !== 'phone') followCaret(e.currentTarget);
     };
@@ -411,6 +461,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
   };
   const addRef = () => {
     if (draft.refs.length >= MAX_REFS) return;
+    saveNow();
     const next = draft.refs.length + 1;
     set('refs', [...draft.refs, '']);
     window.setTimeout(() => document.getElementById(`c-ref-${next - 1}`)?.focus(), 0);
@@ -466,22 +517,23 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
 
   // ---------- Steps ----------
 
+  /** Every move between steps (Next, Skip, Back, the review's Edit) saves the answers first (form7, save16): from the step they are on,
+   *  with the furthest step reached, which going back never lowers. */
   const goTo = (s: Step) => {
+    const upTo = s > reached ? s : reached;
+    saveNow(step, upTo);
     dir.current = s > step ? 1 : -1;
     focusStep.current = true;
     setStep(s);
-    setReached((r) => (s > r ? s : r));
+    setReached(upTo);
   };
-  /** Moves on and saves this step's answers (form7). */
   const forward = () => {
     if (step >= REVIEW) return;
-    const to = (step + 1) as Step;
-    saveProgress(step, to > reached ? to : reached, 'fetch');
-    goTo(to);
+    goTo((step + 1) as Step);
   };
   const next = () => {
-    if (step === 1 && !checkStep1()) return;
-    if (step === 5 && !checkStep5()) return;
+    // A step that stops them still saves what they have so far.
+    if ((step === 1 && !checkStep1()) || (step === 5 && !checkStep5())) return saveNow();
     forward();
   };
   const back = () => {
@@ -489,8 +541,22 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
   };
   const skip = forward;
 
+  /** A chip, card or tick: saved once the choosing pauses. */
+  const choose = <K extends keyof Draft>(k: K, v: Draft[K]) => {
+    set(k, v);
+    saveSoon(CHOICE_MS);
+  };
+
+  /** A text field losing focus saves after a short pause (a click on a button that saves replaces it). */
+  const onFormBlur = (e: FocusEvent<HTMLFormElement>) => {
+    const t = e.target;
+    if (t instanceof HTMLTextAreaElement || (t instanceof HTMLInputElement && TEXT_TYPES.has(t.type) && t !== trapRef.current)) saveSoon(CHOICE_MS);
+  };
+
   const setMode = (m: Mode) => {
     if (m === mode) return;
+    // What they had in the mode they are leaving, from the step they were on.
+    saveNow();
     dir.current = m === 'question' ? 1 : -1;
     focusStep.current = false;
     setErrors({});
@@ -512,7 +578,10 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
       setErrors(found);
       shown.current = { name: true, email: true, brand: trial };
       if (trial) goTo(1);
-      else complain(found.name ? 'c-name' : 'c-email');
+      else {
+        complain(found.name ? 'c-name' : 'c-email');
+        saveNow();
+      }
       return;
     }
 
@@ -541,6 +610,8 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
       lead = { kind: 'question', ...base, service: '' };
     }
     crew.current.sochu?.setExpression('thinking');
+    // The send carries every answer and completes the saved draft: a save still waiting is not needed.
+    window.clearTimeout(timer.current);
     send.mutate(lead, {
       onError: () => crew.current.sochu?.setExpression(null),
       onSuccess: () => {
@@ -662,7 +733,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
                   checked={draft.agency}
                   onChange={(e) => {
                     const on = e.currentTarget.checked;
-                    set('agency', on);
+                    choose('agency', on);
                     if (on) say('contact.agency');
                   }}
                   aria-describedby={draft.agency ? 'c-agency-help' : undefined}
@@ -692,7 +763,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
                 wrap
                 options={pills}
                 value={draft.pkg || null}
-                onChange={(v) => set('pkg', v === draft.pkg ? '' : v)}
+                onChange={(v) => choose('pkg', v === draft.pkg ? '' : v)}
                 className="bf-pills"
               />
             </div>
@@ -706,7 +777,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
             legend="What are these videos mainly for?"
             options={OBJECTIVE_OPTIONS}
             value={draft.objective}
-            onChange={(v) => set('objective', v)}
+            onChange={(v) => choose('objective', v)}
           >
             {draft.objective === 'other' && <OtherField id="c-objective-other" value={draft.objectiveOther} onChange={text('objectiveOther')} />}
           </ChoiceCards>
@@ -718,7 +789,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
             legend="How prominently should the brand appear?"
             options={INTEGRATION_OPTIONS}
             value={draft.integration}
-            onChange={(v) => set('integration', v)}
+            onChange={(v) => choose('integration', v)}
           >
             {draft.integration === 'other' && <OtherField id="c-integration-other" value={draft.integrationOther} onChange={text('integrationOther')} />}
           </ChoiceCards>
@@ -734,7 +805,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
                 wrap
                 options={MUST_HAVE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
                 value={draft.mustHaves}
-                onChange={(v: MustHave[]) => set('mustHaves', v)}
+                onChange={(v: MustHave[]) => choose('mustHaves', v)}
                 className="bf-musts"
               />
               {draft.mustHaves.includes('other') && <OtherField id="c-musts-other" value={draft.mustHavesOther} onChange={text('mustHavesOther')} />}
@@ -924,7 +995,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
       </div>
 
       <div className="cf-card">
-        <form onSubmit={submit} noValidate className="cf-form" inert={sent}>
+        <form onSubmit={submit} onBlur={onFormBlur} noValidate className="cf-form" inert={sent}>
           <Segment
             className="cf-mode"
             label="Plan a trial or ask a question"

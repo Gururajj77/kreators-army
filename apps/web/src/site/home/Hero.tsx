@@ -135,7 +135,7 @@ export function Hero({ videos, onOpen, paused }: { videos: Video[] | undefined; 
             We take your question to the street, real people answer on camera, and we build the strongest moments into short-form videos.
           </p>
           <div className="hero-actions" style={rise(3)} onPointerOver={onAction}>
-            <PrimaryCta size="lg" magnet className="hero-cta" />
+            <PrimaryCta size="lg" className="hero-cta" />
             <Cta to="/video-library" kind="ghost" size="lg" arrow className="hero-cta">
               Browse video library
             </Cta>

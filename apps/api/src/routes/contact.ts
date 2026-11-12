@@ -7,8 +7,12 @@ export const contact = new Hono<AppEnv>();
 
 /** New rows (a sent enquiry or a form session's first saved draft) per address per hour. */
 export const HOURLY_LIMIT = 5;
-/** Saves one draft may take; a form session needs a dozen at most. */
-export const MAX_DRAFT_SAVES = 60;
+/**
+ * Saves one draft may take. (save16) The form saves on every button press, each choice and each field left, but only when
+ * something changed: one careful pass through the brief is about 25 to 35 saves, a second pass from the review's Edit links
+ * about 20 more, plus one per tab switch with a change. 100 leaves room for that; a bot still cannot write without limit.
+ */
+export const MAX_DRAFT_SAVES = 100;
 const BODY_LIMIT = 64 * 1024;
 
 // Kept as v1 hashed it (SHA-256 of "<ADMIN_KEY>:<ip>"), so the hourly limit does not reset for anyone on deploy (admin brief 1.1).
@@ -163,7 +167,7 @@ contact.post('/', async (c) => {
 });
 
 /**
- * POST /api/contact/draft (form7). The answers so far, sent when a step is completed (Next) and when the page is left
+ * POST /api/contact/draft (form7, save16). The answers so far, sent on each button press, choice or field left, and when the page is left
  * (navigator.sendBeacon, so the body may arrive as text/plain). Upserts one partial lead per draftId: the furthest step
  * reached, when each step was saved, and the answers. Same checks, size limit, honeypot and hourly limit as a sent
  * enquiry (the limit counts the draft's row once, when it is first stored). A draft that was already sent is left alone.

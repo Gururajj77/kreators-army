@@ -6,6 +6,7 @@ import { formatBytes, gradeLabel, resolutionLabel } from '@kreators/shared';
 import { Check, ChevronDown, ChevronRight, Folder, Info, RefreshCw } from 'lucide-react';
 import { Fragment, useId, type ReactNode } from 'react';
 import { InstagramGlyph, YouTubeGlyph } from '../components/frames';
+import { TextArrow } from '../components/TextArrow';
 import { StatusChip, usePopover } from './bits';
 import { STATUS_LABEL, STATUS_TONE, applyKey, canTick, editRow, retryRow, rowNumber, toggleFolder, toggleRow, useImport, type UIRow } from './importStore';
 
@@ -220,12 +221,12 @@ function Row({ row, n, order, numberOf }: { row: UIRow; n: string; order: string
       <td className="adm-ic-posted">
         {row.instagram && (
           <a className="adm-glyph" href={row.instagram} target="_blank" rel="noopener noreferrer" aria-label={`Instagram link, row ${n}`} title={row.instagram}>
-            <InstagramGlyph className="size-4" /> <span aria-hidden>↗</span>
+            <InstagramGlyph className="size-4" /><TextArrow glyph="↗" bare />
           </a>
         )}
         {row.youtube && (
           <a className="adm-glyph" href={row.youtube} target="_blank" rel="noopener noreferrer" aria-label={`YouTube link, row ${n}`} title={row.youtube}>
-            <YouTubeGlyph className="size-4" /> <span aria-hidden>↗</span>
+            <YouTubeGlyph className="size-4" /><TextArrow glyph="↗" bare />
           </a>
         )}
       </td>

@@ -30,8 +30,9 @@
     padding: 16px;
     background: var(--sunken);
     color: var(--muted);
-    font-size: 15px;
-    line-height: 19px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
     text-align: center;
     text-decoration: none;
   }
@@ -147,11 +148,10 @@
   .fp-statement {
     color: var(--muted);
     font-family: var(--font-display);
-    font-size: 44px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 52px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-display-3-size);
+    font-weight: var(--t-display-3-weight);
+    line-height: var(--t-display-3-lh);
+    letter-spacing: var(--t-display-3-track);
     /* Seven lines and more: past balance's six-line limit, so pretty. */
     text-wrap: pretty;
   }
@@ -185,9 +185,9 @@
   .fp-ways li p {
     margin: 0;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   @media (max-width: 1068px) {
@@ -200,17 +200,9 @@
       max-width: 420px;
     }
 
-    .fp-statement {
-      font-size: 32px;
-      line-height: 40px;
-    }
   }
 
   @media (max-width: 734px) {
-    .fp-statement {
-      font-size: 26px;
-      line-height: 33px;
-    }
 
     .fp-ways li {
       grid-template-columns: minmax(0, 1fr);
@@ -379,8 +371,9 @@
 
   /* On the card the question is set to the card, not to the caption column: two lines at every width. */
   .fp-card-action .fp-card-q {
-    font-size: 28px;
-    line-height: 32px;
+    font-size: var(--t-title1-size);
+    letter-spacing: var(--t-title1-track);
+    line-height: var(--t-title1-lh);
   }
 
   .fp-card[data-action]:not([data-front]) .fp-card-action {
@@ -406,27 +399,28 @@
     gap: 8px;
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
   }
 
   .fp-card-q {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 40px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 44px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-display-3-size);
+    font-weight: var(--t-display-3-weight);
+    line-height: var(--t-display-3-lh);
+    letter-spacing: var(--t-display-3-track);
     text-wrap: balance;
   }
 
   .fp-card-hint {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .fp-qotw-note {
@@ -439,7 +433,7 @@
     grid-column: 2;
     margin: 8px 0 0;
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   @media (max-width: 1068px) {
@@ -458,11 +452,6 @@
       width: min(calc(100% - 40px), 264px);
     }
 
-    .fp-card-q {
-      font-size: 28px;
-      line-height: 32px;
-    }
-
     .fp-qotw-caption {
       min-height: 120px;
     }
@@ -472,8 +461,9 @@
     }
 
     .fp-card-action .fp-card-q {
-      font-size: 24px;
-      line-height: 28px;
+      font-size: var(--t-title2-size);
+      letter-spacing: var(--t-title2-track);
+      line-height: var(--t-title2-lh);
     }
   }
 
@@ -522,14 +512,10 @@
       padding: 20px;
     }
 
-    .fp-card-q {
-      font-size: 24px;
-      line-height: 28px;
-    }
-
     .fp-card-action .fp-card-q {
-      font-size: 22px;
-      line-height: 26px;
+      font-size: var(--t-title2-size);
+      letter-spacing: var(--t-title2-track);
+      line-height: var(--t-title2-lh);
     }
   }
 
@@ -771,9 +757,9 @@
   .ev-note p {
     margin: 4px 0 0;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   .ev-sheet ul {
@@ -806,9 +792,9 @@
   .ev-sheet li p {
     margin: 0;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   @media (max-width: 1068px) {
@@ -864,8 +850,6 @@
   .rt-shelf {
     container-type: inline-size;
     border-radius: var(--r-tile);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .rt-shelf-title {
@@ -1008,9 +992,9 @@
   .rt-tag p {
     margin: 6px 0 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
   }
 
   @media (max-width: 734px) {
@@ -1123,23 +1107,22 @@
   .cr-crew-num {
     flex: none;
     font-family: var(--font-display);
-    font-size: 56px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    letter-spacing: -0.02em;
+    font-size: var(--t-figure-lg-size);
+    font-weight: var(--t-figure-lg-weight);
+    letter-spacing: var(--t-figure-lg-track);
   }
 
   .cr-crew p {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .cr-crew b {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   @media (max-width: 1068px) {
@@ -1183,7 +1166,8 @@
     margin: 8px 8px 0;
     padding-bottom: 28px;
     border-radius: var(--r-inner);
-    background: var(--sunken);
+    background: var(--lg-well);
+    box-shadow: var(--lg-well-edge);
   }
 
   .cr-card-body {
@@ -1202,9 +1186,9 @@
   .cr-role {
     margin: 2px 0 12px;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .cr-apply {
@@ -1216,9 +1200,10 @@
     margin-top: auto;
     margin-bottom: -6px;
     color: var(--ink);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 19px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
     text-decoration: none;
   }
 
@@ -1238,7 +1223,7 @@
     padding-block: 72px var(--section-y);
   }
 
-  /* The closing panel: the page's last ask, lit like the rest of the field. A light from the top left, a rim of light, and a soft shadow under it: a polished plate on the metal. */
+  /* The closing panel: the page's last ask, a liquid-glass plate like every neutral card (components.css, .lglass). */
   .cr-close {
     display: flex;
     flex-direction: row;
@@ -1246,25 +1231,6 @@
     justify-content: space-between;
     gap: 40px;
     padding: 56px 64px;
-    background:
-      radial-gradient(70% 120% at 0% 0%, rgb(255 255 255 / 0.9), transparent 65%),
-      radial-gradient(60% 120% at 100% 100%, rgb(70 100 160 / 0.08), transparent 65%),
-      linear-gradient(160deg, #fbfbfc, #eef0f3);
-    box-shadow:
-      inset 0 0 0 1px color-mix(in oklab, var(--ink) 7%, transparent),
-      inset 0 1px 0 rgb(255 255 255 / 0.7),
-      0 30px 70px -34px rgb(10 12 18 / 0.35);
-  }
-
-  [data-theme='dark'] .cr-close {
-    background:
-      radial-gradient(70% 120% at 0% 0%, rgb(142 166 214 / 0.16), transparent 65%),
-      radial-gradient(60% 120% at 100% 100%, rgb(150 40 44 / 0.1), transparent 65%),
-      var(--surface);
-    box-shadow:
-      inset 0 0 0 1px rgb(255 255 255 / 0.08),
-      inset 0 1px 0 rgb(255 255 255 / 0.08),
-      0 30px 70px -34px rgb(0 0 0 / 0.7);
   }
 
   .cr-close > div:first-child {
@@ -1339,7 +1305,7 @@
   .fmt-ideas-link {
     position: relative;
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     white-space: nowrap;
     text-decoration: none;
   }
@@ -1370,16 +1336,17 @@
 
   .fmt-deck-title {
     color: var(--ink);
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 22px;
-    letter-spacing: -0.01em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
   }
 
   .fmt-deck-meta {
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   /* Events: what we lock before each shoot, on the call sheet. A compact checklist on the 8 pt scale: hairline rows of 12 px, so the sheet
@@ -1398,9 +1365,9 @@
     display: block;
     padding-block: 12px;
     border-top: 1px solid var(--line);
-    font-size: 17px;
-    line-height: 24px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   .ev-sheet .ev-lock > li:last-child {

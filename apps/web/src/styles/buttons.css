@@ -1,0 +1,495 @@
+/* Buttons, round 17: glossy 3D candy buttons, with the round 16 liquid fill, press ripple and magnet kept inside the shell.
+
+   One recipe, every variant: a button sets only its colour (--btn-hue) and, if it needs to, how much lighter its top is (--btn-lift), how much
+   deeper its bottom is (--btn-sink) and what its drop shadow is tinted with (--btn-shadow). From those the shared rules below draw:
+   - the body: a vertical gradient of its own colour, lighter at the top, deeper at the bottom (--btn-top, --btn-bottom, --btn-body);
+   - the shell (::after, above the liquid, under the label): a domed white sheen along the top, a crisp 1px top rim, a soft shade along the
+     bottom and an inner shadow at the bottom edge in a darker shade of the button's own colour;
+   - the drop: a tight dark contact shadow plus a soft shadow in the button's own hue (--btn-shadow), sized per kind (--btn-y, --btn-blur) and
+     scaled by state (--btn-k: 1 at rest, raised on hover, almost flat when pressed or disabled).
+   Solid kinds (accent red, ink, light) are opaque colours; everything else is frosted: a translucent white (--frost, per theme and per dark
+   band) with a neutral shadow.
+
+   Motion, as in round 16: on a mouse hover a drop of the button's own deeper (or tinted) colour (--liq, ::before) grows from the point the
+   pointer came in, turning slowly so its edge reads as liquid, under the shell's highlight, so the liquid is seen moving inside the glass. A
+   press sends a ripple out from the press point (drawn in the shell, under its gloss), the body moves down and the inner shadow deepens. The
+   magnet leans the button toward the mouse, up to its --pull, and the label leans a little further. lib/buttonFx.ts feeds the pointer in:
+   --lx/--ly (where the fill starts), --px/--py (where the ripple starts), --blob (a drop big enough to cover the button), --mx/--my (the lean).
+   Only translate, scale, rotate and opacity move continuously; the box-shadow transitions only on the element whose state changed, and the
+   ripple animates two registered numbers on that one button's shell. Under Pause animations or reduced motion (data-still) nothing moves:
+   hover is a plain colour change to the same --liq and the press only deepens the shadow.
+
+   The list is FX_BUTTONS in lib/buttonFx.ts: keep the two in step. */
+@property --rip {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --rip-a {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@layer components {
+  /* ---------- The frost: the body of every non-solid button, per context. Light: a pearl of white. Dark (theme, dark bands, the views pill): a veil of light. ---------- */
+  :root {
+    --frost: rgb(255 255 255 / 0.84);
+    --frost-sheen: 0.55;
+    --frost-shadow: rgb(44 36 72);
+    --frost-a: 26%;
+    --btn-contact: rgb(24 20 40 / 0.2);
+  }
+
+  [data-theme='dark'],
+  .band-dark,
+  .vdeck-views {
+    --frost: rgb(255 255 255 / 0.1);
+    --frost-sheen: 0.34;
+    --frost-shadow: rgb(0 0 0);
+    --frost-a: 60%;
+    --btn-contact: rgb(0 0 0 / 0.55);
+  }
+
+  /* The footer is a .band-dark that the light theme turns into a pale sheet: its buttons take the light frost. */
+  :root:not([data-theme='dark']) .ft {
+    --frost: rgb(255 255 255 / 0.84);
+    --frost-sheen: 0.55;
+    --frost-shadow: rgb(44 36 72);
+    --frost-a: 26%;
+    --btn-contact: rgb(24 20 40 / 0.2);
+  }
+
+  /* ---------- The 3D recipe, on every button and on the static 3D parts (chips, sliding thumbs, the arrow disc, the switch). A kind sets
+     --btn-hue (and, if it must, --btn-lift, --btn-sink, --btn-shadow, the gloss alphas and the drop size); the rest follows. Default: frosted.
+     --btn-body (the gradient), --btn-gloss (sheen and bottom shade), --btn-rims (inset rims) and --btn-drop (the shadows) are the shared stacks. */
+  :where(
+    .btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear,
+    .chip-opt, .segment-thumb, .tab-bar-thumb, .chip-thumb, .arrow-disc, .ft-pause-track, .ft-pause-thumb
+  ) {
+    --btn-hue: var(--frost);
+    --btn-lift: 12%;
+    --btn-sink: 5%;
+    --btn-shadow: var(--frost-shadow);
+    --btn-a: var(--frost-a);
+    --btn-top: color-mix(in oklab, var(--btn-hue), #ffffff var(--btn-lift));
+    --btn-bottom: color-mix(in oklab, var(--btn-hue), #000000 var(--btn-sink));
+    --btn-edge: color-mix(in oklab, var(--btn-shadow) 34%, transparent);
+    /* The gloss: the domed sheen, the crisp top rim and the bottom shade, as alphas. */
+    --btn-sheen: var(--frost-sheen);
+    --btn-rim: 0.7;
+    --btn-depth: 0.06;
+    /* The drop, per size; --btn-k scales it per state; --btn-in is the pressed-in inner shadow. */
+    --btn-y: 5px;
+    --btn-blur: 14px;
+    --btn-k: 1;
+    --btn-in: 0;
+    --btn-body: linear-gradient(180deg, var(--btn-top), var(--btn-hue) 50%, var(--btn-bottom));
+    --btn-gloss:
+      radial-gradient(150% 92% at 50% -16%, rgb(255 255 255 / var(--btn-sheen)) 0%, rgb(255 255 255 / calc(var(--btn-sheen) * 0.32)) 36%, transparent 60%),
+      linear-gradient(180deg, transparent 50%, rgb(0 0 0 / var(--btn-depth)) 100%);
+    --btn-rims:
+      inset 0 1px 0.5px rgb(255 255 255 / var(--btn-rim)),
+      inset 0 calc(-2px + var(--btn-in) * 1px) calc(3px - var(--btn-in) * 1px) var(--btn-edge),
+      inset 0 calc(var(--btn-in) * 2px) calc(var(--btn-in) * 5px) rgb(0 0 0 / calc(var(--btn-in) * 0.22));
+    --btn-drop:
+      0 calc(1px * var(--btn-k)) calc(1.5px * var(--btn-k)) var(--btn-contact),
+      0 calc(var(--btn-y) * var(--btn-k)) calc(var(--btn-blur) * var(--btn-k)) calc(var(--btn-blur) * -0.4) color-mix(in oklab, var(--btn-shadow) var(--btn-a), transparent);
+  }
+
+  /* The buttons with the liquid, the ripple and the magnet (FX_BUTTONS). */
+  :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear) {
+    /* How far the magnet may lean the button, and the colour its liquid fills it with. Set per kind below. */
+    --pull: 4px;
+    --liq: color-mix(in oklab, currentColor 12%, transparent);
+    --ripple: currentColor;
+    --ripple-o: 0.2;
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+    translate: var(--mx, 0px) var(--my, 0px);
+  }
+
+  /* The body and the drop. At class weight and last in the cascade, so it replaces each kind's old flat fill or outline. */
+  :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear) {
+    background: var(--btn-body);
+    box-shadow: var(--btn-drop);
+    transition:
+      transform var(--spring-release),
+      box-shadow 240ms var(--ease-out),
+      color var(--dur-hover) ease,
+      opacity 200ms ease;
+  }
+
+  /* The label and the icon lean 40% further than the body. */
+  :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear) > * {
+    translate: calc(var(--mx, 0px) * 0.4) calc(var(--my, 0px) * 0.4);
+  }
+
+  /* The liquid: an uneven drop centred on the entry point, over the body and under the shell. It turns while it shows, so its edge moves. */
+  :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: var(--ly, 100%);
+    left: var(--lx, 50%);
+    width: var(--blob, 300%);
+    aspect-ratio: 1;
+    border-radius: 41% 59% 54% 46% / 46% 41% 59% 54%;
+    background: var(--liq);
+    pointer-events: none;
+    translate: -50% -50%;
+    scale: 0;
+    transition: scale 520ms var(--ease-in-out);
+    animation: btn-liquid-turn 2.4s linear infinite paused;
+  }
+
+  /* The shell: the gloss over the body and the liquid, under the label. Top to bottom of the stack: the domed sheen, the bottom shade, the
+     press ripple; and the rims as inset shadows: the crisp top highlight, the inner shadow at the bottom edge, and the pressed-in shadow. */
+  :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      var(--btn-gloss),
+      radial-gradient(
+        circle farthest-corner at var(--px, 50%) var(--py, 50%),
+        color-mix(in oklab, var(--ripple) calc(var(--rip-a) * 100%), transparent) calc(var(--rip) * 100% - 12%),
+        transparent calc(var(--rip) * 100%)
+      );
+    box-shadow: var(--btn-rims);
+    pointer-events: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    /* Hover: a slight raise; the drop grows. */
+    :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):hover:not(:disabled, [aria-disabled='true']) {
+      --btn-k: 1.4;
+    }
+
+    :root:not([data-still]) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):hover:not(:disabled, [aria-disabled='true']) {
+      transform: translateY(-1px);
+    }
+
+    :root:not([data-still])
+      :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):hover:not(
+        :disabled,
+        [aria-disabled='true']
+      )::before {
+      scale: 1;
+      /* Slow at the start, so the drop is seen to spread from the pointer before it fills. */
+      transition: scale 880ms cubic-bezier(0.38, 0.12, 0.22, 1);
+      animation-play-state: running;
+    }
+
+    /* Still: the same colour, at once, with nothing moving. */
+    :root[data-still]
+      :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):hover:not(
+        :disabled,
+        [aria-disabled='true']
+      ) {
+      background: linear-gradient(var(--liq), var(--liq)), var(--btn-body);
+    }
+  }
+
+  /* The 3D press: the drop shrinks to a contact shadow, the inner shadow deepens, and the body moves down. Touch too. */
+  :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):active:not(:disabled, [aria-disabled='true']) {
+    --btn-k: 0.3;
+    --btn-in: 1;
+  }
+
+  :root:not([data-still]) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):active:not(:disabled, [aria-disabled='true']) {
+    transform: translateY(1.5px) scale(0.98);
+    transition-duration: var(--dur-press), 90ms, var(--dur-hover), 200ms;
+    transition-timing-function: var(--ease-out);
+  }
+
+  :root[data-still] :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear) {
+    transform: none;
+    transition: none;
+  }
+
+  /* Disabled: flatter (the drop all but gone, a fainter gloss) and desaturated. */
+  :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):disabled {
+    --btn-k: 0.25;
+    --btn-sheen: 0.25;
+    --btn-rim: 0.35;
+    filter: saturate(0.4);
+  }
+
+  :root:not([data-still]) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)[data-ripple='a']::after {
+    animation: btn-ripple-a 720ms var(--ease-out);
+  }
+
+  :root:not([data-still]) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)[data-ripple='b']::after {
+    animation: btn-ripple-b 720ms var(--ease-out);
+  }
+
+  :root[data-still] :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)::before {
+    animation: none;
+    transition: none;
+  }
+
+  @keyframes btn-liquid-turn {
+    to {
+      rotate: 1turn;
+    }
+  }
+
+  @keyframes btn-ripple-a {
+    from {
+      --rip: 0.04;
+      --rip-a: var(--ripple-o);
+    }
+
+    45% {
+      --rip-a: var(--ripple-o);
+    }
+
+    to {
+      --rip: 1;
+      --rip-a: 0;
+    }
+  }
+
+  @keyframes btn-ripple-b {
+    from {
+      --rip: 0.04;
+      --rip-a: var(--ripple-o);
+    }
+
+    45% {
+      --rip-a: var(--ripple-o);
+    }
+
+    to {
+      --rip: 1;
+      --rip-a: 0;
+    }
+  }
+
+  /* ---------- Per kind: the reach, the drop size, the colour and the liquid. Every pair keeps AA at rest, mid-fill, filled and pressed, in both themes. ---------- */
+  .btn {
+    --pull: 7px;
+    --liq: color-mix(in oklab, currentColor 10%, transparent);
+    --btn-y: 7px;
+    --btn-blur: 18px;
+  }
+
+  .btn-sm,
+  .bf-add,
+  .bf-edit,
+  .calc-snap,
+  .lib-btn,
+  .nav-menu-btn {
+    --pull: 5px;
+    --btn-y: 5px;
+    --btn-blur: 14px;
+  }
+
+  .btn-lg {
+    --pull: 10px;
+    --btn-y: 9px;
+    --btn-blur: 22px;
+  }
+
+  /* The red: a touch deeper than --action so the lit top still holds white at AA, glowing red underneath. Its liquid deepens (white on it 7:1);
+     its ripple is darker still, so a press never lightens the red under white text. */
+  .btn-accent {
+    --btn-hue: color-mix(in oklab, var(--action), #000000 7%);
+    --btn-lift: 14%;
+    --btn-sink: 18%;
+    --btn-shadow: color-mix(in oklab, var(--action) 85%, #000000);
+    --btn-a: 46%;
+    --btn-sheen: 0.42;
+    --btn-rim: 0.5;
+    --btn-depth: 0.1;
+    --btn-edge: color-mix(in oklab, var(--action), #000000 45%);
+    --liq: #ad1111;
+    --ripple: #3d0202;
+    --ripple-o: 0.45;
+  }
+
+  /* Ink: a black gloss in light, a pearl in dark; its shadow stays neutral, so the light pearl never glows. */
+  .btn-ink {
+    --btn-hue: var(--ink);
+    --btn-lift: 16%;
+    --btn-sink: 12%;
+    --btn-a: 40%;
+    --btn-sheen: 0.32;
+    --btn-rim: 0.32;
+    --btn-depth: 0.12;
+    --liq: color-mix(in oklab, var(--ink) 80%, var(--bg));
+  }
+
+  .btn-ghost {
+    --liq: color-mix(in oklab, var(--ink) 10%, transparent);
+  }
+
+  /* White on a poster or a colour tile: a pearl. */
+  .btn-light {
+    --btn-hue: #ffffff;
+    --btn-lift: 0%;
+    --btn-sink: 9%;
+    --btn-shadow: rgb(20 16 36);
+    --btn-a: 34%;
+    --btn-sheen: 0.8;
+    --btn-rim: 1;
+    --liq: #e9e3d9;
+  }
+
+  .nav-icon,
+  .rail-paddle,
+  .copy-btn,
+  .calc-step,
+  .bw-round,
+  .lib-search-clear {
+    --btn-y: 4px;
+    --btn-blur: 12px;
+  }
+
+  .rail-paddle {
+    --liq: color-mix(in oklab, var(--ink) 10%, transparent);
+  }
+
+  .calc-step,
+  .bw-round {
+    --liq: color-mix(in oklab, var(--ink) 12%, transparent);
+  }
+
+  .calc-snap {
+    --liq: color-mix(in oklab, var(--ink) 8%, transparent);
+  }
+
+  .copy-btn {
+    --liq: color-mix(in oklab, var(--ink) 8%, transparent);
+  }
+
+  /* Over a video: a dark glass sphere that holds the white icon at AA over a white frame; its liquid is a lighter glass. */
+  .reel-pause,
+  .player-close {
+    --btn-hue: var(--glass-media-bg);
+    --btn-lift: 14%;
+    --btn-sink: 10%;
+    --btn-shadow: rgb(0 0 0);
+    --btn-a: 50%;
+    --btn-sheen: 0.38;
+    --btn-rim: 0.4;
+    --btn-y: 4px;
+    --btn-blur: 12px;
+    --btn-contact: rgb(0 0 0 / 0.4);
+    --liq: rgb(78 78 82 / 0.84);
+  }
+  /* ---------- The static 3D parts: the same recipe, drawn in one box (no liquid in them, so the gloss and rims sit on the element). ---------- */
+
+  /* Chips: a frosted pill each; the chosen one is the glossy ink thumb sliding under it, or (multi-select) an ink pill of its own. */
+  .chip-opt:not([data-on], [aria-pressed='true']) {
+    --btn-y: 3px;
+    --btn-blur: 10px;
+    background: var(--btn-gloss), var(--btn-body);
+    box-shadow: var(--btn-rims), var(--btn-drop);
+    transition:
+      color var(--dur-hover) ease,
+      box-shadow 240ms var(--ease-out),
+      transform var(--spring-smooth);
+  }
+
+  .chip-rail[data-mode='multi'] .chip-opt[aria-pressed='true'],
+  .chip-thumb {
+    --btn-hue: var(--ink);
+    --btn-lift: 16%;
+    --btn-sink: 12%;
+    --btn-sheen: 0.3;
+    --btn-rim: 0.3;
+    --btn-depth: 0.12;
+    --btn-y: 3px;
+    --btn-blur: 10px;
+    background: var(--btn-gloss), var(--btn-body);
+    box-shadow: var(--btn-rims), var(--btn-drop);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .chip-opt:not([data-on], [aria-pressed='true']):hover {
+      --btn-k: 1.4;
+    }
+  }
+
+  :root:not([data-still]) .chip-opt:not([data-on], [aria-pressed='true']):active {
+    --btn-k: 0.3;
+    --btn-in: 1;
+  }
+
+  /* Segments and tab bars: the platter is a sunken well; the thumb that slides in it is a pearl. */
+  :is(.segment, .tab-bar) {
+    box-shadow:
+      inset 0 1.5px 3px color-mix(in oklab, var(--frost-shadow) 18%, transparent),
+      inset 0 -1px 0 color-mix(in oklab, var(--frost) 70%, transparent);
+  }
+
+  :is(.segment-thumb, .tab-bar-thumb) {
+    --btn-hue: var(--surface-5);
+    --btn-lift: 10%;
+    --btn-sink: 6%;
+    --btn-y: 3px;
+    --btn-blur: 8px;
+    background: var(--btn-gloss), var(--btn-body);
+    box-shadow: var(--btn-rims), var(--btn-drop);
+  }
+
+  /* The arrow disc inside the red action: a white pearl. */
+  .arrow-disc {
+    --btn-hue: #ffffff;
+    --btn-lift: 0%;
+    --btn-sink: 10%;
+    --btn-sheen: 0.9;
+    --btn-rim: 1;
+    --btn-shadow: rgb(60 0 0);
+    --btn-a: 40%;
+    --btn-y: 2px;
+    --btn-blur: 5px;
+    --btn-contact: rgb(60 0 0 / 0.3);
+    background: var(--btn-gloss), var(--btn-body);
+    box-shadow: var(--btn-rims), var(--btn-drop);
+  }
+
+  /* The theme toggle: its sun knob is a glossy pearl (Nav.tsx draws the light on it); here, the knob's own soft shadow. */
+  .nav-icon[aria-pressed] > svg {
+    filter: drop-shadow(0 1.5px 1.5px rgb(110 40 0 / 0.32));
+  }
+
+  /* The footer's Pause animations switch: a sunken track and a white pearl knob; on, the track is a glossy green. */
+  .ft-pause-track {
+    box-shadow:
+      inset 0 1.5px 3px rgb(0 0 0 / 0.28),
+      inset 0 -1px 0 rgb(255 255 255 / 0.12);
+  }
+
+  .ft-pause[aria-checked='true'] .ft-pause-track {
+    --btn-hue: var(--c-green);
+    --btn-lift: 18%;
+    --btn-sink: 16%;
+    --btn-sheen: 0.4;
+    background: var(--btn-gloss), var(--btn-body);
+    box-shadow:
+      inset 0 1.5px 3px rgb(0 40 0 / 0.3),
+      inset 0 -1px 0 rgb(255 255 255 / 0.2);
+  }
+
+  :root .ft .ft-pause-thumb {
+    --btn-hue: #ffffff;
+    --btn-lift: 0%;
+    --btn-sink: 12%;
+    --btn-sheen: 0.9;
+    --btn-rim: 1;
+    --btn-shadow: rgb(0 0 0);
+    --btn-a: 45%;
+    --btn-y: 2px;
+    --btn-blur: 4px;
+    --btn-contact: rgb(0 0 0 / 0.3);
+    background: var(--btn-gloss), var(--btn-body);
+    box-shadow: var(--btn-rims), var(--btn-drop);
+  }
+}

@@ -162,7 +162,7 @@
     color: #ffffff;
     font-family: var(--font-display);
     font-size: 10.8cqw;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     line-height: 1.12;
     letter-spacing: -0.015em;
     text-shadow: 0 1px 12px rgb(0 0 0 / 0.25);
@@ -374,8 +374,9 @@
     border-radius: var(--r-pill);
     background: var(--on-glass);
     color: var(--surface-5);
-    font-size: 12px;
-    font-weight: 700;
+    font-size: var(--t-caption-size);
+    letter-spacing: var(--t-caption-track);
+    font-weight: var(--w-bold);
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
@@ -387,9 +388,10 @@
     border-radius: var(--r-pill);
     background: var(--sunken);
     color: var(--muted);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 16px;
+    font-size: var(--t-caption-size);
+    letter-spacing: var(--t-caption-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-caption-lh);
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
@@ -400,10 +402,10 @@
     margin: 0;
     padding: 0 4px 0 8px;
     color: var(--on-glass);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
@@ -444,9 +446,10 @@
 
   .lib-facet-label {
     color: var(--on-glass-2);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 16px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
     white-space: nowrap;
   }
 
@@ -468,10 +471,10 @@
     color: var(--on-glass);
     cursor: pointer;
     font: inherit;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
     white-space: nowrap;
     touch-action: manipulation;
     transition:
@@ -489,13 +492,7 @@
   }
 
   .lib-btn[aria-expanded='true'] {
-    background: color-mix(in oklab, var(--on-glass) 10%, transparent);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .lib-btn:hover {
-      background: color-mix(in oklab, var(--on-glass) 8%, transparent);
-    }
+    background: linear-gradient(color-mix(in oklab, var(--on-glass) 10%, transparent), color-mix(in oklab, var(--on-glass) 10%, transparent)), var(--btn-body);
   }
 
   .lib-chev {
@@ -540,8 +537,8 @@
     background: color-mix(in oklab, var(--on-glass) 8%, transparent);
     color: var(--on-glass);
     font: inherit;
-    font-size: 16px;
-    letter-spacing: -0.011em;
+    font-size: var(--t-callout-size);
+    letter-spacing: var(--t-callout-track);
     transition: background-color var(--dur-hover) ease;
   }
 
@@ -584,13 +581,7 @@
 
   /* Shuffle: beside the sort; lit while the library is in a shuffled order. The die turns once per press. */
   .lib-shuffle[data-active] {
-    background: color-mix(in srgb, var(--on-glass) 12%, transparent);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .lib-shuffle:hover {
-      background: color-mix(in srgb, var(--on-glass) 8%, transparent);
-    }
+    background: linear-gradient(color-mix(in srgb, var(--on-glass) 12%, transparent), color-mix(in srgb, var(--on-glass) 12%, transparent)), var(--btn-body);
   }
 
   :root:not([data-still]) .lib-shuffle-icon[data-turn] {
@@ -676,9 +667,9 @@
     color: var(--ink);
     cursor: pointer;
     font: inherit;
-    font-size: 15px;
-    line-height: 20px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
     text-align: left;
   }
 
@@ -708,7 +699,7 @@
   }
 
   .lib-opt[aria-checked='true'] {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .lib-opt[aria-checked='true'] .lib-opt-check {
@@ -742,9 +733,9 @@
     border-radius: 12px;
     color: var(--ink);
     cursor: pointer;
-    font-size: 15px;
-    line-height: 20px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .lib-sug[data-active] {
@@ -761,7 +752,7 @@
     flex: 1;
     min-width: 0;
     overflow: hidden;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -769,8 +760,9 @@
   .lib-sug-kind {
     flex: none;
     color: var(--muted);
-    font-size: 13px;
-    line-height: 16px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    line-height: var(--t-footnote-lh);
   }
 
   .lib-sug-count {
@@ -780,9 +772,10 @@
     border-radius: var(--r-pill);
     background: var(--sunken);
     color: var(--muted);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 16px;
+    font-size: var(--t-caption-size);
+    letter-spacing: var(--t-caption-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-caption-lh);
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
@@ -828,9 +821,10 @@
     display: none;
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
     font-variant-numeric: tabular-nums;
   }
 
@@ -848,10 +842,10 @@
     box-shadow: var(--plate-edge);
     cursor: pointer;
     font: inherit;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
     touch-action: manipulation;
   }
 
@@ -876,10 +870,10 @@
     color: var(--muted);
     cursor: pointer;
     font: inherit;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
   }
 
   .lib-clear::after {
@@ -965,11 +959,10 @@
 
   .lib-end-title {
     color: var(--ink);
-    font-size: 24px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 28px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-title2-size);
+    font-weight: var(--t-title2-weight);
+    line-height: var(--t-title2-lh);
+    letter-spacing: var(--t-title2-track);
   }
 
   .lib-end-go {
@@ -1024,9 +1017,9 @@
     }
 
     .lib-end-title {
-      font-size: 19px;
-      line-height: 23px;
-      letter-spacing: -0.012em;
+      font-size: var(--t-title3-size);
+      line-height: var(--t-title3-lh);
+      letter-spacing: var(--t-title3-track);
     }
 
     .lib-end-go {

@@ -38,11 +38,23 @@ export function ThemeToggle() {
           <rect x="-4" y="-4" width="36" height="36" fill="#fff" />
           <m.circle cx="23.2" cy="6.7" r="11" fill="#000" initial={false} animate={{ x: dark ? 0 : 22, y: dark ? 0 : -22 }} transition={transition} />
         </mask>
+        {/* Round 17: the knob is a glossy pearl, a lit top-left and a deeper rim, like the 3D buttons around it. */}
+        <radialGradient id={`${mask}-lit`} cx="0.36" cy="0.26" r="0.7">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.72" />
+          <stop offset="0.45" stopColor="#fff" stopOpacity="0.14" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={`${mask}-rim`} cx="0.5" cy="0.4" r="0.62">
+          <stop offset="0.7" stopColor="#7a2a00" stopOpacity="0" />
+          <stop offset="1" stopColor="#7a2a00" stopOpacity="0.32" />
+        </radialGradient>
         <g mask={`url(#${mask})`}>
           {/* M5f: the knob squashes at mid-travel, 1 → 1.12 → 1, once per flip. */}
           <m.g key={flips} initial={false} animate={flips > 0 ? { scaleX: [1, 1.12, 1] } : undefined} transition={{ duration: 0.36, ease: 'easeOut' }} style={{ transformOrigin: '14px 14px' }}>
           <m.g initial={false} animate={{ rotate: dark ? -12 : 0 }} transition={transition} style={{ transformOrigin: '14px 14px' }}>
             <circle cx="14" cy="14" r="12" fill="#ff8d3a" />
+            <circle cx="14" cy="14" r="12" fill={`url(#${mask}-rim)`} />
+            <circle cx="14" cy="14" r="12" fill={`url(#${mask}-lit)`} />
             <m.g initial={false} animate={{ x: dark ? -3.4 : 0, y: dark ? 2.9 : 0 }} transition={transition}>
               <path d="M6.9 13.4c1.1-1.5 2.9-1.5 4 0" fill="none" stroke="#111" strokeWidth="1.5" strokeLinecap="round" />
               <m.circle
@@ -92,7 +104,7 @@ function itemActive(item: (typeof NAV_TOP)[number], pathname: string, hash: stri
 const OPEN_DELAY = 300; // NN/g: feedback at once, open after a pause
 const CLOSE_DELAY = 500; // and stay open until the pointer has been gone that long
 
-/** Work, How we work, Formats, Pricing, Company, from 1024 px. */
+/** Work, How we work, Formats, Company, from 1024 px (Pricing sits in the Work menu). */
 function DesktopLinks() {
   const { pathname, hash } = useLocation();
   const list = useRef<HTMLUListElement>(null);
@@ -104,7 +116,7 @@ function DesktopLinks() {
   const openTimer = useRef(0);
   const closeTimer = useRef(0);
   const focusFirst = useRef(false);
-  // Where the highlight rests: the top item whose own link is this page (Pricing on /pricing), else the item whose menu holds it.
+  // Where the highlight rests: the top item whose own link is this page (Work on /video-library), else the item whose menu holds it.
   const direct = NAV_TOP.findIndex((item) => 'to' in item && linkActive(item.to, pathname, hash));
   const restIndex = direct >= 0 ? direct : NAV_TOP.findIndex((item) => itemActive(item, pathname, hash));
   // The highlight rests on where you are and follows the pointer across the items (the tab kit's engine, visual §1.4).

@@ -1,0 +1,11 @@
+Fonts served from this folder
+
+Google Sans Flex  Copyright 2015 The Google Sans Flex Authors (https://github.com/googlefonts/googlesans-flex)
+
+Licensed under the SIL Open Font License, Version 1.1.
+This license is available with a FAQ at https://openfontlicense.org
+
+The files are the woff2 subsets (latin and latin-ext) that Google Fonts serves for the family, the same files kreators.app serves,
+saved here so that no request goes to a third party when a page loads. They keep two of the family's axes, weight (1 to 1000)
+and roundness (ROND, 0 to 100); no glyph is changed. The latin-ext file holds the rupee sign.
+The full license text is at https://openfontlicense.org/open-font-license-official-text/

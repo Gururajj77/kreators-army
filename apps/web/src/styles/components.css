@@ -1,5 +1,31 @@
 /* Shared component classes. Everything is in @layer components so a Tailwind utility on the same element always wins. Tokens are in tokens.css. */
 
+/* (cards16, glow17) The liquid-metal rim's flow: the specular band's angle, the sheen's sweep and the halo's strength. Registered so they can
+   animate; not inherited, so each card moves on its own. --glow-sil (a card's silhouette hue) is not inherited either, so a card inside a card
+   does not take its parent's. */
+@property --lg-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --lg-sweep {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 100%;
+}
+
+@property --lg-glow {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --glow-sil {
+  syntax: '*';
+  inherits: false;
+}
+
 @layer components {
   /* ---------- Bands and frame ---------- */
   .wrap {
@@ -111,7 +137,8 @@
     pointer-events: none;
   }
 
-  /* ---------- Type: Inter, sentence case, weights 400 and 600. Headline line-height is size + 4px. ---------- */
+  /* ---------- Type: Google Sans Flex, on the kreators.app scale (tokens.css). Page H1s are display-1, section H2s display-2, smaller section heads display-3,
+     card heads title1 / title2 and card-title. The display steps resize by themselves at the tablet and laptop steps. ---------- */
   .display-xl,
   .display,
   .display-md,
@@ -121,183 +148,119 @@
   .h4 {
     margin: 0;
     font-family: var(--font-display);
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
     text-wrap: balance;
+    text-rendering: optimizeLegibility;
   }
 
-  .display-xl {
-    font-size: 96px;
-    line-height: 100px;
-    letter-spacing: -0.026em;
-  }
-
-  .display {
-    font-size: 80px;
-    line-height: 84px;
-    letter-spacing: -0.024em;
-  }
-
+  /* display-1: every page's H1 (the three old hero sizes are one step now). */
+  .display-xl,
+  .display,
   .display-md {
-    font-size: 64px;
-    line-height: 68px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-display-1-size);
+    font-weight: var(--t-display-1-weight);
+    line-height: var(--t-display-1-lh);
+    letter-spacing: var(--t-display-1-track);
   }
 
+  /* display-2: a section's H2. */
   .h2 {
-    font-size: 56px;
-    line-height: 60px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-display-2-size);
+    font-weight: var(--t-display-2-weight);
+    line-height: var(--t-display-2-lh);
+    letter-spacing: var(--t-display-2-track);
   }
 
+  /* display-3: the smaller section head (FAQ answers, the footer's line, a post's title). */
   .h2-sm {
-    font-size: 48px;
-    line-height: 52px;
-    letter-spacing: -0.008em;
+    font-size: var(--t-display-3-size);
+    font-weight: var(--t-display-3-weight);
+    line-height: var(--t-display-3-lh);
+    letter-spacing: var(--t-display-3-track);
   }
 
+  /* title1 from the tablet up, title2 on a phone: a card or sub-section head. */
   .h3 {
-    font-size: 28px;
-    line-height: 32px;
-    letter-spacing: 0;
+    font-size: var(--t-title1-size);
+    font-weight: var(--t-title1-weight);
+    line-height: var(--t-title1-lh);
+    letter-spacing: var(--t-title1-track);
   }
 
+  /* card-title. */
   .h4 {
-    font-size: 21px;
-    line-height: 25px;
-    letter-spacing: -0.012em;
-  }
-
-  @media (max-width: 1068px) {
-    .display-xl {
-      font-size: 80px;
-      line-height: 84px;
-      letter-spacing: -0.024em;
-    }
-
-    .display {
-      font-size: 64px;
-      line-height: 68px;
-      letter-spacing: -0.016em;
-    }
-
-    .display-md {
-      font-size: 48px;
-      line-height: 52px;
-      letter-spacing: -0.008em;
-    }
-
-    .h2 {
-      font-size: 48px;
-      line-height: 52px;
-      letter-spacing: -0.008em;
-    }
-
-    .h2-sm {
-      font-size: 40px;
-      line-height: 44px;
-      letter-spacing: -0.006em;
-    }
-
-    .h3 {
-      font-size: 24px;
-      line-height: 28px;
-    }
+    font-size: var(--t-card-title-size);
+    font-weight: var(--t-card-title-weight);
+    line-height: var(--t-card-title-lh);
+    letter-spacing: var(--t-card-title-track);
   }
 
   @media (max-width: 734px) {
-    .display-xl,
-    .display {
-      font-size: 44px;
-      line-height: 48px;
-      letter-spacing: -0.012em;
-    }
-
-    .display-md {
-      font-size: 40px;
-      line-height: 44px;
-      letter-spacing: -0.006em;
-    }
-
-    .h2 {
-      font-size: 36px;
-      line-height: 40px;
-      letter-spacing: -0.006em;
-    }
-
-    .h2-sm {
-      font-size: 32px;
-      line-height: 36px;
-      letter-spacing: -0.004em;
-    }
-
     .h3 {
-      font-size: 21px;
-      line-height: 25px;
-      letter-spacing: -0.012em;
+      font-size: var(--t-title2-size);
+      line-height: var(--t-title2-lh);
+      letter-spacing: var(--t-title2-track);
     }
   }
 
+  /* lede: 18/25 on phones and tablets, 20/27 on a laptop. */
   .lead {
     margin: 0;
     max-width: 44rem;
     color: var(--muted);
-    font-size: 21px;
-    line-height: 29px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-lede-size);
+    font-weight: var(--t-lede-weight);
+    line-height: var(--t-lede-lh);
+    letter-spacing: var(--t-lede-track);
     text-wrap: balance;
   }
 
-  @media (max-width: 734px) {
-    .lead {
-      font-size: 19px;
-      line-height: 27px;
-    }
-  }
-
+  /* headline. */
   .label {
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 21px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
   }
 
+  /* footnote: small print, captions under media, meta lines. */
   .small {
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-footnote-size);
+    line-height: var(--t-footnote-lh);
+    letter-spacing: var(--t-footnote-track);
   }
 
   .caption {
-    font-size: 12px;
-    line-height: 16px;
-    letter-spacing: 0;
+    font-size: var(--t-caption-size);
+    line-height: var(--t-caption-lh);
+    letter-spacing: var(--t-caption-track);
   }
 
+  /* eyebrow: 12/16, all caps, tracked out. */
   .eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-eyebrow-size);
+    font-weight: var(--t-eyebrow-weight);
+    line-height: var(--t-eyebrow-lh);
+    letter-spacing: var(--t-eyebrow-track);
+    text-transform: uppercase;
   }
 
-  /* An Apple two-tone sentence: the sentence is muted, the phrase in <b> carries the ink. */
+  /* An Apple two-tone sentence: the sentence is muted, the phrase in <b> carries the ink. title3. */
   .two-tone {
     color: var(--muted);
-    font-size: 21px;
-    font-weight: 600;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-title3-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-title3-lh);
+    letter-spacing: var(--t-title3-track);
   }
 
   .two-tone b,
   .two-tone strong {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   /* G3: one gradient word per page. */
@@ -404,7 +367,7 @@
     opacity: 1;
   }
 
-  /* ---------- Buttons. Press and hover are CSS, so they work from first paint. ---------- */
+  /* ---------- Buttons. Size and type here; the 3D body, gloss, drop, press, liquid fill, ripple and magnet are one recipe in buttons.css. ---------- */
   .btn {
     position: relative;
     display: inline-flex;
@@ -418,10 +381,10 @@
     background: transparent;
     color: inherit;
     font: inherit;
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 21px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
     text-align: center;
     text-decoration: none;
     white-space: nowrap;
@@ -448,9 +411,9 @@
   .btn-sm {
     min-height: 44px;
     padding: 10px 18px;
-    font-size: 14px;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
   }
 
   .btn-lg {
@@ -458,46 +421,10 @@
     padding: 16px 28px;
   }
 
-  /* The primary action (PrimaryCta): a soft red glow at rest, a light that sweeps across on hover, a deeper press, a clear focus ring. */
+  /* The primary action (PrimaryCta): red. buttons.css draws it as glossy 3D red with a red drop; its liquid fill is a deeper red. */
   .btn-accent {
-    --glow: 0 10px 26px -10px rgb(225 29 29 / 0.6), 0 2px 6px -2px rgb(225 29 29 / 0.35);
     background: var(--action);
     color: var(--on-action);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.22),
-      inset 0 -1px 0 rgb(0 0 0 / 0.12),
-      var(--glow);
-  }
-
-  .btn-sm.btn-accent {
-    --glow: 0 6px 16px -8px rgb(225 29 29 / 0.55);
-  }
-
-  /* The sweep: a band of light parked off the left edge, carried across by background-position. Clipped by its own radius, under the label. */
-  .btn-accent::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(105deg, transparent 38%, rgb(255 255 255 / 0.34) 50%, transparent 62%) no-repeat;
-    background-size: 260% 100%;
-    background-position: 130% 0;
-    pointer-events: none;
-    transition: background-position 0ms linear;
-  }
-
-  .btn-accent > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  .btn-accent:focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 3px;
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.22),
-      0 0 0 6px color-mix(in oklab, var(--focus) 24%, transparent),
-      var(--glow);
   }
 
   .btn-ink {
@@ -517,36 +444,9 @@
   }
 
   @media (hover: hover) and (pointer: fine) {
-    :root:not([data-still]) .btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .btn-accent:hover {
-      --glow: 0 16px 34px -12px rgb(225 29 29 / 0.7), 0 3px 10px -3px rgb(225 29 29 / 0.4);
-      background: var(--action-hover);
-    }
-
-    :root:not([data-still]) .btn-accent:hover::after {
-      background-position: -30% 0;
-      transition: background-position 900ms var(--ease-out);
-    }
-
     /* The arrow: the disc steps forward as its arrow turns to point the way. */
     :root:not([data-still]) .btn.btn-accent:hover > .arrow-disc {
       transform: translateX(3px) scale(1.08);
-    }
-
-    .btn-ink:hover {
-      background: color-mix(in oklab, var(--ink) 86%, var(--bg));
-    }
-
-    .btn-ghost:hover {
-      background: color-mix(in oklab, var(--ink) 8%, transparent);
-      box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--ink) 40%, transparent);
-    }
-
-    .btn-light:hover {
-      background: #f1eeea;
     }
 
     :root:not([data-still]) .btn:hover > .btn-arrow {
@@ -563,35 +463,24 @@
     transform: scale(0.97);
   }
 
-  /* A satisfying press on the primary: it sinks, its glow tightens, the light inside dims. */
-  :root:not([data-still]) .btn-accent:active:not([disabled], [aria-disabled='true']) {
-    --glow: 0 4px 12px -6px rgb(225 29 29 / 0.6);
-    transform: scale(0.955);
-    filter: brightness(0.96);
-  }
-
   :root[data-still] .btn:active {
     transform: none;
-    filter: brightness(0.92);
   }
 
-  .btn[disabled],
-  .btn[aria-disabled='true'] {
-    cursor: wait;
-    opacity: 0.6;
+  /* Disabled reads as a flatter grey (buttons.css drops the shadow and the gloss), every pair AA; a button busy sending (aria-disabled) keeps its colours and says so in its label. */
+  .btn[disabled] {
+    --btn-hue: var(--sunken);
+    --btn-lift: 6%;
+    --btn-sink: 4%;
+    --btn-shadow: var(--frost-shadow);
+    color: var(--muted);
+    cursor: default;
     transform: none;
   }
 
-  /* The catch radius for a magnetic button: the outer span takes the pointer, the inner moves, and the .btn keeps its own press. */
-  .magnet {
-    display: inline-flex;
-    margin: -12px;
-    padding: 12px;
-  }
-
-  .magnet-inner {
-    display: inline-flex;
-    max-width: 100%;
+  .btn[aria-disabled='true'] {
+    cursor: progress;
+    transform: none;
   }
 
   /* ---------- Plate: the opaque bento surface. Flat at rest, media bleeds to the edges, opposite its section. ---------- */
@@ -602,11 +491,14 @@
     min-width: 0;
     overflow: hidden;
     border-radius: var(--r-tile);
-    background: var(--surface);
     color: var(--ink);
-    box-shadow: var(--plate-edge);
     text-align: left;
     --tint: var(--ink);
+  }
+
+  /* (cards16) A plate with no tone is liquid glass (below, .lglass). The toned plates keep their colour and the plain edge. */
+  .plate[data-tone] {
+    box-shadow: var(--plate-edge);
   }
 
   /* Tones (G1). Ink on the warm tiles, white on purple, and the tokens re-scope for anything inside. */
@@ -669,7 +561,9 @@
     touch-action: manipulation;
     transition:
       transform 300ms var(--ease-card),
-      outline-color 300ms var(--ease-card);
+      translate 300ms var(--ease-card),
+      outline-color 300ms var(--ease-card),
+      --lg-glow 480ms var(--ease-card);
   }
 
   .plate-media {
@@ -803,12 +697,589 @@
     backdrop-filter: var(--glass-media-fx);
   }
 
+  /* ---------- (cards16) Liquid glass: every neutral card on the public site ----------
+     The founder's ask: no grey cards and no metal; liquid glass, with a border that comes alive on hover. One treatment, here:
+       - .lglass is the class for anything new. The existing neutral cards are listed with it below (the plate with no tone, which is what <Tile>
+         renders by default, and every card class that painted var(--surface) or var(--sunken)), so no page rule repeats any of this.
+       - The list sits in :where(), at zero specificity: a page's own rule (padding, radius, a phone layout that drops the card) always wins.
+       - The fill is translucent over the fluted backdrop, blurred and saturated through it. A specular rim (bright top left, darker bottom right), a
+         soft highlight near the top and a lens-like brightening at the edges come from the background layers and inset shadows, so no pseudo
+         element is spent on them.
+       - ::after is the hover rim, liquid metal in one tint per card (glow17, below).
+     Light: clear pearl glass, crisp white rim. Dark (and inside a dark panel in either theme): smoky glass, a cool faint rim. Without
+     backdrop-filter, or under reduced transparency or more contrast, the fill goes solid, so text never gets worse.
+     Text stays AA: the fill is dense enough that --muted keeps 4.5:1 over the brightest and the most coloured parts of the field (measured in
+     real-viewport shots of every card, both themes, 1440 and 390). */
+  :root {
+    --lg-fill: rgb(255 255 255 / 0.5);
+    --lg-solid: rgb(252 252 253 / 0.97);
+    --lg-fx: blur(22px) saturate(190%) brightness(1.04);
+    --lg-sheen:
+      radial-gradient(120% 70% at 22% -14%, rgb(255 255 255 / 0.8), rgb(255 255 255 / 0) 62%),
+      radial-gradient(70% 60% at 104% 108%, rgb(255 255 255 / 0.45), rgb(255 255 255 / 0) 70%),
+      radial-gradient(closest-side, rgb(255 255 255 / 0) 76%, rgb(255 255 255 / 0.36)),
+      linear-gradient(180deg, rgb(110 120 170 / 0) 55%, rgb(110 120 170 / 0.045));
+    --lg-edge:
+      inset 1.5px 1.5px 0 rgb(255 255 255 / 0.95),
+      inset -1px -1px 0 rgb(40 44 80 / 0.12),
+      inset 0 0 0 1px rgb(255 255 255 / 0.5),
+      inset 0 0 26px rgb(255 255 255 / 0.32);
+    --lg-drop: 0 1px 2px rgb(24 20 40 / 0.05), 0 14px 34px -16px rgb(24 20 40 / 0.22);
+    /* A well inside a glass card (a result, a stage, a verdict, a slide) paints these: a faint tint of the glass, no blur of its own. */
+    --lg-well: rgb(30 32 52 / 0.03);
+    --lg-well-edge: inset 0 0 0 1px rgb(30 32 52 / 0.06), inset 0 1px 3px rgb(30 32 52 / 0.05);
+    /* (glow17) The liquid-metal rim. Light: silver with white highlights, tinted by --glow-tint at --lgm-mix. */
+    --glow-chrome: #8796b8;
+    --lgm-hi: #ffffff;
+    --lgm-lite: #e1e2e6;
+    --lgm-mid: #a2a4ab;
+    --lgm-deep: #6a6c74;
+    --lgm-mix: 26%;
+    --lgm-spec: rgb(255 255 255 / 0.95);
+    --lgm-sheen-a: 0.42;
+    --lgm-halo: 30%;
+  }
+
+  [data-theme='dark'],
+  .band-dark {
+    --lg-fill: rgb(17 17 23 / 0.6);
+    --lg-solid: rgb(21 21 26 / 0.97);
+    --lg-fx: blur(22px) saturate(160%);
+    --lg-sheen:
+      radial-gradient(120% 70% at 22% -14%, rgb(196 210 255 / 0.13), rgb(196 210 255 / 0) 62%),
+      radial-gradient(70% 60% at 104% 108%, rgb(196 210 255 / 0.05), rgb(196 210 255 / 0) 70%),
+      radial-gradient(closest-side, rgb(196 210 255 / 0) 80%, rgb(196 210 255 / 0.06));
+    --lg-edge:
+      inset 1px 1px 0 rgb(214 224 255 / 0.2),
+      inset -1px -1px 0 rgb(0 0 0 / 0.42),
+      inset 0 0 0 1px rgb(255 255 255 / 0.07),
+      inset 0 0 22px rgb(150 170 255 / 0.05);
+    --lg-drop: 0 2px 4px rgb(0 0 0 / 0.25), 0 18px 40px -18px rgb(0 0 0 / 0.7);
+    --lg-well: rgb(255 255 255 / 0.045);
+    --lg-well-edge: inset 0 0 0 1px rgb(255 255 255 / 0.05), inset 0 1px 2px rgb(0 0 0 / 0.2);
+    /* Dark: gunmetal to polished chrome, cool white highlights. */
+    --glow-chrome: #9aa9cc;
+    --lgm-hi: #eef3ff;
+    --lgm-lite: #c3c6cd;
+    --lgm-mid: #70737b;
+    --lgm-deep: #36383e;
+    --lgm-mix: 28%;
+    --lgm-spec: rgb(236 242 255 / 0.95);
+    --lgm-sheen-a: 0.1;
+    --lgm-halo: 34%;
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    :root,
+    [data-theme='dark'],
+    .band-dark {
+      --lg-fill: var(--lg-solid);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    :root,
+    [data-theme='dark'],
+    .band-dark {
+      --lg-fill: var(--lg-solid);
+      --lg-fx: none;
+    }
+  }
+
+  :where(
+      .lglass,
+      .plate:not([data-tone]),
+      .stat,
+      .frame,
+      .t-card,
+      .platform,
+      .price-row,
+      .faqchat-a,
+      .split-control,
+      .mech-card,
+      .etl[data-tone='plate'] .etl-plate,
+      .cf-card,
+      .qa-plate,
+      .rt-shelf,
+      .vp-street,
+      .hww-chain,
+      .post-answer,
+      .post-takeaways li,
+      .bp-def,
+      .bp-table-scroll,
+      .bp-script,
+      .bp-steps,
+      .bp-fw,
+      .bp-compare-col,
+      .bp-stat,
+      .bp-cta,
+      .bp-verdict,
+      .bw
+    ) {
+    position: relative;
+    background: var(--lg-sheen), var(--lg-fill);
+    color: var(--ink);
+    -webkit-backdrop-filter: var(--lg-fx);
+    backdrop-filter: var(--lg-fx);
+    /* (glow17) The tint and the halo, resolved here so every card has its own; a page rule that sets box-shadow keeps var(--lg-halo). */
+    --glow-tint: var(--glow-ctx, var(--glow-sil, var(--glow-chrome)));
+    --lg-halo:
+      0 0 14px -3px color-mix(in oklab, color-mix(in oklab, var(--glow-tint) 70%, var(--lgm-lite)) calc(var(--lg-glow) * var(--lgm-halo)), transparent),
+      0 14px 40px -16px color-mix(in oklab, color-mix(in oklab, var(--glow-tint) 70%, var(--lgm-lite)) calc(var(--lg-glow) * var(--lgm-halo) * 0.8), transparent);
+    box-shadow: var(--lg-edge), var(--lg-halo), var(--lg-drop);
+    transition: var(--lg-glow-fade, --lg-glow 480ms var(--ease-card));
+  }
+
+  /* (glow17) The liquid-metal rim, on the card's one free pseudo element (::after; ::before carries the silhouette). The founder: no rainbow,
+     "gradient metallic liquid metal style glows", "use different contextual colored glows subtle". At rest only the glass rim above shows.
+     On hover (fine pointer) or keyboard focus, fading in over 480 ms and out the same way:
+       - the rim: 1.5 px of metal masked to the border (so it follows the radius): a still diagonal metal gradient (light: tinted silver with
+         white highlights; dark: tinted gunmetal to polished chrome) under a narrow specular band that flows round the edge on --lg-angle,
+         one turn every 2.4 s, with a weaker band opposite;
+       - the sheen: a diagonal near-white highlight that glides once across the glass on the way in (a moving band in the same mask over a
+         layer clipped to the content box), at low alpha so words keep their contrast;
+       - the halo: a soft outer glow in the card's own box-shadow (--lg-halo above), its strength on --lg-glow.
+     Colour: ONE hue per card, --glow-tint, mixed into the metal at about a quarter (--lgm-mix) and into the halo at low alpha, so it reads as
+     anodised metal, never neon. The tint is the card's context (--glow-ctx, below), else the hue of the silhouette it was dealt on load
+     (data-sil-hue), else a cool chrome (--glow-chrome). Only custom properties and opacity animate; at rest the flow is paused.
+     Still or reduced motion: the rim and halo show on hover and focus as a still metal gradient: no flow, sweep or fade. */
+  :where(
+      .lglass,
+      .plate:not([data-tone]),
+      .stat,
+      .frame,
+      .t-card,
+      .platform,
+      .price-row,
+      .faqchat-a,
+      .split-control,
+      .mech-card,
+      .etl[data-tone='plate'] .etl-plate,
+      .cf-card,
+      .qa-plate,
+      .rt-shelf,
+      .vp-street,
+      .hww-chain,
+      .post-answer,
+      .post-takeaways li,
+      .bp-def,
+      .bp-table-scroll,
+      .bp-script,
+      .bp-steps,
+      .bp-fw,
+      .bp-compare-col,
+      .bp-stat,
+      .bp-cta,
+      .bp-verdict,
+      .bw
+    )::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    border-radius: inherit;
+    background:
+      linear-gradient(color-mix(in oklab, var(--lgm-hi) 88%, var(--glow-tint)) 0 0) content-box,
+      conic-gradient(
+          from calc(var(--lg-angle) - 75deg),
+          transparent 0deg,
+          var(--lgm-spec) 30deg,
+          transparent 60deg 180deg,
+          color-mix(in srgb, var(--lgm-spec) 45%, transparent) 210deg,
+          transparent 240deg
+        )
+        border-box,
+      linear-gradient(
+          135deg,
+          color-mix(in oklab, var(--lgm-lite), var(--glow-tint) calc(var(--lgm-mix) * 0.6)) 0%,
+          color-mix(in oklab, var(--lgm-mid), var(--glow-tint) var(--lgm-mix)) 24%,
+          color-mix(in oklab, var(--lgm-lite), var(--glow-tint) calc(var(--lgm-mix) * 0.5)) 44%,
+          color-mix(in oklab, var(--lgm-deep), var(--glow-tint) var(--lgm-mix)) 66%,
+          color-mix(in oklab, var(--lgm-mid), var(--glow-tint) var(--lgm-mix)) 84%,
+          color-mix(in oklab, var(--lgm-lite), var(--glow-tint) calc(var(--lgm-mix) * 0.6)) 100%
+        )
+        border-box;
+    opacity: 0;
+    pointer-events: none;
+    -webkit-mask:
+      linear-gradient(110deg, transparent 40%, rgb(0 0 0 / var(--lgm-sheen-a)) 50%, transparent 60%) var(--lg-sweep) 0 / 250% 100% no-repeat,
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: source-over, xor;
+    mask:
+      linear-gradient(110deg, transparent 40%, rgb(0 0 0 / var(--lgm-sheen-a)) 50%, transparent 60%) var(--lg-sweep) 0 / 250% 100% no-repeat add,
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    animation: var(--lg-anim-rest, lg-flow 2.4s linear infinite paused);
+    transition: var(--lg-fade, opacity 480ms var(--ease-card));
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :where(
+        .lglass,
+        .plate:not([data-tone]),
+        .stat,
+        .frame,
+        .t-card,
+        .platform,
+        .price-row,
+        .faqchat-a,
+        .split-control,
+        .mech-card,
+        .etl[data-tone='plate'] .etl-plate,
+        .cf-card,
+        .qa-plate,
+        .rt-shelf,
+        .vp-street,
+        .hww-chain,
+        .post-answer,
+        .post-takeaways li,
+        .bp-def,
+        .bp-table-scroll,
+        .bp-script,
+        .bp-steps,
+        .bp-fw,
+        .bp-compare-col,
+        .bp-stat,
+        .bp-cta,
+        .bp-verdict,
+        .bw
+      ):hover {
+      --lg-glow: 1;
+    }
+
+    :where(
+        .lglass,
+        .plate:not([data-tone]),
+        .stat,
+        .frame,
+        .t-card,
+        .platform,
+        .price-row,
+        .faqchat-a,
+        .split-control,
+        .mech-card,
+        .etl[data-tone='plate'] .etl-plate,
+        .cf-card,
+        .qa-plate,
+        .rt-shelf,
+        .vp-street,
+        .hww-chain,
+        .post-answer,
+        .post-takeaways li,
+        .bp-def,
+        .bp-table-scroll,
+        .bp-script,
+        .bp-steps,
+        .bp-fw,
+        .bp-compare-col,
+        .bp-stat,
+        .bp-cta,
+        .bp-verdict,
+        .bw
+      ):hover::after {
+      opacity: 1;
+      animation: var(--lg-anim-on, lg-flow 2.4s linear infinite, lg-sweep 1.6s cubic-bezier(0.45, 0, 0.2, 1) 60ms both);
+    }
+
+    /* Linked cards also rise a little (the plate's own +6 px of width stays). The metal rim stands in for R20's ink outline on glass. */
+    :root:not([data-still]) .plate-link:hover {
+      translate: 0 -3px;
+    }
+
+    .plate-link:not([data-tone]):hover {
+      outline-color: transparent;
+    }
+  }
+
+  /* Keyboard focus on the card or on a link or button in it (not a text field: typing in a form is not a reason for the rim to run). */
+  :where(
+      .lglass,
+      .plate:not([data-tone]),
+      .stat,
+      .frame,
+      .t-card,
+      .platform,
+      .price-row,
+      .faqchat-a,
+      .split-control,
+      .mech-card,
+      .etl[data-tone='plate'] .etl-plate,
+      .cf-card,
+      .qa-plate,
+      .rt-shelf,
+      .vp-street,
+      .hww-chain,
+      .post-answer,
+      .post-takeaways li,
+      .bp-def,
+      .bp-table-scroll,
+      .bp-script,
+      .bp-steps,
+      .bp-fw,
+      .bp-compare-col,
+      .bp-stat,
+      .bp-cta,
+      .bp-verdict,
+      .bw
+    ):is(:focus-visible, :has(:focus-visible:not(input, textarea, select))) {
+    --lg-glow: 1;
+  }
+
+  :where(
+      .lglass,
+      .plate:not([data-tone]),
+      .stat,
+      .frame,
+      .t-card,
+      .platform,
+      .price-row,
+      .faqchat-a,
+      .split-control,
+      .mech-card,
+      .etl[data-tone='plate'] .etl-plate,
+      .cf-card,
+      .qa-plate,
+      .rt-shelf,
+      .vp-street,
+      .hww-chain,
+      .post-answer,
+      .post-takeaways li,
+      .bp-def,
+      .bp-table-scroll,
+      .bp-script,
+      .bp-steps,
+      .bp-fw,
+      .bp-compare-col,
+      .bp-stat,
+      .bp-cta,
+      .bp-verdict,
+      .bw
+    ):is(:focus-visible, :has(:focus-visible:not(input, textarea, select)))::after {
+    opacity: 1;
+    animation: var(--lg-anim-on, lg-flow 2.4s linear infinite, lg-sweep 1.6s cubic-bezier(0.45, 0, 0.2, 1) 60ms both);
+  }
+
+  @keyframes lg-flow {
+    to {
+      --lg-angle: 360deg;
+    }
+  }
+
+  @keyframes lg-sweep {
+    from {
+      --lg-sweep: 100%;
+    }
+
+    to {
+      --lg-sweep: 0%;
+    }
+  }
+
+  /* Still or reduced motion: the rim and halo show on hover and focus, still: no flow, no sweep, no fade. */
+  :root[data-still] {
+    --lg-anim-rest: none;
+    --lg-anim-on: none;
+    --lg-fade: none;
+    --lg-glow-fade: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --lg-anim-rest: none;
+      --lg-anim-on: none;
+      --lg-fade: none;
+      --lg-glow-fade: none;
+    }
+  }
+
+  /* (glow17) Contexts: the one hue a card's metal is tinted by. --glow-ctx sits on the card or on a section and is inherited; a card in no
+     context takes its silhouette's hue (dealt at random on load: read from data-sil-hue, never assumed), else the cool chrome.
+       - A cast character or Tile tone (blog tiles carry their category's character in data-tone-key; the platform cards' glyphs a character).
+       - The Work stats: Views purple, Followers orange, Engagement green.
+       - The packages by tier: 5 videos green, 10 orange, 20 purple.
+       - A blog post's widgets: the post's category colour (--bb-c, blog.css).
+       - Sections: testimonials gold (yellow), the FAQ purple, How we work's chapters by their step (the idea purple, variety and before the
+         shoot yellow, on the street orange, in the edit green). */
+  :where(
+      [data-tone-key='tiko'],
+      .platform:has(> .platform-glyph[data-who='tiko']),
+      .work-stats > .work-stat:nth-child(1),
+      .pkgs > .pkg:nth-child(3),
+      .faqchat-a,
+      .qa-plate,
+      #the-idea.hww-ch
+    ) {
+    --glow-ctx: var(--c-purple);
+  }
+
+  :where(
+      [data-tone-key='sochu'],
+      .platform:has(> .platform-glyph[data-who='sochu']),
+      .t-card,
+      .tm-page,
+      #variety.hww-ch,
+      #before-the-shoot.hww-ch
+    ) {
+    --glow-ctx: var(--c-yellow);
+  }
+
+  :where(
+      [data-tone-key='bolu'],
+      .platform:has(> .platform-glyph[data-who='bolu']),
+      .work-stats > .work-stat:nth-child(3),
+      .pkgs > .pkg:nth-child(1),
+      #in-the-edit.hww-ch
+    ) {
+    --glow-ctx: var(--c-green);
+  }
+
+  :where(
+      [data-tone-key='gola'],
+      .platform:has(> .platform-glyph[data-who='gola']),
+      .work-stats > .work-stat:nth-child(2),
+      .pkgs > .pkg:nth-child(2),
+      #on-the-street.hww-ch
+    ) {
+    --glow-ctx: var(--c-orange);
+  }
+
+  :where(.post[data-category]) {
+    --glow-ctx: var(--bb-c);
+  }
+
+  :where([data-sil][data-sil-hue='purple']:not([data-sil-fit='none'])) {
+    --glow-sil: var(--c-purple);
+  }
+
+  :where([data-sil][data-sil-hue='yellow']:not([data-sil-fit='none'])) {
+    --glow-sil: var(--c-yellow);
+  }
+
+  :where([data-sil][data-sil-hue='green']:not([data-sil-fit='none'])) {
+    --glow-sil: var(--c-green);
+  }
+
+  :where([data-sil][data-sil-hue='orange']:not([data-sil-fit='none'])) {
+    --glow-sil: var(--c-orange);
+  }
+
+  /* ---------- (sil16, tuned in sil17, subtler and random per load in subtle17) Silhouettes in the glass ----------
+     The founder: "more subtle, these are too distracting, maybe randomize when it loads". Each glass card (the cards16 list above) and
+     each brand-coloured plate carries ONE faint flat shape on its free ::before, behind the words and inside the glass, low in its right
+     side and cropped by an edge, so it reads on a second look, not the first.
+       - lib/silhouettes.ts deals the shapes afresh on every load (one random seed): the shape (the cast's four outlines, faces left out, and
+         three flowers) tilted up to 12 degrees as one data URI in --sil-m, a placement (data-sil-at), a hue (data-sil-hue), and data-sil
+         once that is all set; this block draws nothing before. Neighbours never share a shape.
+       - data-sil-fit and --sil-u (the card's shorter side) size it: the shape box is 0.42 of the shorter side (the shape itself about 0.35),
+         at most 8rem; a wide short row (fit 'strip') takes a smaller one; a card too small for a shape (fit 'none') has none.
+       - Placements, all cropped: corner (by the right and bottom edges), edge (by the right edge, low), floor (by the bottom edge, in from
+         the corner), heel (mostly below the bottom edge, near the corner).
+       - Colour: one flat tint, a few percent (light 5.5 to 7.5%, dark 7 to 7.5%, by hue); a brand plate tone on tone in its own ink at
+         4.5%. Words keep 4.5:1 (3:1 large) over it, both themes (measured, subtle17).
+       - Hover (fine pointer, motion allowed, not paused): the layer grows 3% from the bottom-right corner over 700 ms, a transform only, so
+         the shape drifts a few px. Reduced motion: still dealt, no motion. More contrast or forced colours: no shapes. The card is isolated,
+         so the layer (z-index -1) sits above the glass fill and below every word. */
+  :root {
+    --sil-purple: rgb(109 97 254 / 0.055);
+    --sil-yellow: rgb(236 172 0 / 0.075);
+    --sil-green: rgb(56 168 28 / 0.065);
+    --sil-orange: rgb(255 120 30 / 0.065);
+  }
+
+  [data-theme='dark'],
+  .band-dark {
+    --sil-purple: rgb(170 160 255 / 0.075);
+    --sil-yellow: rgb(255 222 110 / 0.07);
+    --sil-green: rgb(150 236 110 / 0.075);
+    --sil-orange: rgb(255 170 110 / 0.075);
+  }
+
+  :where([data-sil-fit]) {
+    isolation: isolate;
+    --sil-as: min(calc(var(--sil-u, 0px) * 0.42), 8rem);
+    --sil-c: var(--sil-purple);
+    --sil-x: calc(var(--sil-as) * -0.3);
+    --sil-y: calc(var(--sil-as) * -0.3);
+  }
+
+  :where([data-sil-hue='yellow']) {
+    --sil-c: var(--sil-yellow);
+  }
+
+  :where([data-sil-hue='green']) {
+    --sil-c: var(--sil-green);
+  }
+
+  :where([data-sil-hue='orange']) {
+    --sil-c: var(--sil-orange);
+  }
+
+  :where([data-sil-at='edge']) {
+    --sil-x: calc(var(--sil-as) * -0.4);
+    --sil-y: calc(var(--sil-as) * 0.12);
+  }
+
+  :where([data-sil-at='floor']) {
+    --sil-x: calc(var(--sil-as) * 0.32);
+    --sil-y: calc(var(--sil-as) * -0.42);
+  }
+
+  :where([data-sil-at='heel']) {
+    --sil-x: calc(var(--sil-as) * -0.1);
+    --sil-y: calc(var(--sil-as) * -0.5);
+  }
+
+  /* A brand plate: tone on tone in the plate's ink. */
+  :where(.plate[data-sil-fit]:is([data-tone='sochu'], [data-tone='bolu'], [data-tone='gola'], [data-tone='tiko'])) {
+    --sil-c: color-mix(in oklab, var(--ink) 4.5%, transparent);
+  }
+
+  /* A wide short row: a smaller shape at its right end, cropped by the bottom edge. */
+  :where([data-sil-fit='strip']) {
+    --sil-as: min(calc(var(--sil-u, 0px) * 0.6), 3.5rem);
+    --sil-x: calc(var(--sil-as) * -0.12);
+    --sil-y: calc(var(--sil-as) * -0.4);
+  }
+
+  :where([data-sil-fit='strip']:is([data-sil-at='floor'], [data-sil-at='heel'])) {
+    --sil-x: calc(var(--sil-as) * 0.3);
+  }
+
+  :where([data-sil-fit][data-sil])::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: var(--sil-c);
+    -webkit-mask: var(--sil-m) right var(--sil-x) bottom var(--sil-y) / var(--sil-as) var(--sil-as) no-repeat;
+    mask: var(--sil-m) right var(--sil-x) bottom var(--sil-y) / var(--sil-as) var(--sil-as) no-repeat;
+    transform-origin: 100% 100%;
+    transition: transform 700ms var(--ease-card);
+  }
+
+  :where([data-sil-fit='none'])::before {
+    content: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    :root:not([data-still]) :where([data-sil-fit][data-sil]:is(:hover, :has(:focus-visible)))::before {
+      transform: scale(1.03);
+    }
+  }
+
+  @media (prefers-contrast: more), (forced-colors: active) {
+    :where([data-sil-fit])::before {
+      content: none;
+    }
+  }
+
   /* ---------- Small shared pieces ---------- */
   .frame {
     border-radius: var(--r-tile);
-    background: var(--surface);
     color: var(--ink);
-    box-shadow: var(--plate-edge);
   }
 
   .pill {
@@ -820,9 +1291,10 @@
     border-radius: var(--r-pill);
     background: #ffffff;
     color: #0e0e10;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 17px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
     white-space: nowrap;
   }
 
@@ -840,7 +1312,8 @@
     place-items: center;
     background: #0e0e10;
     color: #ffffff;
-    font-size: 11px;
+    font-size: var(--t-caption2-size);
+    letter-spacing: var(--t-caption2-track);
   }
 
   /* Flat tint over media. Blur here would be sixteen layers on one screen. */
@@ -851,9 +1324,10 @@
     border-radius: var(--r-pill);
     background: var(--chip-bg);
     color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 17px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
   }
 
   .skeleton {
@@ -881,7 +1355,8 @@
     background: var(--surface);
     color: var(--ink);
     font: inherit;
-    font-size: 16px;
+    font-size: var(--t-callout-size);
+    letter-spacing: var(--t-callout-track);
     transition: border-color var(--dur-hover) ease;
   }
 
@@ -907,7 +1382,7 @@
     border-radius: var(--r-field);
     background: var(--ink);
     color: var(--bg);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     text-decoration: none;
     transform: translateY(-200%);
   }
@@ -980,16 +1455,8 @@
       width: 100%;
     }
 
-    .page-hero-actions > .btn,
-    .page-hero-actions > .magnet,
-    .page-hero-actions .magnet-inner,
-    .page-hero-actions .magnet-inner > .btn {
+    .page-hero-actions > .btn {
       width: 100%;
-    }
-
-    .page-hero-actions > .magnet {
-      margin: 0;
-      padding: 0;
     }
   }
 
@@ -1045,29 +1512,29 @@
     gap: 6px;
     padding: 32px;
     border-radius: var(--r-tile);
-    background: var(--surface);
     color: var(--ink);
-    box-shadow: var(--plate-edge);
   }
 
   .stat dt {
     color: var(--muted);
-    font-size: 17px;
-    line-height: 21px;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
+    line-height: var(--t-body-lh);
   }
 
   .stat dd {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 56px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    letter-spacing: -0.02em;
+    font-size: var(--t-figure-lg-size);
+    font-weight: var(--t-figure-lg-weight);
+    letter-spacing: var(--t-figure-lg-track);
+    font-variant-numeric: tabular-nums;
+    text-rendering: optimizeLegibility;
   }
 
   .stat[data-big] dd {
-    font-size: 80px;
-    letter-spacing: -0.024em;
+    font-size: var(--t-figure-hero-size);
+    letter-spacing: var(--t-figure-hero-track);
   }
 
   @media (max-width: 734px) {
@@ -1075,12 +1542,9 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .stat dd {
-      font-size: 48px;
-    }
-
     .stat[data-big] dd {
-      font-size: 56px;
+      font-size: var(--t-figure-lg-size);
+      letter-spacing: var(--t-figure-lg-track);
     }
   }
 
@@ -1311,9 +1775,9 @@
     color: var(--on-glass);
     cursor: pointer;
     font: inherit;
-    font-size: 14px;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
     text-decoration: none;
     white-space: nowrap;
     touch-action: manipulation;
@@ -1456,7 +1920,7 @@
   }
 
   .nav-icon[disabled] {
-    opacity: 0.35;
+    opacity: 0.45;
     cursor: default;
   }
 
@@ -1472,9 +1936,10 @@
     color: var(--on-glass);
     cursor: pointer;
     font: inherit;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 19px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
     touch-action: manipulation;
     transition: background-color var(--dur-hover) ease;
   }
@@ -1482,13 +1947,6 @@
   @media (min-width: 1024px) {
     .nav-menu-btn {
       display: none;
-    }
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .nav-icon:hover:not([disabled]),
-    .nav-menu-btn:hover {
-      background: color-mix(in oklab, currentColor 9%, transparent);
     }
   }
 
@@ -1511,9 +1969,10 @@
     margin: 0;
     padding: 8px 12px 6px;
     color: var(--muted);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 16px;
+    font-size: var(--t-caption-size);
+    letter-spacing: var(--t-caption-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-caption-lh);
   }
 
   .nav-drop-link {
@@ -1523,8 +1982,9 @@
     padding: 8px 12px;
     border-radius: 12px;
     color: var(--ink);
-    font-size: 15px;
-    line-height: 19px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
     text-decoration: none;
     touch-action: manipulation;
     transition: background-color var(--dur-hover) ease;
@@ -1537,7 +1997,7 @@
   }
 
   .nav-drop-link[aria-current='page'] {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   /* The phone menu: an opaque sheet under the pill. */
@@ -1567,9 +2027,10 @@
   .nav-panel-group {
     margin: 0 0 4px;
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 17px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
   }
 
   .nav-link {
@@ -1577,13 +2038,14 @@
     align-items: center;
     min-height: 44px;
     color: inherit;
-    font-size: 17px;
-    line-height: 21px;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
+    line-height: var(--t-body-lh);
     text-decoration: none;
   }
 
   .nav-link[aria-current='page'] {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   /* The phone's one persistent action. Solid red, not glass. Hides at the top of the page and where another action is already on screen. */
@@ -1614,7 +2076,6 @@
 
   .mobile-cta .btn {
     width: 100%;
-    box-shadow: var(--shadow-4);
   }
 
   @media (min-width: 640px) {
@@ -1691,8 +2152,9 @@
     max-width: 72ch;
     margin: 0;
     color: var(--muted);
-    font-size: 13px;
-    line-height: 19px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    line-height: var(--t-footnote-lh);
   }
 
   .results-note-short {
@@ -1761,7 +2223,6 @@
 
   @media (hover: hover) and (pointer: fine) {
     .copy-btn:hover {
-      background: var(--sunken);
       color: var(--ink);
     }
   }
@@ -1784,9 +2245,10 @@
     border-radius: var(--r-pill);
     background: var(--ink);
     color: var(--bg);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 17px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
     white-space: nowrap;
     opacity: 0;
     transform: translate(-50%, 8px);
@@ -1843,10 +2305,10 @@
     padding: 14px 16px 14px 20px;
     border-radius: inherit;
     cursor: pointer;
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 22px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
     list-style: none;
     touch-action: manipulation;
   }
@@ -1897,8 +2359,9 @@
   .faqi-a-in {
     padding: 0 20px 18px;
     color: var(--muted);
-    font-size: 16px;
-    line-height: 25px;
+    font-size: var(--t-prose-size);
+    letter-spacing: var(--t-prose-track);
+    line-height: var(--t-prose-lh);
   }
 
   .faqi-a-in > p {
@@ -1986,34 +2449,36 @@
 
   .pkg-name {
     margin: 0;
-    font-size: 21px;
-    font-weight: 600;
-    line-height: 25px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-card-title-size);
+    font-weight: var(--t-card-title-weight);
+    line-height: var(--t-card-title-lh);
+    letter-spacing: var(--t-card-title-track);
   }
 
   .pkg-line {
     min-height: 2lh;
     margin: 0 0 14px;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .pkg-fee {
     margin: 0;
-    font-size: clamp(40px, 4vw, 52px);
-    font-weight: 600;
-    line-height: 1.04;
-    letter-spacing: -0.03em;
+    font-size: var(--t-figure-lg-size);
+    font-weight: var(--t-figure-lg-weight);
+    line-height: var(--t-figure-lg-lh);
+    letter-spacing: var(--t-figure-lg-track);
     font-variant-numeric: tabular-nums;
   }
 
   .pkg-per {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
     font-variant-numeric: tabular-nums;
   }
 
@@ -2031,7 +2496,8 @@
   }
 
   .pkgs[data-compact] .pkg-fee {
-    font-size: clamp(34px, 3.2vw, 42px);
+    font-size: var(--t-figure-lg-size);
+    letter-spacing: var(--t-figure-lg-track);
   }
 
   .pkgs[data-compact] .pkg-strip {
@@ -2042,7 +2508,7 @@
   @media (hover: hover) and (pointer: fine) {
     :root:not([data-still]) .pkg:hover {
       transform: translateY(-2px);
-      box-shadow: var(--plate-edge), var(--shadow-3);
+      box-shadow: var(--lg-edge), var(--lg-halo), var(--shadow-3);
       transition:
         transform var(--spring-release),
         box-shadow var(--spring-release);
@@ -2063,16 +2529,16 @@
     flex-wrap: wrap;
     gap: 2px 6px;
     margin: 0;
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 23px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
     font-variant-numeric: tabular-nums;
   }
 
   .addon-line > [aria-hidden] {
     color: var(--muted);
-    font-weight: 400;
+    font-weight: var(--w-normal);
   }
 
   .addon-examples {
@@ -2081,8 +2547,9 @@
     gap: 2px 16px;
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
     font-variant-numeric: tabular-nums;
   }
 
@@ -2204,8 +2671,9 @@
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    font-size: 17px;
-    line-height: 24px;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
+    line-height: var(--t-body-lh);
   }
 
   .includes-tick {
@@ -2272,13 +2740,14 @@
   .rule-text {
     margin: 0;
     color: var(--muted);
-    font-size: 16px;
-    line-height: 23px;
+    font-size: var(--t-prose-size);
+    letter-spacing: var(--t-prose-track);
+    line-height: var(--t-prose-lh);
   }
 
   .rule-text > strong {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   :root[data-still] :is(.pkg, .includes-tick, .batch-cell) {

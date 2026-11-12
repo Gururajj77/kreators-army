@@ -723,6 +723,17 @@ const SLOTS = [
   { x: 0, y: 40, rotate: 0, scale: 0.8, opacity: 0 },
 ] as const;
 const EXIT = { x: 150, y: -12, rotate: 14, scale: 0.96, opacity: 0 };
+// (hero15) Phones: one flat card. The ones behind wait unseen right under it; the front slides off to the left (the way a swipe to the next one goes)
+// while the next rises into its place, so the screen is never empty.
+const FLAT_SLOTS = [SLOTS[0], { x: 0, y: 0, rotate: 0, scale: 0.94, opacity: 0 }] as const;
+const FLAT_EXIT = { x: -170, y: 0, rotate: 0, scale: 0.96, opacity: 0 };
+const PHONE = '(max-width: 734px)';
+const onPhoneChange = (cb: () => void) => {
+  const q = matchMedia(PHONE);
+  q.addEventListener('change', cb);
+  return () => q.removeEventListener('change', cb);
+};
+const usePhone = () => useSyncExternalStore(onPhoneChange, () => matchMedia(PHONE).matches, () => false);
 const DWELL = 4500;
 
 /**
@@ -766,6 +777,7 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
   const [held, setHeld] = useState(false);
   const [arrived, setArrived] = useState(0);
   const [armed, setArmed] = useState(false);
+  const flat = usePhone();
   const list = videos ?? [];
   const key = list.map((v) => v.id).join('|');
 
@@ -872,13 +884,15 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
             const isFront = slot === 0 && !out;
             // (hover7) The two back cards you can see play on hover too: decorative frames (no button, nothing focusable), so they are only
             // aria-hidden, not inert, which would also drop their pointer events. The leaving card and the hidden fourth stay inert.
-            const peek = !isFront && !out && slot > 0 && slot < 3;
-            const target = out ? EXIT : SLOTS[Math.min(slot, 3)];
+            const peek = !flat && !isFront && !out && slot > 0 && slot < 3;
+            // Flat: while the front leaves, the card behind it already takes the front's place.
+            const at = flat && leaving && !out ? Math.max(0, slot - 1) : slot;
+            const target = flat ? (out ? FLAT_EXIT : FLAT_SLOTS[Math.min(at, 1)]) : out ? EXIT : SLOTS[Math.min(slot, 3)];
             return (
               <m.div
                 key={v.id}
                 className="vdeck-card"
-                data-slot={Math.min(slot, 3)}
+                data-slot={Math.min(at, 3)}
                 style={{ zIndex: out ? 9 : 8 - slot }}
                 initial={false}
                 animate={target}

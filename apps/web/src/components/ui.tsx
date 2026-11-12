@@ -1,6 +1,6 @@
 import { ArrowRight, ArrowUpRight, Check, Copy } from 'lucide-react';
-import { m, useMotionValueEvent, useScroll, useSpring } from 'motion/react';
-import { createElement, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ElementType, type PointerEvent as ReactPointerEvent, type ReactNode, type Ref } from 'react';
+import { useMotionValueEvent, useScroll, useSpring } from 'motion/react';
+import { createElement, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ElementType, type ReactNode, type Ref } from 'react';
 import { Link, useLocation } from 'react-router';
 import { PRIMARY_ACTION, RESULTS_NOTE, contactHref, type ContactIntent, type Stat } from '../lib/content';
 import { finePointer, motionOk, useMotionOk, useRunning } from '../lib/motionOk';
@@ -282,7 +282,7 @@ export function PageHero({
 
 // ---------- Actions ----------
 
-/** The wordmark's Funnel Display outlines. */
+/** The wordmark's outlines: Google Sans Flex at weight 900, ROND 0 (wordmark.ts). */
 export function Wordmark({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
     <svg viewBox={WORDMARK.viewBox} className={className} style={style} fill="currentColor" aria-hidden focusable="false">
@@ -293,39 +293,6 @@ export function Wordmark({ className, style }: { className?: string; style?: CSS
 
 const BUTTON_SIZE = { sm: 'btn-sm', md: '', lg: 'btn-lg' } as const;
 type ButtonSize = keyof typeof BUTTON_SIZE;
-
-/** Leans toward the mouse. Three layers: the outer span catches the pointer, the inner moves, and the button inside keeps its own press. Off on touch and under data-still. */
-export function Magnet({ children }: { children: ReactNode }) {
-  const ok = useMotionOk();
-  const x = useSpring(0, spring.follow);
-  const y = useSpring(0, spring.follow);
-  const box = useRef<DOMRect | null>(null);
-  if (!ok) return <>{children}</>;
-
-  const clamp = (v: number, limit: number) => Math.max(-limit, Math.min(limit, v));
-  const onEnter = (e: ReactPointerEvent<HTMLSpanElement>) => {
-    if (e.pointerType === 'mouse' && finePointer()) box.current = e.currentTarget.getBoundingClientRect();
-  };
-  const onMove = (e: ReactPointerEvent<HTMLSpanElement>) => {
-    const r = box.current;
-    if (!r) return;
-    x.set(clamp((e.clientX - (r.left + r.width / 2)) * 0.28, 10));
-    y.set(clamp((e.clientY - (r.top + r.height / 2)) * 0.28, 6));
-  };
-  const onLeave = () => {
-    box.current = null;
-    x.set(0);
-    y.set(0);
-  };
-
-  return (
-    <span className="magnet" onPointerEnter={onEnter} onPointerMove={onMove} onPointerLeave={onLeave} onPointerCancel={onLeave}>
-      <m.span className="magnet-inner" style={{ x, y }}>
-        {children}
-      </m.span>
-    </span>
-  );
-}
 
 // The page's own copies of the primary action that are on screen right now. The phone's action bar steps aside while any is, rather than parking on top of
 // an identical red button (and dropping the intent it carries). Each copy registers itself while mounted, so a route change never leaves a stale node behind.
@@ -370,14 +337,12 @@ export const useActionInView = () =>
 export function PrimaryCta({
   intent,
   size = 'md',
-  magnet = false,
   className,
   chrome = false,
   disc,
 }: {
   intent?: ContactIntent;
   size?: ButtonSize;
-  magnet?: boolean;
   className?: string;
   chrome?: boolean;
   /** Show the arrow disc. Default: on for md and lg, off for sm. */
@@ -388,13 +353,12 @@ export function PrimaryCta({
     if (!chrome && ref.current) return watchAction(ref.current);
   }, [chrome]);
   const withDisc = disc ?? size !== 'sm';
-  const link = (
+  return (
     <Link ref={ref} to={contactHref(intent)} className={`btn btn-accent ${BUTTON_SIZE[size]} ${withDisc ? 'btn-disc' : ''} ${className ?? ''}`}>
       <LabelRoll>{PRIMARY_ACTION.label}</LabelRoll>
       {withDisc && <ArrowDisc />}
     </Link>
   );
-  return magnet ? <Magnet>{link}</Magnet> : link;
 }
 
 /**

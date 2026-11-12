@@ -3,67 +3,65 @@
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/* One Inter file: optical size 14 to 32, weight 400 to 700, Latin plus the rupee sign. The fallbacks borrow Arial or Roboto scaled to Inter's width,
-   so the swap does not move a line. Tuned by comparing real headings and leads in Chrome with Inter loaded and blocked; Roboto takes the same correction from its font metrics. */
+/* (font16) Google Sans Flex, self-hosted exactly as kreators.app serves it (public/fonts, SIL Open Font License 1.1, see LICENSE.txt there): one
+   variable file per subset, latin first for the common case, latin-ext for the rest (the rupee sign among them, so a price sets in the same face).
+   The files carry the weight axis 1 to 1000 and roundness (ROND); every weight the site uses (400 to 650, the wordmark's 900) is real, never synthesised.
+   Only the latin file is preloaded (index.html). */
 @font-face {
-  font-family: 'Inter Var';
-  src: url('/fonts/inter-var.woff2') format('woff2');
-  font-weight: 400 700;
+  font-family: 'Google Sans Flex';
   font-style: normal;
+  font-weight: 300 1000;
   font-display: swap;
+  src: url('/fonts/google-sans-flex-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Inter Fallback';
-  src: local('Arial');
-  font-weight: 400;
-  size-adjust: 104.5%;
-  ascent-override: 92.7%;
-  descent-override: 23.08%;
+  font-family: 'Google Sans Flex';
+  font-style: normal;
+  font-weight: 300 1000;
+  font-display: swap;
+  src: url('/fonts/google-sans-flex-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
+}
+/* The swap fallbacks: Arial (Roboto on Android) scaled to Google Sans Flex, so the swap moves lines as little as possible. Google Sans Flex's
+   vertical metrics are ascent 0.966 em, descent 0.286 em, no line gap (2000 units: 1932 / 572 / 0); the overrides are those divided by size-adjust.
+   size-adjust is the advance-width ratio over a long run of the site's own copy (fontTools): Google Sans Flex at the light and dark body
+   weights (450 / 400) against Arial is 1.016; at the semibold and bold weights (550 to 600, 500 in dark) against Arial Bold, 0.978. Roboto takes the
+   same width ratios corrected by its own width against Arial (x 1.002). Regular serves 300 to 499 (normal and medium), Bold 500 and up. */
+@font-face {
+  font-family: 'Google Sans Flex Fallback';
+  src: local('Arial'), local('ArialMT');
+  font-weight: 300 499;
+  size-adjust: 101.6%;
+  ascent-override: 95.08%;
+  descent-override: 28.15%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: 'Inter Fallback';
+  font-family: 'Google Sans Flex Fallback';
   src: local('Arial Bold'), local('Arial-BoldMT');
-  font-weight: 600 700;
-  size-adjust: 104.5%;
-  ascent-override: 92.7%;
-  descent-override: 23.08%;
+  font-weight: 500 1000;
+  size-adjust: 97.8%;
+  ascent-override: 98.77%;
+  descent-override: 29.24%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: 'Inter Fallback Android';
+  font-family: 'Google Sans Flex Fallback Android';
   src: local('Roboto');
-  font-weight: 400;
-  size-adjust: 104.72%;
-  ascent-override: 92.51%;
-  descent-override: 23.03%;
+  font-weight: 300 499;
+  size-adjust: 101.8%;
+  ascent-override: 94.89%;
+  descent-override: 28.09%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: 'Inter Fallback Android';
+  font-family: 'Google Sans Flex Fallback Android';
   src: local('Roboto Bold'), local('Roboto-Bold');
-  font-weight: 600 700;
-  size-adjust: 104.72%;
-  ascent-override: 92.51%;
-  descent-override: 23.03%;
-  line-gap-override: 0%;
-}
-@font-face {
-  font-family: 'Inter Display Fallback';
-  src: local('Arial Bold'), local('Arial-BoldMT');
-  font-weight: 400 700;
-  size-adjust: 95.3%;
-  ascent-override: 101.65%;
-  descent-override: 25.31%;
-  line-gap-override: 0%;
-}
-@font-face {
-  font-family: 'Inter Display Fallback Android';
-  src: local('Roboto Bold'), local('Roboto-Bold');
-  font-weight: 400 700;
-  size-adjust: 101.5%;
-  ascent-override: 95.44%;
-  descent-override: 23.76%;
+  font-weight: 500 1000;
+  size-adjust: 98%;
+  ascent-override: 98.57%;
+  descent-override: 29.18%;
   line-gap-override: 0%;
 }
 
@@ -92,12 +90,20 @@
   --color-orange: var(--c-orange);
   --color-ground: var(--c-ground);
 
-  /* One family. font-display is the same Inter, opsz-locked and with a metric-matched fallback for big type. */
-  --font-sans: 'Inter Var', 'Inter Fallback', 'Inter Fallback Android', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Inter Var', 'Inter Display Fallback', 'Inter Display Fallback Android', ui-sans-serif, system-ui, sans-serif;
+  /* (font16) One family for everything, as kreators.app: Google Sans Flex, plain (ROND 0). font-display is the same face, so
+     every utility and class that names one of them (font-sans, font-display, var(--font-display)) sets in it. The admin's few machine strings
+     (MEGA links, ids) keep their own ui-monospace stack. */
+  --font-sans: 'Google Sans Flex', 'Google Sans Flex Fallback', 'Google Sans Flex Fallback Android', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Google Sans Flex', 'Google Sans Flex Fallback', 'Google Sans Flex Fallback Android', ui-sans-serif, system-ui, sans-serif;
 
   --text-sm--letter-spacing: -0.006em;
   --text-xs--letter-spacing: 0em;
+
+  /* font-normal, font-medium, font-semibold, font-bold: the scale's four weights, 50 lighter on a dark surface. */
+  --font-weight-normal: var(--w-normal);
+  --font-weight-medium: var(--w-medium);
+  --font-weight-semibold: var(--w-semibold);
+  --font-weight-bold: var(--w-bold);
 
   /* Radii as rounded-tile, rounded-inner, rounded-field, rounded-nav, rounded-pill, rounded-sheet. */
   --radius-tile: 28px;
@@ -145,7 +151,6 @@
 
     /* ---------- The one action colour ---------- */
     --action: #e11d1d;
-    --action-hover: #c81616;
     --on-action: #ffffff;
     --accent-fill: var(--action);
 
@@ -215,8 +220,140 @@
     --section-y: 120px;
     /* The one space between a page's last content and the footer sheet: a section's padding, on every page. */
     --end-y: var(--section-y);
-    /* 65 characters of Inter. Not 65ch: a zero is wider than the average letter, so 65ch really sets about 80 characters. */
+    /* About 65 characters of Google Sans Flex. Not 65ch: a zero is wider than the average letter, so 65ch really sets about 80 characters. */
     --reading-max: 31em;
+
+    /* ---------- Type scale (kreators.app). Sizes in rem so they follow the browser's text size; px at a 16px root in the comments.
+       Each step is --t-<step>-size / -lh / -track / -weight. Use them together, or the text-<step> utilities at the end of this file.
+       Weights: light on light surfaces, 50 lighter on any dark surface (the dark theme, .band-dark and the dark fills listed below). ---------- */
+    --w-normal: 450;
+    --w-medium: 480;
+    --w-semibold: 550;
+    --w-bold: 600;
+
+    /* large-title 34/38 */
+    --t-large-title-size: 2.125rem;
+    --t-large-title-lh: 2.375rem;
+    --t-large-title-track: -0.022em;
+    --t-large-title-weight: var(--w-bold);
+    /* title1 28/32 */
+    --t-title1-size: 1.75rem;
+    --t-title1-lh: 2rem;
+    --t-title1-track: -0.02em;
+    --t-title1-weight: var(--w-bold);
+    /* title2 22/26 */
+    --t-title2-size: 1.375rem;
+    --t-title2-lh: 1.625rem;
+    --t-title2-track: -0.017em;
+    --t-title2-weight: var(--w-bold);
+    /* title3 20/24 */
+    --t-title3-size: 1.25rem;
+    --t-title3-lh: 1.5rem;
+    --t-title3-track: -0.015em;
+    --t-title3-weight: var(--w-bold);
+    /* headline 17/21 */
+    --t-headline-size: 1.0625rem;
+    --t-headline-lh: 1.3125rem;
+    --t-headline-track: -0.01em;
+    --t-headline-weight: var(--w-semibold);
+    /* body 17/22 */
+    --t-body-size: 1.0625rem;
+    --t-body-lh: 1.375rem;
+    --t-body-track: -0.008em;
+    --t-body-weight: var(--w-normal);
+    /* callout 16/20 */
+    --t-callout-size: 1rem;
+    --t-callout-lh: 1.25rem;
+    --t-callout-track: -0.008em;
+    --t-callout-weight: var(--w-normal);
+    /* prose 16/23 */
+    --t-prose-size: 1rem;
+    --t-prose-lh: 1.4375rem;
+    --t-prose-track: -0.004em;
+    --t-prose-weight: var(--w-normal);
+    /* subhead 15/19 */
+    --t-subhead-size: 0.9375rem;
+    --t-subhead-lh: 1.1875rem;
+    --t-subhead-track: -0.006em;
+    --t-subhead-weight: var(--w-normal);
+    /* footnote 13/17 */
+    --t-footnote-size: 0.8125rem;
+    --t-footnote-lh: 1.0625rem;
+    --t-footnote-track: -0.002em;
+    --t-footnote-weight: var(--w-normal);
+    /* caption 12/15 */
+    --t-caption-size: 0.75rem;
+    --t-caption-lh: 0.9375rem;
+    --t-caption-track: 0em;
+    --t-caption-weight: var(--w-normal);
+    /* caption2 11/13, the smallest type anywhere */
+    --t-caption2-size: 0.6875rem;
+    --t-caption2-lh: 0.8125rem;
+    --t-caption2-track: 0.006em;
+    --t-caption2-weight: var(--w-normal);
+    /* eyebrow 12/16, all caps */
+    --t-eyebrow-size: 0.75rem;
+    --t-eyebrow-lh: 1rem;
+    --t-eyebrow-track: 0.05em;
+    --t-eyebrow-weight: 500;
+    /* card-title 20/24 */
+    --t-card-title-size: 1.25rem;
+    --t-card-title-lh: 1.5rem;
+    --t-card-title-track: -0.015em;
+    --t-card-title-weight: var(--w-semibold);
+    /* row-title 20/24 */
+    --t-row-title-size: 1.25rem;
+    --t-row-title-lh: 1.5rem;
+    --t-row-title-track: -0.015em;
+    --t-row-title-weight: var(--w-normal);
+    /* card-note 13/17 */
+    --t-card-note-size: 0.8125rem;
+    --t-card-note-lh: 1.0625rem;
+    --t-card-note-track: -0.002em;
+    --t-card-note-weight: var(--w-normal);
+    /* card-prose 14/19 */
+    --t-card-prose-size: 0.875rem;
+    --t-card-prose-lh: 1.1875rem;
+    --t-card-prose-track: -0.004em;
+    --t-card-prose-weight: var(--w-normal);
+    /* figure-lg 40/1 */
+    --t-figure-lg-size: 2.5rem;
+    --t-figure-lg-lh: 1;
+    --t-figure-lg-track: -0.026em;
+    --t-figure-lg-weight: var(--w-semibold);
+    /* figure-hero 64/1 */
+    --t-figure-hero-size: 4rem;
+    --t-figure-hero-lh: 1;
+    --t-figure-hero-track: -0.03em;
+    --t-figure-hero-weight: var(--w-semibold);
+    /* Long-form reading (blog posts, FAQ answers, legal): body's 17px with prose's open leading (16/23 is 1.44; 17/25 is 1.47), so a
+       2,000-word post keeps body's size and still breathes. */
+    --t-article-size: var(--t-body-size);
+    --t-article-lh: 1.5625rem;
+    --t-article-track: var(--t-prose-track);
+    --t-article-weight: var(--w-normal);
+
+    /* Responsive public-site steps: phone, then tablet (48rem wide and 30rem tall), then laptop (64rem wide and 30rem tall). */
+    /* display-1 40 / 52 / 64 */
+    --t-display-1-size: 2.5rem;
+    --t-display-1-lh: 1.02;
+    --t-display-1-track: -0.026em;
+    --t-display-1-weight: var(--w-semibold);
+    /* display-2 32 / 40 / 48 */
+    --t-display-2-size: 2rem;
+    --t-display-2-lh: 1.06;
+    --t-display-2-track: -0.024em;
+    --t-display-2-weight: var(--w-semibold);
+    /* display-3 28 / 34 / 40 */
+    --t-display-3-size: 1.75rem;
+    --t-display-3-lh: 1.1;
+    --t-display-3-track: -0.022em;
+    --t-display-3-weight: var(--w-semibold);
+    /* lede 18/25, 18/25, 20/27 */
+    --t-lede-size: 1.125rem;
+    --t-lede-lh: 1.5625rem;
+    --t-lede-track: -0.01em;
+    --t-lede-weight: var(--w-normal);
 
     /* The nav's condensed box. Sticky things and scroll anchors key off --nav-offset alone. */
     --nav-h: 52px;
@@ -254,6 +391,104 @@
     :root {
       --section-y: 112px;
     }
+  }
+
+  @media (min-width: 48rem) and (min-height: 30rem) {
+    :root {
+      --t-display-1-size: 3.25rem;
+      --t-display-1-track: -0.028em;
+      --t-display-2-size: 2.5rem;
+      --t-display-3-size: 2.125rem;
+    }
+  }
+
+  @media (min-width: 64rem) and (min-height: 30rem) {
+    :root {
+      --t-display-1-size: 4rem;
+      --t-display-1-track: -0.03em;
+      --t-display-2-size: 3rem;
+      --t-display-2-track: -0.026em;
+      --t-display-3-size: 2.5rem;
+      --t-lede-size: 1.25rem;
+      --t-lede-lh: 1.6875rem;
+    }
+  }
+
+  /* Text on a dark surface sets 50 lighter: the dark theme, every .band-dark (the footer among them), and the dark fills that keep light-on-dark
+     text in the light theme (chips and glass over video, the views pill, the ink button, the ink and purple plates). Each step's weight token points at these, so it follows. */
+  [data-theme='dark'],
+  .band-dark,
+  .glass-media,
+  .chip,
+  .vsticker,
+  .vdeck-watch,
+  .vdeck-views,
+  .reel-pause,
+  .player-failed,
+  .btn-ink,
+  .plate[data-tone='ink'],
+  .plate[data-tone='tiko'] {
+    --w-normal: 400;
+    --w-medium: 430;
+    --w-semibold: 500;
+    --w-bold: 550;
+    /* A custom property's var() resolves where it is declared, so the step weights are declared again here to pick up the lighter set. */
+    --t-large-title-weight: var(--w-bold);
+    --t-title1-weight: var(--w-bold);
+    --t-title2-weight: var(--w-bold);
+    --t-title3-weight: var(--w-bold);
+    --t-headline-weight: var(--w-semibold);
+    --t-body-weight: var(--w-normal);
+    --t-callout-weight: var(--w-normal);
+    --t-prose-weight: var(--w-normal);
+    --t-subhead-weight: var(--w-normal);
+    --t-footnote-weight: var(--w-normal);
+    --t-caption-weight: var(--w-normal);
+    --t-caption2-weight: var(--w-normal);
+    --t-eyebrow-weight: 450;
+    --t-card-title-weight: var(--w-semibold);
+    --t-row-title-weight: var(--w-normal);
+    --t-card-note-weight: var(--w-normal);
+    --t-card-prose-weight: var(--w-normal);
+    --t-figure-lg-weight: var(--w-semibold);
+    --t-figure-hero-weight: var(--w-semibold);
+    --t-article-weight: var(--w-normal);
+    --t-display-1-weight: var(--w-semibold);
+    --t-display-2-weight: var(--w-semibold);
+    --t-display-3-weight: var(--w-semibold);
+    --t-lede-weight: var(--w-normal);
+  }
+
+  /* The footer is a .band-dark that the light theme re-scopes to light ink on a pale sheet (footer.css), so its type keeps the light weights. */
+  :root:not([data-theme='dark']) .ft {
+    --w-normal: 450;
+    --w-medium: 480;
+    --w-semibold: 550;
+    --w-bold: 600;
+    --t-large-title-weight: var(--w-bold);
+    --t-title1-weight: var(--w-bold);
+    --t-title2-weight: var(--w-bold);
+    --t-title3-weight: var(--w-bold);
+    --t-headline-weight: var(--w-semibold);
+    --t-body-weight: var(--w-normal);
+    --t-callout-weight: var(--w-normal);
+    --t-prose-weight: var(--w-normal);
+    --t-subhead-weight: var(--w-normal);
+    --t-footnote-weight: var(--w-normal);
+    --t-caption-weight: var(--w-normal);
+    --t-caption2-weight: var(--w-normal);
+    --t-eyebrow-weight: 500;
+    --t-card-title-weight: var(--w-semibold);
+    --t-row-title-weight: var(--w-normal);
+    --t-card-note-weight: var(--w-normal);
+    --t-card-prose-weight: var(--w-normal);
+    --t-figure-lg-weight: var(--w-semibold);
+    --t-figure-hero-weight: var(--w-semibold);
+    --t-article-weight: var(--w-normal);
+    --t-display-1-weight: var(--w-semibold);
+    --t-display-2-weight: var(--w-semibold);
+    --t-display-3-weight: var(--w-semibold);
+    --t-lede-weight: var(--w-normal);
   }
 
   /* Dark, and every band that is dark in both themes. The tokens re-scope, so nothing inside needs a dark: variant. */
@@ -356,4 +591,186 @@
       --glass-fx: none;
     }
   }
+}
+
+/* ---------- Type utilities: one class per step of the scale (text-title1, text-display-2, text-lede ...). Size, leading, tracking and the
+   theme-aware weight together. None of these names is a Tailwind built-in (text-xs to text-9xl, text-base) or a colour token. ---------- */
+@utility text-large-title {
+  font-size: var(--t-large-title-size);
+  line-height: var(--t-large-title-lh);
+  letter-spacing: var(--t-large-title-track);
+  font-weight: var(--t-large-title-weight);
+  text-rendering: optimizeLegibility;
+}
+
+@utility text-title1 {
+  font-size: var(--t-title1-size);
+  line-height: var(--t-title1-lh);
+  letter-spacing: var(--t-title1-track);
+  font-weight: var(--t-title1-weight);
+  text-rendering: optimizeLegibility;
+}
+
+@utility text-title2 {
+  font-size: var(--t-title2-size);
+  line-height: var(--t-title2-lh);
+  letter-spacing: var(--t-title2-track);
+  font-weight: var(--t-title2-weight);
+  text-rendering: optimizeLegibility;
+}
+
+@utility text-title3 {
+  font-size: var(--t-title3-size);
+  line-height: var(--t-title3-lh);
+  letter-spacing: var(--t-title3-track);
+  font-weight: var(--t-title3-weight);
+  text-rendering: optimizeLegibility;
+}
+
+@utility text-headline {
+  font-size: var(--t-headline-size);
+  line-height: var(--t-headline-lh);
+  letter-spacing: var(--t-headline-track);
+  font-weight: var(--t-headline-weight);
+}
+
+@utility text-body {
+  font-size: var(--t-body-size);
+  line-height: var(--t-body-lh);
+  letter-spacing: var(--t-body-track);
+  font-weight: var(--t-body-weight);
+}
+
+@utility text-callout {
+  font-size: var(--t-callout-size);
+  line-height: var(--t-callout-lh);
+  letter-spacing: var(--t-callout-track);
+  font-weight: var(--t-callout-weight);
+}
+
+@utility text-prose {
+  font-size: var(--t-prose-size);
+  line-height: var(--t-prose-lh);
+  letter-spacing: var(--t-prose-track);
+  font-weight: var(--t-prose-weight);
+}
+
+@utility text-subhead {
+  font-size: var(--t-subhead-size);
+  line-height: var(--t-subhead-lh);
+  letter-spacing: var(--t-subhead-track);
+  font-weight: var(--t-subhead-weight);
+}
+
+@utility text-footnote {
+  font-size: var(--t-footnote-size);
+  line-height: var(--t-footnote-lh);
+  letter-spacing: var(--t-footnote-track);
+  font-weight: var(--t-footnote-weight);
+}
+
+@utility text-caption {
+  font-size: var(--t-caption-size);
+  line-height: var(--t-caption-lh);
+  letter-spacing: var(--t-caption-track);
+  font-weight: var(--t-caption-weight);
+}
+
+@utility text-caption2 {
+  font-size: var(--t-caption2-size);
+  line-height: var(--t-caption2-lh);
+  letter-spacing: var(--t-caption2-track);
+  font-weight: var(--t-caption2-weight);
+}
+
+@utility text-eyebrow {
+  font-size: var(--t-eyebrow-size);
+  line-height: var(--t-eyebrow-lh);
+  letter-spacing: var(--t-eyebrow-track);
+  font-weight: var(--t-eyebrow-weight);
+  text-transform: uppercase;
+}
+
+@utility text-card-title {
+  font-size: var(--t-card-title-size);
+  line-height: var(--t-card-title-lh);
+  letter-spacing: var(--t-card-title-track);
+  font-weight: var(--t-card-title-weight);
+}
+
+@utility text-row-title {
+  font-size: var(--t-row-title-size);
+  line-height: var(--t-row-title-lh);
+  letter-spacing: var(--t-row-title-track);
+  font-weight: var(--t-row-title-weight);
+}
+
+@utility text-card-note {
+  font-size: var(--t-card-note-size);
+  line-height: var(--t-card-note-lh);
+  letter-spacing: var(--t-card-note-track);
+  font-weight: var(--t-card-note-weight);
+}
+
+@utility text-card-prose {
+  font-size: var(--t-card-prose-size);
+  line-height: var(--t-card-prose-lh);
+  letter-spacing: var(--t-card-prose-track);
+  font-weight: var(--t-card-prose-weight);
+}
+
+@utility text-figure-lg {
+  font-size: var(--t-figure-lg-size);
+  line-height: var(--t-figure-lg-lh);
+  letter-spacing: var(--t-figure-lg-track);
+  font-weight: var(--t-figure-lg-weight);
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility text-figure-hero {
+  font-size: var(--t-figure-hero-size);
+  line-height: var(--t-figure-hero-lh);
+  letter-spacing: var(--t-figure-hero-track);
+  font-weight: var(--t-figure-hero-weight);
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility text-display-1 {
+  font-size: var(--t-display-1-size);
+  line-height: var(--t-display-1-lh);
+  letter-spacing: var(--t-display-1-track);
+  font-weight: var(--t-display-1-weight);
+  text-rendering: optimizeLegibility;
+}
+
+@utility text-display-2 {
+  font-size: var(--t-display-2-size);
+  line-height: var(--t-display-2-lh);
+  letter-spacing: var(--t-display-2-track);
+  font-weight: var(--t-display-2-weight);
+  text-rendering: optimizeLegibility;
+}
+
+@utility text-display-3 {
+  font-size: var(--t-display-3-size);
+  line-height: var(--t-display-3-lh);
+  letter-spacing: var(--t-display-3-track);
+  font-weight: var(--t-display-3-weight);
+  text-rendering: optimizeLegibility;
+}
+
+@utility text-lede {
+  font-size: var(--t-lede-size);
+  line-height: var(--t-lede-lh);
+  letter-spacing: var(--t-lede-track);
+  font-weight: var(--t-lede-weight);
+}
+
+@utility text-article {
+  font-size: var(--t-article-size);
+  line-height: var(--t-article-lh);
+  letter-spacing: var(--t-article-track);
+  font-weight: var(--t-article-weight);
 }

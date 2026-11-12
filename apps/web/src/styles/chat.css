@@ -24,26 +24,26 @@
 
   .bubble-label {
     color: var(--b-label);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 16px;
-    letter-spacing: 0;
+    font-size: var(--t-caption-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-caption-lh);
+    letter-spacing: var(--t-caption-track);
   }
 
   .bubble-text {
     margin: 0;
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 23px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
     text-wrap: balance;
   }
 
   .bubble[data-size='sm'] .bubble-text,
   .cast-bubble .bubble-text {
-    font-size: 15px;
-    line-height: 20px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-subhead-size);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .bubble[data-who='bolu'] {
@@ -94,10 +94,10 @@
   }
 
   .bubble[data-who='company'] .bubble-text {
-    font-size: 17px;
-    font-weight: 400;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    font-weight: var(--w-normal);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   .bubble[data-who='company'] .bubble-text > p {
@@ -110,9 +110,10 @@
     margin-block: -4px -12px;
     padding-block: 12px;
     color: var(--ink);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
     text-decoration: none;
   }
 
@@ -623,10 +624,10 @@
     box-shadow: var(--plate-edge);
     color: var(--ink);
     font: inherit;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 21px;
-    letter-spacing: -0.01em;
+    font-size: var(--t-callout-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-callout-lh);
+    letter-spacing: var(--t-callout-track);
     text-align: left;
     cursor: pointer;
     touch-action: manipulation;
@@ -691,7 +692,6 @@
     min-height: 100%;
     padding: 28px 28px 24px;
     border-radius: var(--r-tile);
-    background: var(--sunken);
     overflow: clip;
   }
 
@@ -720,8 +720,9 @@
     margin: auto 0 0;
     padding-top: 12px;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .faqchat-foot a {
@@ -729,7 +730,7 @@
     margin-block: -12px;
     padding-block: 12px;
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     text-decoration: none;
   }
 

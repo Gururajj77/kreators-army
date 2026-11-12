@@ -9,6 +9,7 @@ import { ReelPause, VideoFrame, previewAllowed, usePlayback } from '../../compon
 import { HeroCopy, PrimaryCta, Reveal, SectionHead, Seo, Tile } from '../../components/ui';
 import { VideoTile, useVideoPlayer } from '../../components/video';
 import { FORMATS, INTERACTION_THREAD } from '../../lib/content';
+import { resolveThread } from '../../lib/thread';
 import { useMotionOk } from '../../lib/motionOk';
 import { useVideos } from '../../lib/queries';
 import { spring } from '../../lib/spring';
@@ -53,10 +54,13 @@ const cardVariants: Variants = {
 
 function QuestionOfTheWeek({ name, body, videos, onOpen }: { name: string; body: string; videos: Video[]; onOpen: (video: Video) => void }) {
   // Worded from topics already in the video library, labelled as examples, not weeks: these are real questions we have filmed, not a series that has run.
-  const cards: Card[] = [
-    ...INTERACTION_THREAD.filter((t) => !t.fallback).map((t, i) => ({ week: `Example ${i + 1}`, question: t.q, video: videos.find((v) => v.id === t.videoId) })),
-    { week: 'Next week', question: 'Your category, your question.', action: true },
-  ];
+  // (r17) Matched to the live library by brand and title (lib/thread.ts, as the Home chat does), not by seed ids: the founder's imported videos
+  // have new ids, so an id lookup left every polaroid blank. Until the library arrives, the questions show on blank cards.
+  const resolved = resolveThread(videos, INTERACTION_THREAD.length);
+  const examples: Card[] = resolved.length
+    ? resolved.map((p, i) => ({ week: `Example ${i + 1}`, question: p.question, video: p.video }))
+    : INTERACTION_THREAD.filter((t) => !t.fallback).map((t, i) => ({ week: `Example ${i + 1}`, question: t.q }));
+  const cards: Card[] = [...examples, { week: 'Next week', question: 'Your category, your question.', action: true }];
   // A position on an endless tape, not an index: a card can leave and come round again while its last exit is still running, so each pass needs its own key.
   const [pos, setPos] = useState(0);
   const [flick, setFlick] = useState<Flick>({ dir: 1, side: 1 });

@@ -12,9 +12,9 @@
     max-width: var(--read-max);
     margin-inline: auto;
     padding-top: calc(var(--nav-offset) + 48px);
-    font-size: 19px;
-    line-height: 31px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-article-size);
+    line-height: var(--t-article-lh);
+    letter-spacing: var(--t-article-track);
   }
 
   .post [id] {
@@ -64,9 +64,9 @@
     margin: 0 0 6px;
     padding: 0;
     list-style: none;
-    font-size: 15px;
-    line-height: 20px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .post-crumbs li + li::before {
@@ -99,8 +99,6 @@
     margin-top: 28px;
     padding: 20px 24px 22px;
     border-radius: var(--r-inner);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   /* The answer's label carries a small dot of the brand purple: the one mark that says "quote this". */
@@ -119,17 +117,17 @@
   .post-label {
     margin: 0 0 6px;
     color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
   }
 
   .post-answer-text {
     margin: 0;
-    font-size: 20px;
-    line-height: 30px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-lede-size);
+    line-height: var(--t-lede-lh);
+    letter-spacing: var(--t-lede-track);
     text-wrap: pretty;
   }
 
@@ -171,8 +169,9 @@
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 16px;
-    line-height: 24px;
+    font-size: var(--t-prose-size);
+    letter-spacing: var(--t-prose-track);
+    line-height: var(--t-prose-lh);
   }
 
   @media (min-width: 735px) {
@@ -192,8 +191,6 @@
     min-width: 0;
     padding: 16px 18px 18px;
     border-radius: var(--r-inner);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
     text-wrap: pretty;
   }
 
@@ -205,11 +202,11 @@
     border-radius: 10px;
     background: var(--bb-g, var(--g-tiko));
     color: var(--bb-on, #ffffff);
-    font-size: 13px;
-    font-weight: 700;
+    font-size: var(--t-footnote-size);
+    font-weight: var(--w-bold);
     line-height: 1;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0;
+    letter-spacing: var(--t-footnote-track);
   }
 
   :where([data-theme='dark']) .post-takeaway-n {
@@ -273,9 +270,10 @@
   .post-toc-title {
     margin: 0 0 8px;
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 16px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
   }
 
   .post-toc-list {
@@ -291,9 +289,9 @@
     padding: 6px 0 6px 14px;
     border-left: 2px solid var(--line);
     color: var(--muted);
-    font-size: 14px;
-    line-height: 19px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
     text-decoration: none;
     transition:
       color var(--dur-hover) ease,
@@ -303,7 +301,7 @@
   .post-toc-list a[aria-current='location'] {
     border-left-color: var(--ink);
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -324,9 +322,10 @@
     gap: 10px;
     min-height: 52px;
     padding: 0 18px;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-callout-size);
+    letter-spacing: var(--t-callout-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-callout-lh);
     list-style: none;
     cursor: pointer;
   }
@@ -337,7 +336,7 @@
 
   .post-toc-count {
     color: var(--muted);
-    font-weight: 400;
+    font-weight: var(--w-normal);
   }
 
   .post-toc-inline > summary > svg {
@@ -392,11 +391,10 @@
   .post-sources .bp-h2 {
     margin: 2.2em 0 0.55em;
     font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 34px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-title1-size);
+    font-weight: var(--t-title1-weight);
+    line-height: var(--t-title1-lh);
+    letter-spacing: var(--t-title1-track);
     text-wrap: balance;
   }
 
@@ -407,10 +405,10 @@
   .post-body .bp-h3 {
     margin: 1.8em 0 0.45em;
     font-family: var(--font-display);
-    font-size: 21px;
-    font-weight: 600;
-    line-height: 27px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-card-title-size);
+    font-weight: var(--t-card-title-weight);
+    line-height: var(--t-card-title-lh);
+    letter-spacing: var(--t-card-title-track);
     text-wrap: balance;
   }
 
@@ -422,17 +420,19 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* (typefix17) Never under 11 px (0.66em of a 16 px line was 10.6), and raised 0.4em, less than `super`, so the numeral's top meets the
+     text's cap height and it sits on the word it belongs to instead of floating above the line. */
   .bp-cite {
     margin-left: 1px;
-    font-size: 0.66em;
+    font-size: max(11px, 0.66em);
     line-height: 0;
-    vertical-align: super;
+    vertical-align: 0.4em;
   }
 
   .bp-cite a {
     padding: 0 2px;
     color: var(--muted);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     text-decoration: none;
   }
 
@@ -454,29 +454,29 @@
   :is(.bp-callout, .bp-def, .bp-script, .bp-steps, .bp-fw, .bp-compare, .bp-cta, .bw) {
     margin: 1.6em 0;
     border-radius: var(--r-inner);
-    font-size: 17px;
-    line-height: 26px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   .bp-kind,
   .bw-kind {
     margin: 0 0 4px;
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 16px;
-    letter-spacing: 0;
+    font-size: var(--t-footnote-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
+    letter-spacing: var(--t-footnote-track);
   }
 
   .bp-block-title,
   .bw-title {
     margin: 0 0 8px;
     font-family: var(--font-display);
-    font-size: 21px;
-    font-weight: 600;
-    line-height: 26px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-card-title-size);
+    font-weight: var(--t-card-title-weight);
+    line-height: var(--t-card-title-lh);
+    letter-spacing: var(--t-card-title-track);
     text-wrap: balance;
   }
 
@@ -494,18 +494,19 @@
   .bp-quote blockquote p {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 23px;
-    font-weight: 600;
-    line-height: 31px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-title2-size);
+    font-weight: var(--t-title2-weight);
+    line-height: var(--t-title2-lh);
+    letter-spacing: var(--t-title2-track);
     text-wrap: balance;
   }
 
   .bp-quote figcaption {
     margin-top: 8px;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   /* Callout */
@@ -526,7 +527,7 @@
 
   .bp-callout-title {
     margin: 0 0 4px;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bp-callout p:last-child,
@@ -541,16 +542,15 @@
   /* Definition */
   .bp-def {
     padding: 18px 22px;
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .bp-def dt {
     margin-bottom: 4px;
     font-family: var(--font-display);
-    font-size: 19px;
-    font-weight: 600;
-    line-height: 24px;
+    font-size: var(--t-title3-size);
+    letter-spacing: var(--t-title3-track);
+    font-weight: var(--t-title3-weight);
+    line-height: var(--t-title3-lh);
   }
 
   .bp-def dfn {
@@ -569,21 +569,19 @@
   .bp-table-scroll {
     overflow-x: auto;
     border-radius: var(--r-inner);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .bp-table table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 15px;
-    line-height: 22px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-subhead-size);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .bp-table caption {
     padding: 16px 18px 6px;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     text-align: left;
     caption-side: top;
   }
@@ -598,13 +596,14 @@
 
   .bp-table thead th {
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 17px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
   }
 
   .bp-table tbody th {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bp-table tbody tr:last-child > * {
@@ -702,9 +701,10 @@
       display: block;
       margin-top: 6px;
       color: var(--muted);
-      font-size: 12px;
-      font-weight: 600;
-      line-height: 16px;
+      font-size: var(--t-caption-size);
+      letter-spacing: var(--t-caption-track);
+      font-weight: var(--w-semibold);
+      line-height: var(--t-caption-lh);
     }
 
     .bp-table:is([data-cols='3'], [data-cols='4']) tbody th[data-label]::before {
@@ -722,8 +722,6 @@
   /* ---------- Script ---------- */
   .bp-script {
     padding: 20px 22px 18px;
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .bp-script-head {
@@ -742,9 +740,10 @@
   .bp-script-title {
     grid-column: 1;
     font-family: var(--font-display);
-    font-size: 19px;
-    font-weight: 600;
-    line-height: 24px;
+    font-size: var(--t-title3-size);
+    letter-spacing: var(--t-title3-track);
+    font-weight: var(--t-title3-weight);
+    line-height: var(--t-title3-lh);
   }
 
   .bp-script-head > .copy {
@@ -755,8 +754,9 @@
   .bp-script-context {
     margin: 4px 0 12px;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bp-script-lines {
@@ -776,7 +776,8 @@
   .bp-line[data-kind='direction'] {
     display: block;
     color: var(--muted);
-    font-size: 15px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .bp-line[data-kind='direction'] em::before {
@@ -789,9 +790,10 @@
 
   .bp-speaker {
     color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 26px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-body-lh);
   }
 
   @media (max-width: 734px) {
@@ -807,8 +809,6 @@
   /* ---------- Steps ---------- */
   .bp-steps {
     padding: 20px 22px 8px;
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .bp-supplies {
@@ -848,14 +848,15 @@
     border-radius: 50%;
     background: var(--ink);
     color: var(--bg);
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    font-weight: var(--w-semibold);
     font-variant-numeric: tabular-nums;
   }
 
   .bp-step-name {
     margin: 3px 0 2px;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bp-steps-list p,
@@ -870,17 +871,15 @@
   /* ---------- Framework ---------- */
   .bp-fw {
     padding: 22px 22px 12px;
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .bp-fw-name {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 34px;
-    font-weight: 600;
-    line-height: 38px;
-    letter-spacing: 0.02em;
+    font-size: var(--t-large-title-size);
+    font-weight: var(--t-large-title-weight);
+    line-height: var(--t-large-title-lh);
+    letter-spacing: var(--t-large-title-track);
   }
 
   .bp-fw-tagline {
@@ -915,14 +914,15 @@
     border-radius: 12px;
     background: var(--sunken);
     font-family: var(--font-display);
-    font-size: 21px;
-    font-weight: 600;
+    font-size: var(--t-card-title-size);
+    letter-spacing: var(--t-card-title-track);
+    font-weight: var(--t-card-title-weight);
     line-height: 1;
   }
 
   .bp-fw-part {
     margin: 0 0 2px;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bp-fw-parts p {
@@ -944,19 +944,19 @@
   .bp-compare-col {
     padding: 16px 18px;
     border-radius: var(--r-inner);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .bp-compare-col[data-side='right'] {
     box-shadow:
-      var(--plate-edge),
-      inset 0 3px 0 var(--ink);
+      inset 0 3px 0 var(--ink),
+      var(--lg-edge),
+      var(--lg-halo),
+      var(--lg-drop);
   }
 
   .bp-compare-label {
     margin: 0 0 6px;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bp-compare-col ul {
@@ -973,8 +973,7 @@
     margin: 12px 0 0;
     padding: 12px 16px;
     border-radius: 14px;
-    background: var(--sunken);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   /* ---------- Stats ---------- */
@@ -988,8 +987,6 @@
   .bp-stat {
     padding: 16px 18px;
     border-radius: var(--r-inner);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .bp-stat p {
@@ -998,22 +995,24 @@
 
   .bp-stat-value {
     font-family: var(--font-display);
-    font-size: 36px;
-    font-weight: 600;
-    line-height: 40px;
-    letter-spacing: -0.02em;
+    font-size: var(--t-figure-lg-size);
+    font-weight: var(--t-figure-lg-weight);
+    line-height: var(--t-figure-lg-lh);
+    letter-spacing: var(--t-figure-lg-track);
   }
 
   .bp-stat-label {
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bp-stat-note {
     margin-top: 6px !important;
     color: var(--muted);
-    font-size: 13px;
-    line-height: 18px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    line-height: var(--t-footnote-lh);
   }
 
   /* ---------- Library video ---------- */
@@ -1038,8 +1037,9 @@
 
   .bp-video figcaption {
     color: var(--muted);
-    font-size: 16px;
-    line-height: 24px;
+    font-size: var(--t-prose-size);
+    letter-spacing: var(--t-prose-track);
+    line-height: var(--t-prose-lh);
     text-wrap: pretty;
   }
 
@@ -1083,9 +1083,10 @@
   }
 
   .bp-video-name {
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 17px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
   }
 
   .bp-video-more {
@@ -1094,7 +1095,7 @@
     gap: 6px;
     min-height: 44px;
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bp-mechs {
@@ -1108,16 +1109,14 @@
   /* ---------- Mid-post action ---------- */
   .bp-cta {
     padding: 22px 24px;
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .bp-cta > p {
     margin: 0 0 14px;
-    font-size: 19px;
-    font-weight: 600;
-    line-height: 26px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-title3-size);
+    font-weight: var(--t-title3-weight);
+    line-height: var(--t-title3-lh);
+    letter-spacing: var(--t-title3-track);
   }
 
   .bp-cta-actions,
@@ -1134,8 +1133,9 @@
     gap: 6px;
     min-height: 44px;
     color: var(--ink);
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
     text-decoration: none;
   }
 
@@ -1165,10 +1165,10 @@
 
   .post-faq-q {
     margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-title3-size);
+    font-weight: var(--t-title3-weight);
+    line-height: var(--t-title3-lh);
+    letter-spacing: var(--t-title3-track);
     text-wrap: pretty;
   }
 
@@ -1184,8 +1184,9 @@
 
   .post-faq-a p {
     margin: 0 0 18px;
-    font-size: 17px;
-    line-height: 27px;
+    font-size: var(--t-article-size);
+    letter-spacing: var(--t-article-track);
+    line-height: var(--t-article-lh);
     text-wrap: pretty;
   }
 
@@ -1193,8 +1194,9 @@
     margin: 0;
     padding-left: 1.4em;
     list-style: decimal;
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .post-sources li {
@@ -1236,8 +1238,9 @@
   .post-end-ask {
     gap: 10px;
     padding: 26px 26px 24px;
-    font-size: 16px;
-    line-height: 24px;
+    font-size: var(--t-prose-size);
+    letter-spacing: var(--t-prose-track);
+    line-height: var(--t-prose-lh);
   }
 
   .post-end-ask > :not(.bb-cta-glow) {
@@ -1246,10 +1249,10 @@
 
   .post-end-title {
     margin: 0;
-    font-size: 22px;
-    font-weight: 600;
-    line-height: 27px;
-    letter-spacing: -0.02em;
+    font-size: var(--t-title2-size);
+    font-weight: var(--t-title2-weight);
+    line-height: var(--t-title2-lh);
+    letter-spacing: var(--t-title2-track);
     text-wrap: balance;
   }
 
@@ -1292,16 +1295,17 @@
   }
 
   .post-end-lib-title {
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 22px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
   }
 
   .post-end-lib-line {
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   .post-end-lib > .bb-go {
@@ -1323,8 +1327,9 @@
     margin-top: 32px;
     padding-top: 24px;
     border-top: 1px solid var(--line);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .post-author img {
@@ -1340,12 +1345,12 @@
   .post-author .post-author-name {
     margin-bottom: 2px;
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .post-author-role {
     color: var(--muted);
-    font-weight: 400;
+    font-weight: var(--w-normal);
   }
 
   .post-author a {
@@ -1371,24 +1376,21 @@
   @media (max-width: 734px) {
     .post {
       padding-top: calc(var(--nav-offset) + 20px);
-      font-size: 17px;
-      line-height: 28px;
+      font-size: var(--t-article-size);
+      letter-spacing: var(--t-article-track);
+      line-height: var(--t-article-lh);
     }
 
     .post-answer {
       padding: 16px 18px 18px;
     }
 
-    .post-answer-text {
-      font-size: 18px;
-      line-height: 27px;
-    }
-
     .post-body .bp-h2,
     .post-faq .bp-h2,
     .post-sources .bp-h2 {
-      font-size: 24px;
-      line-height: 30px;
+      font-size: var(--t-title2-size);
+      letter-spacing: var(--t-title2-track);
+      line-height: var(--t-title2-lh);
     }
 
     :is(.bp-callout, .bp-def, .bp-script, .bp-steps, .bp-fw, .bp-cta) {
@@ -1403,8 +1405,6 @@
   /* ---------- Widgets ---------- */
   .bw {
     padding: 22px 24px 24px;
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   @media (max-width: 734px) {
@@ -1441,14 +1441,15 @@
     display: block;
     margin-bottom: 10px;
     padding: 0;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bw-q-n {
     display: block;
     color: var(--muted);
-    font-size: 13px;
-    line-height: 18px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    line-height: var(--t-footnote-lh);
   }
 
   .bw-options {
@@ -1507,8 +1508,9 @@
     padding-left: 14px;
     border-left: 2px solid var(--line);
     color: var(--muted);
-    font-size: 15px;
-    line-height: 23px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bw-whys {
@@ -1516,8 +1518,9 @@
     padding-left: 14px;
     border-left: 2px solid var(--line);
     color: var(--muted);
-    font-size: 15px;
-    line-height: 23px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
     list-style: none;
   }
 
@@ -1525,7 +1528,8 @@
     margin-top: 20px;
     padding: 16px 18px;
     border-radius: 16px;
-    background: var(--sunken);
+    background: var(--lg-well);
+    box-shadow: var(--lg-well-edge);
   }
 
   .bw-result:empty {
@@ -1538,20 +1542,21 @@
 
   .bw-score {
     font-family: var(--font-display);
-    font-size: 30px;
-    font-weight: 600;
-    line-height: 36px;
-    letter-spacing: -0.02em;
+    font-size: var(--t-title1-size);
+    font-weight: var(--t-title1-weight);
+    line-height: var(--t-title1-lh);
+    letter-spacing: var(--t-title1-track);
   }
 
   .bw-result-title {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bw-hint {
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bw-bands,
@@ -1561,8 +1566,9 @@
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 15px;
-    line-height: 23px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bw-outcomes .read-list {
@@ -1579,8 +1585,9 @@
     background: none;
     color: var(--muted);
     font: inherit;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
     cursor: pointer;
     transition: color var(--dur-hover) ease;
   }
@@ -1614,8 +1621,9 @@
   .bw-note {
     margin-top: 14px !important;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bw-tag {
@@ -1625,9 +1633,10 @@
     border-radius: var(--r-pill);
     background: var(--sunken);
     color: var(--muted);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 18px;
+    font-size: var(--t-caption-size);
+    letter-spacing: var(--t-caption-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-caption-lh);
     white-space: nowrap;
     vertical-align: 1px;
   }
@@ -1669,8 +1678,9 @@
   .bw-check-detail {
     display: block;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   /* Question builder */
@@ -1692,14 +1702,15 @@
   }
 
   .bw-field-label {
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
   }
 
   .bw-unit {
     color: var(--muted);
-    font-weight: 400;
+    font-weight: var(--w-normal);
   }
 
   .bw-lines-wrap {
@@ -1709,9 +1720,10 @@
   .bw-group {
     margin: 14px 0 4px !important;
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 18px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
   }
 
   .bw-lines {
@@ -1740,7 +1752,7 @@
     padding: 0 3px;
     border-radius: 4px;
     background: color-mix(in oklab, var(--c-yellow) 38%, transparent);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
   }
@@ -1765,13 +1777,14 @@
 
   .bw-reveal-q {
     margin-bottom: 10px !important;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bw-reveal-a {
     padding: 12px 14px;
     border-radius: 14px;
-    background: var(--sunken);
+    background: var(--lg-well);
+    box-shadow: var(--lg-well-edge);
   }
 
   .bw-reveal-a + .bw-reveal-a {
@@ -1786,9 +1799,10 @@
   .bw-reveal-label {
     margin-bottom: 2px !important;
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 18px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
   }
 
   .bw-reveal-btn {
@@ -1823,7 +1837,8 @@
     gap: 10px;
     min-height: 240px;
     padding: 26px 26px 28px;
-    background: var(--sunken);
+    background: var(--lg-well);
+    box-shadow: var(--lg-well-edge);
     scroll-snap-align: start;
   }
 
@@ -1835,17 +1850,18 @@
 
   .bw-slide-n {
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
     font-variant-numeric: tabular-nums;
   }
 
   .bw-slide-heading {
     font-family: var(--font-display);
-    font-size: 26px;
-    font-weight: 600;
-    line-height: 31px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-title1-size);
+    font-weight: var(--t-title1-weight);
+    line-height: var(--t-title1-lh);
+    letter-spacing: var(--t-title1-track);
     text-wrap: balance;
   }
 
@@ -1914,7 +1930,7 @@
 
   .bw-round:disabled {
     cursor: default;
-    opacity: 0.35;
+    opacity: 0.45;
   }
 
   @media (max-width: 734px) {
@@ -1924,8 +1940,9 @@
     }
 
     .bw-slide-heading {
-      font-size: 22px;
-      line-height: 27px;
+      font-size: var(--t-title2-size);
+      letter-spacing: var(--t-title2-track);
+      line-height: var(--t-title2-lh);
     }
   }
 
@@ -1970,30 +1987,32 @@
   .bw-calc-out > div {
     padding: 14px 16px;
     border-radius: 16px;
-    background: var(--sunken);
+    background: var(--lg-well);
+    box-shadow: var(--lg-well-edge);
   }
 
   .bw-calc-out dt {
     color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 19px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-card-prose-lh);
   }
 
   .bw-calc-out dd {
     margin: 4px 0 0;
     font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 600;
-    line-height: 34px;
-    letter-spacing: -0.02em;
+    font-size: var(--t-title1-size);
+    font-weight: var(--t-title1-weight);
+    line-height: var(--t-title1-lh);
+    letter-spacing: var(--t-title1-track);
     font-variant-numeric: tabular-nums;
   }
 
   .bw-calc-out dd .bw-unit {
     font-family: var(--font-sans);
-    font-size: 15px;
-    letter-spacing: 0;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .bw-calc-out + .bw-hint {
@@ -2003,8 +2022,9 @@
   .bw-disclaimer {
     margin-top: 12px !important;
     color: var(--muted);
-    font-size: 13px;
-    line-height: 19px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    line-height: var(--t-footnote-lh);
   }
 
   /* Before and after */
@@ -2025,8 +2045,9 @@
     background: transparent;
     color: var(--muted);
     font: inherit;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
     cursor: pointer;
     transition:
       background-color var(--dur-hover) ease,
@@ -2048,7 +2069,8 @@
   .bw-ba-panel {
     padding: 16px 18px;
     border-radius: 16px;
-    background: var(--sunken);
+    background: var(--lg-well);
+    box-shadow: var(--lg-well-edge);
   }
 
   .bw-ba-panel[data-side='after'] {
@@ -2061,10 +2083,10 @@
   }
 
   .bw-ba-text {
-    font-size: 19px;
-    font-weight: 600;
-    line-height: 27px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-title3-size);
+    font-weight: var(--t-title3-weight);
+    line-height: var(--t-title3-lh);
+    letter-spacing: var(--t-title3-track);
   }
 
   .bw-ba-points {
@@ -2072,8 +2094,9 @@
     padding-left: 1.1em;
     list-style: disc;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   /* Timeline */
@@ -2119,19 +2142,21 @@
 
   .bw-tl-when {
     color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 26px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-body-lh);
   }
 
   .bw-tl-title {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bw-tl-body .read-list {
     margin: 6px 0 0;
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   /* Poll */
@@ -2188,7 +2213,7 @@
   }
 
   .bw-flip-front {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bw-flips[data-live] .bw-flip {
@@ -2227,9 +2252,10 @@
     color: var(--ink);
     font: inherit;
     font-family: var(--font-display);
-    font-size: 19px;
-    font-weight: 600;
-    line-height: 25px;
+    font-size: var(--t-title3-size);
+    letter-spacing: var(--t-title3-track);
+    font-weight: var(--t-title3-weight);
+    line-height: var(--t-title3-lh);
     text-align: left;
     cursor: pointer;
   }
@@ -2266,14 +2292,15 @@
   }
 
   .bw-scale-label {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bw-scale-help {
     display: block;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bw-scale-row {
@@ -2290,7 +2317,7 @@
     height: 44px;
     border-radius: 50%;
     box-shadow: inset 0 0 0 1px var(--line);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     font-variant-numeric: tabular-nums;
     cursor: pointer;
     transition:
@@ -2321,8 +2348,9 @@
     margin: 10px 0 12px;
     padding: 0;
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
     list-style: none;
   }
 
@@ -2338,14 +2366,15 @@
   }
 
   .bw-tree-q {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bw-tree-help {
     margin-top: 4px !important;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bw-tree-choices {
@@ -2356,7 +2385,7 @@
   }
 
   .bw-tree-choices .btn {
-    background: var(--surface);
+    --btn-hue: var(--surface);
   }
 
   .bw-tree-end {
@@ -2385,8 +2414,9 @@
     margin: 8px 0 0;
     padding: 0;
     list-style: none;
-    font-size: 15px;
-    line-height: 23px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bw-tree-opts {
@@ -2401,7 +2431,7 @@
   }
 
   .bw-tree-if {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .bw-tree-all {
@@ -2413,8 +2443,9 @@
     align-items: center;
     min-height: 44px;
     color: var(--muted);
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
     cursor: pointer;
   }
 
@@ -2557,7 +2588,7 @@
     color: rgb(255 255 255 / 0.94);
     font-family: var(--font-display);
     font-size: clamp(88px, 44cqi, 360px);
-    font-weight: 700;
+    font-weight: var(--w-bold);
     line-height: 1;
     letter-spacing: -0.065em;
     white-space: nowrap;
@@ -2702,8 +2733,6 @@
 
   .bb-cat {
     gap: 7px;
-    font-size: 13px;
-    line-height: 16px;
   }
 
   .bb-cat::before {
@@ -2731,10 +2760,10 @@
   .bb-title {
     margin: 0;
     color: var(--ink);
-    font-size: 18px;
-    font-weight: 600;
-    line-height: 23px;
-    letter-spacing: -0.017em;
+    font-size: var(--t-title3-size);
+    font-weight: var(--t-title3-weight);
+    line-height: var(--t-title3-lh);
+    letter-spacing: var(--t-title3-track);
     text-wrap: balance;
   }
 
@@ -2747,8 +2776,9 @@
     margin: 0;
     overflow: hidden;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -2763,8 +2793,9 @@
     margin: auto 0 0;
     padding-top: 4px;
     color: var(--muted);
-    font-size: 13px;
-    line-height: 18px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    line-height: var(--t-footnote-lh);
   }
 
   .bb-min {
@@ -2792,8 +2823,9 @@
     border-radius: var(--r-pill);
     background: var(--sunken);
     color: var(--ink);
-    font-size: 12px;
-    font-weight: 600;
+    font-size: var(--t-caption-size);
+    letter-spacing: var(--t-caption-track);
+    font-weight: var(--w-semibold);
     line-height: 1;
     white-space: nowrap;
   }
@@ -2824,9 +2856,9 @@
     }
 
     .bb-post:is([data-size='wide'], [data-size='lead']) .bb-title {
-      font-size: 23px;
-      line-height: 28px;
-      letter-spacing: -0.022em;
+      font-size: var(--t-title2-size);
+      line-height: var(--t-title2-lh);
+      letter-spacing: var(--t-title2-track);
     }
 
     .bb-post:is([data-size='wide'], [data-size='lead']) .bb-desc {
@@ -2877,16 +2909,17 @@
 
   .bb-post[data-size='feature'] .bb-title {
     font-family: var(--font-display);
-    font-size: clamp(26px, 5.4cqi, 38px);
-    line-height: 1.12;
-    letter-spacing: -0.03em;
+    font-size: var(--t-large-title-size);
+    line-height: var(--t-large-title-lh);
+    letter-spacing: var(--t-large-title-track);
   }
 
   .bb-post[data-size='feature'] .bb-desc {
     display: -webkit-box;
     max-width: 34em;
-    font-size: 16px;
-    line-height: 23px;
+    font-size: var(--t-prose-size);
+    letter-spacing: var(--t-prose-track);
+    line-height: var(--t-prose-lh);
   }
 
   .bb-post[data-size='feature'] .bb-phone {
@@ -2899,7 +2932,7 @@
   /* Hover (fine pointers): the plate's lift (components.css), a shadow, the sheen across the glass, the phone rising. */
   @media (hover: hover) and (pointer: fine) {
     .bb-post:hover {
-      box-shadow: var(--plate-edge), var(--shadow-3);
+      box-shadow: var(--lg-edge), var(--lg-halo), var(--shadow-3);
     }
 
     :root:not([data-still]) .bb-post:hover .bb-art::after {
@@ -2921,51 +2954,9 @@
     outline-offset: 3px;
   }
 
-  /* ---------- The search tile: pearl glass in the light theme (the footer's), dark glass in the dark ---------- */
+  /* ---------- The search tile: liquid glass like every neutral card (components.css, .lglass); it only sets its flute width for the field. ---------- */
   .bb-tools {
     --rib: 18px;
-    background:
-      radial-gradient(70% 90% at 100% 0%, rgb(196 204 255 / 0.55), transparent 70%),
-      radial-gradient(60% 80% at 0% 100%, rgb(248 214 228 / 0.5), transparent 70%),
-      radial-gradient(50% 60% at 70% 110%, rgb(206 240 222 / 0.55), transparent 70%),
-      linear-gradient(160deg, #fbfbff, #eff0f7);
-    box-shadow: var(--plate-edge), inset 0 1px 0 rgb(255 255 255 / 0.9);
-  }
-
-  .bb-tools::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      90deg,
-      rgb(92 80 180 / 0.05) 0,
-      rgb(92 80 180 / 0.015) calc(var(--rib) * 0.22),
-      rgb(255 255 255 / 0) calc(var(--rib) * 0.5),
-      rgb(255 255 255 / 0.5) calc(var(--rib) * 0.74),
-      rgb(255 255 255 / 0.12) calc(var(--rib) * 0.9),
-      rgb(92 80 180 / 0.05) var(--rib)
-    );
-    pointer-events: none;
-  }
-
-  :where([data-theme='dark']) .bb-tools {
-    background:
-      radial-gradient(70% 90% at 100% 0%, rgb(76 70 190 / 0.38), transparent 70%),
-      radial-gradient(60% 80% at 0% 100%, rgb(120 30 60 / 0.3), transparent 70%),
-      linear-gradient(160deg, #1b1b22, #121217);
-    box-shadow: var(--plate-edge), inset 0 1px 0 rgb(255 255 255 / 0.07);
-  }
-
-  :where([data-theme='dark']) .bb-tools::before {
-    background: repeating-linear-gradient(
-      90deg,
-      rgb(0 0 0 / 0.22) 0,
-      rgb(0 0 0 / 0.06) calc(var(--rib) * 0.22),
-      rgb(255 255 255 / 0) calc(var(--rib) * 0.5),
-      rgb(255 255 255 / 0.05) calc(var(--rib) * 0.74),
-      rgb(255 255 255 / 0.01) calc(var(--rib) * 0.9),
-      rgb(0 0 0 / 0.22) var(--rib)
-    );
   }
 
   .bi-controls {
@@ -2980,17 +2971,18 @@
   .bb-tools-line {
     margin: -8px 0 4px;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bb-tools-title {
     margin: 0 0 2px;
     color: var(--ink);
-    font-size: 22px;
-    font-weight: 600;
-    line-height: 26px;
-    letter-spacing: -0.02em;
+    font-size: var(--t-title2-size);
+    font-weight: var(--t-title2-weight);
+    line-height: var(--t-title2-lh);
+    letter-spacing: var(--t-title2-track);
   }
 
   .bi-row {
@@ -3047,12 +3039,12 @@
 
   .bb-tools .chip-rail:not([data-mode]) .chip-opt,
   .bb-tools .chip-rail[data-mode='radio'] .chip-opt:not([data-on]) {
-    background: rgb(255 255 255 / 0.55);
+    --btn-hue: rgb(255 255 255 / 0.55);
   }
 
   :where([data-theme='dark']) .bb-tools .chip-rail:not([data-mode]) .chip-opt,
   :where([data-theme='dark']) .bb-tools .chip-rail[data-mode='radio'] .chip-opt:not([data-on]) {
-    background: rgb(255 255 255 / 0.04);
+    --btn-hue: rgb(255 255 255 / 0.06);
   }
 
   .bi-count {
@@ -3081,17 +3073,18 @@
   .bb-stats-n {
     color: var(--ink);
     font-family: var(--font-display);
-    font-size: clamp(64px, 30cqi, 96px);
-    font-weight: 700;
-    line-height: 0.9;
-    letter-spacing: -0.06em;
+    font-size: var(--t-figure-hero-size);
+    font-weight: var(--w-bold);
+    line-height: var(--t-figure-hero-lh);
+    letter-spacing: var(--t-figure-hero-track);
     font-variant-numeric: tabular-nums;
   }
 
   .bb-stats-unit {
     color: var(--muted);
-    font-size: 17px;
-    font-weight: 600;
+    font-size: var(--t-headline-size);
+    letter-spacing: var(--t-headline-track);
+    font-weight: var(--t-headline-weight);
   }
 
   /* The guides by cluster, in the cluster hues. */
@@ -3133,8 +3126,9 @@
     gap: 12px;
     padding: 8px 0;
     border-top: 1px solid var(--line);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   .bb-stats-list dt {
@@ -3144,7 +3138,7 @@
   .bb-stats-list dd {
     margin: 0;
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     font-variant-numeric: tabular-nums;
   }
 
@@ -3179,18 +3173,19 @@
   .bb-cta-title {
     margin: 0;
     color: var(--ink);
-    font-size: 21px;
-    font-weight: 600;
-    line-height: 26px;
-    letter-spacing: -0.02em;
+    font-size: var(--t-card-title-size);
+    font-weight: var(--t-card-title-weight);
+    line-height: var(--t-card-title-lh);
+    letter-spacing: var(--t-card-title-track);
     text-wrap: balance;
   }
 
   .bb-cta-body {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bb-cta-actions {
@@ -3211,8 +3206,9 @@
     }
 
     .bb-cta-title {
-      font-size: 26px;
-      line-height: 31px;
+      font-size: var(--t-title1-size);
+      letter-spacing: var(--t-title1-track);
+      line-height: var(--t-title1-lh);
     }
 
     .bb-cta-actions {
@@ -3237,10 +3233,10 @@
 
   .bb-empty-title {
     margin: 0;
-    font-size: 22px;
-    font-weight: 600;
-    line-height: 28px;
-    letter-spacing: -0.02em;
+    font-size: var(--t-title2-size);
+    font-weight: var(--t-title2-weight);
+    line-height: var(--t-title2-lh);
+    letter-spacing: var(--t-title2-track);
   }
 
   /* ---------- Related posts on a post page ---------- */

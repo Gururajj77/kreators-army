@@ -69,9 +69,10 @@
   .s-train-win {
     fill: var(--st-train-win);
   }
+  /* Round 16: softer, and (scripts/street-art.mjs) about a third as many, a size smaller. */
   .street[data-variant='skyline'] .s-far-lit {
     fill: #fbd43f;
-    opacity: calc(var(--st-far-lit-o) * 0.5);
+    opacity: calc(var(--st-far-lit-o) * 0.4);
   }
   .street[data-variant='skyline'] .s-train-win {
     opacity: 0.8;

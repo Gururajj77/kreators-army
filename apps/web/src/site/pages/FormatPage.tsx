@@ -10,6 +10,7 @@ import { Cta, PrimaryCta, Reveal, whenSeen } from '../../components/ui';
 import { VideoTile, useVideoPlayer } from '../../components/video';
 import { IDEAS_CAPTION, formatVideos, type CastLineKey, type FormatPageContent, type FormatSlug } from '../../lib/content';
 import { useVideos } from '../../lib/queries';
+import { TextArrow } from '../../components/TextArrow';
 
 // What Founders, Events and Retail share. Only the small parts: each page owns its own layout.
 
@@ -39,7 +40,7 @@ export function FormatTitle({ content }: { content: FormatPageContent }): ReactN
 export function FormatActions({ content }: { content: FormatPageContent }) {
   return (
     <>
-      <PrimaryCta size="lg" magnet intent={{ format: formatSlug(content) }} />
+      <PrimaryCta size="lg" intent={{ format: formatSlug(content) }} />
       <Cta to="/video-library" kind="ghost" size="lg" arrow>
         See the work
       </Cta>
@@ -97,7 +98,7 @@ export function FormatIdeas({ content }: { content: FormatPageContent }) {
         <p className="fmt-ideas-caption">
           {IDEAS_CAPTION}{' '}
           <Link to="/how-we-work" className="fmt-ideas-link">
-            → How we work
+            <TextArrow lead />How we work
           </Link>
         </p>
       </div>

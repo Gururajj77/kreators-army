@@ -24,10 +24,10 @@ const ART: Record<Mechanism, ReactNode> = {
     <g>
       <rect x="4" y="12" width="32" height="16" rx="8" {...S} />
       <rect className="d-tone d-ab-thumb" x="6" y="14" width="14" height="12" rx="6" />
-      <text className="d-ab-txt" x="13" y="23.4" textAnchor="middle">
+      <text className="d-ab-txt" x="13" y="23.9" textAnchor="middle">
         A
       </text>
-      <text className="d-ab-txt" x="27" y="23.4" textAnchor="middle">
+      <text className="d-ab-txt" x="27" y="23.9" textAnchor="middle">
         B
       </text>
     </g>

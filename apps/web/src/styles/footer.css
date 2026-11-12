@@ -404,9 +404,9 @@
     max-width: 440px;
     margin: 14px auto 0;
     color: var(--ft-soft);
-    font-size: 17px;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   /* The ring's place keeps its height while the posters load; it folds away when there are too few to make a ring. --cring-h is the ring's
@@ -472,7 +472,7 @@
     color: #ffffff;
     font-family: var(--font-display);
     font-size: 10.8cqw;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     line-height: 1.12;
     letter-spacing: -0.015em;
     text-align: left;
@@ -522,14 +522,7 @@
 
   /* The sheet's own hairlines (white on the dark glass, ink on the pearl). */
   .ft .btn-ghost {
-    box-shadow: inset 0 0 0 1.5px rgb(var(--ft-hair) / 0.28);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .ft .btn-ghost:hover {
-      background: rgb(var(--ft-hair) / 0.1);
-      box-shadow: inset 0 0 0 1.5px rgb(var(--ft-hair) / 0.5);
-    }
+    --liq: rgb(var(--ft-hair) / 0.12);
   }
 
   .ft-reach {
@@ -557,7 +550,7 @@
   .ft-parent {
     gap: 10px;
     color: var(--ft-link);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .ft-parent-logo {
@@ -588,9 +581,9 @@
     min-height: 32px;
     margin: 0;
     color: var(--ft-soft);
-    font-size: 16px;
-    line-height: 22px;
-    letter-spacing: -0.01em;
+    font-size: var(--t-callout-size);
+    line-height: var(--t-callout-lh);
+    letter-spacing: var(--t-callout-track);
   }
 
   .ft-socials {
@@ -661,15 +654,22 @@
     column-gap: var(--gap);
   }
 
+  /* (font16) The column heads read clearly above their links (the founder: "more boldly"): full-strength ink, headline size (17/21, one step over
+     the 16 px links), weight 650 in the light footer and 600 in the dark one (50 lighter on dark, as every weight). The one place the site sets
+     above bold: a heading over a list of plain links needs the contrast in weight, not in size or colour. */
   .ft-group-title {
-    margin: 0 0 8px;
-    color: var(--ft-soft);
+    margin: 0 0 4px;
+    color: var(--ft-title);
     font-family: var(--font-sans);
-    font-size: 14px;
+    font-size: var(--t-headline-size);
     font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
     transition: color var(--dur-hover) ease;
+  }
+
+  :root:not([data-theme='dark']) .ft-group-title {
+    font-weight: 650;
   }
 
   .ft-group ul {
@@ -684,9 +684,9 @@
     align-items: center;
     min-height: 44px;
     color: inherit;
-    font-size: 16px;
-    line-height: 22px;
-    letter-spacing: -0.01em;
+    font-size: var(--t-callout-size);
+    line-height: var(--t-callout-lh);
+    letter-spacing: var(--t-callout-track);
     text-decoration: none;
     white-space: nowrap;
     transition: color var(--dur-hover) ease;
@@ -747,9 +747,9 @@
     background: linear-gradient(90deg, transparent, rgb(var(--ft-hair) / 0.038) 18%, rgb(var(--ft-hair) / 0.038) 82%, transparent) top / 100% 1px
       no-repeat;
     color: var(--ft-soft);
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
   }
 
   .ft-legal {
@@ -779,8 +779,10 @@
     gap: 0 24px;
   }
 
+  /* The legal links take the bar's whole step (14/19 here, 12/15 on phones), not the callout's 20 px line. */
   .ft-bar-end .ft-link {
     font-size: inherit;
+    line-height: inherit;
   }
 
   .ft-pause {
@@ -1203,8 +1205,9 @@
     }
 
     .ft-copy {
-      font-size: 15px;
-      line-height: 21px;
+      font-size: var(--t-subhead-size);
+      letter-spacing: var(--t-subhead-track);
+      line-height: var(--t-subhead-lh);
     }
 
     .ft-contacts {
@@ -1213,7 +1216,9 @@
     }
 
     .ft-city {
-      font-size: 15px;
+      font-size: var(--t-subhead-size);
+      line-height: var(--t-subhead-lh);
+      letter-spacing: var(--t-subhead-track);
     }
 
     .ft-nav {
@@ -1221,8 +1226,17 @@
       row-gap: 16px;
     }
 
+    /* (typefix17) The subhead pair, 15/19, not 15 on the callout's 20; the 44 px rows keep their height. */
     .ft-link {
-      font-size: 15px;
+      font-size: var(--t-subhead-size);
+      line-height: var(--t-subhead-lh);
+      letter-spacing: var(--t-subhead-track);
+    }
+
+    .ft-bar-end .ft-link {
+      font-size: inherit;
+      line-height: inherit;
+      letter-spacing: inherit;
     }
 
     .ft-bar {
@@ -1230,14 +1244,16 @@
       align-items: flex-start;
       gap: 0;
       padding-block: 0;
-      font-size: 12px;
-      line-height: 16px;
-      letter-spacing: 0;
+      font-size: var(--t-caption-size);
+      line-height: var(--t-caption-lh);
+      letter-spacing: var(--t-caption-track);
     }
 
     .ft-bar-end {
       gap: 0 20px;
-      font-size: 14px;
+      font-size: var(--t-card-prose-size);
+      line-height: var(--t-card-prose-lh);
+      letter-spacing: var(--t-card-prose-track);
     }
 
     .ft-stage {
@@ -1404,10 +1420,11 @@
     --st-hz: #8f93c4;
     --st-hz2: #9a9dcb;
     --st-hz-line: #8f93c4;
-    --st-hz-lit: #9a9dcb;
+    /* Round 16: no lit windows by day, in the far city and the middle distance too (they read as dots). */
+    --st-hz-lit: transparent;
     --st-md: #9a9cc6;
     --st-md2: #a3a5cc;
-    --st-md-lit: #a3a5cc;
+    --st-md-lit: transparent;
   }
 
   /* The day sky: a pale lavender haze rising from the base, as the skyline's own. */

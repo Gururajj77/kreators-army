@@ -179,6 +179,31 @@ describe('rate limit', () => {
     expect((await post('/api/contact/draft', step1, '198.51.100.99')).status).toBe(201);
   });
 
+  it('(save16) a long session saving on every press stays well inside the cap: Back and Edit saves keep the furthest step, and the send completes the same row', async () => {
+    // One careful pass (about 30 saves), a second pass from the review's Edit links and Back (about 20), and a few tab switches.
+    const pass: [number, number][] = [];
+    for (let s = 1; s <= 5; s++) for (let k = 0; k < 6; k++) pass.push([s, Math.min(6, s + (k === 5 ? 1 : 0))]);
+    for (let s = 5; s >= 1; s--) for (let k = 0; k < 4; k++) pass.push([s === 5 && k === 0 ? 6 : s, 6]);
+    for (let k = 0; k < 10; k++) pass.push([6, 6]);
+    expect(pass.length).toBe(60);
+    for (const [i, [at, reached]] of pass.entries()) {
+      const res = await post('/api/contact/draft', { ...step1, step: at, reached, message: `save ${i}` });
+      expect(res.status, `save ${i}`).toBe(i === 0 ? 201 : 200);
+    }
+    expect(MAX_DRAFT_SAVES - pass.length).toBeGreaterThanOrEqual(30);
+    let row = rows()[0]!;
+    expect(row).toMatchObject({ completion: 'partial', saves: 60, step_reached: 6, message: 'save 59' });
+    expect(Object.keys(JSON.parse(row.steps as string)).sort()).toEqual(['1', '2', '3', '4', '5', '6']);
+    // Back from step 3 after all that: the furthest step stays 6.
+    await post('/api/contact/draft', { ...step1, step: 3, reached: 6 });
+    expect(rows()[0]).toMatchObject({ step_reached: 6, saves: 61 });
+    expect((await post('/api/contact', { kind: 'trial', draftId: DRAFT, name: 'Priya', email: 'priya@example.com', phone: '', brand: 'Chai Co', service: '', message: 'done' })).status).toBe(201);
+    const all = rows();
+    expect(all).toHaveLength(1);
+    row = all[0]!;
+    expect(row).toMatchObject({ completion: 'complete', message: 'done', step_reached: 6 });
+  });
+
   it(`one draft takes at most ${MAX_DRAFT_SAVES} saves`, async () => {
     await post('/api/contact/draft', step1);
     d1.db.exec(`UPDATE leads SET saves = ${MAX_DRAFT_SAVES}`);

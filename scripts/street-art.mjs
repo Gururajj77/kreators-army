@@ -36,6 +36,20 @@ const rnd = () => {
 const r1 = (n) => Math.round(n * 10) / 10;
 let uid = 0;
 
+// Round 16 ("reduce lighting dots in footer"): the footer's lit windows are thinned after they are drawn, with a generator of their own, so rnd()
+// runs exactly as before and every block, tank and tower keeps its place. A window survives only at or below `low` (the canvas's lower rows,
+// near the skyline, never up behind the links) and then with chance `keep`.
+function thin(wins, { keep, low, seed: s0 }) {
+  let t0 = s0;
+  const r = () => {
+    t0 = (t0 + 0x6d2b79f5) | 0;
+    let t = Math.imul(t0 ^ (t0 >>> 15), 1 | t0);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  return wins.filter((w) => r() < keep && w.y >= low).map((w) => w.svg).join('');
+}
+
 // ---------- far: a low skyline, water tanks, the mobile tower, the metro viaduct, a soft tree line ----------
 function far() {
   seed = 11;
@@ -115,14 +129,14 @@ function skyline() {
     if (x >= O + 760) {
       for (let wy = top + 12; wy < BACK - 40; wy += 16) {
         for (let wx = x + 8; wx < x + w - 10; wx += 13) {
-          if (rnd() > 0.78 && wx - x < 120) lits.push(`<rect x="${r1(wx)}" y="${r1(wy)}" width="5" height="6" rx="1"/>`);
+          if (rnd() > 0.78 && wx - x < 120) lits.push({ y: wy, svg: `<rect x="${r1(wx)}" y="${r1(wy)}" width="4" height="5" rx="1"/>` });
         }
       }
     }
     x += w + 2 + rnd() * 10;
   }
   s += `<path class="s-far-line" transform="translate(480 0)" d="M884 196 L896 78 L908 196 M887 170 L905 170 M890 140 L902 140 M893 110 L899 110 M887 170 L902 140 M905 170 L890 140" fill="none" stroke-width="1.6"/>`;
-  s += `<g class="s-far-lit">${lits.join('')}</g>`;
+  s += `<g class="s-far-lit">${thin(lits, LIT_SKYLINE)}</g>`;
   s += `<rect class="s-far2" x="-10" y="244" width="${W + 20}" height="9"/>`;
   for (let px = 40; px < W; px += 132) s += `<rect class="s-far2" x="${px}" y="252" width="9" height="${BACK - 252}"/><rect class="s-far2" x="${px - 5}" y="252" width="19" height="4"/>`;
   let train = '';
@@ -140,6 +154,12 @@ function skyline() {
 // distant haze that fades out toward the buttons, the nearer blocks lower. Windows are tiny, sparse and only a few are lit.
 const HAZE_H = 900;
 const MIDS_H = 600;
+// Round 16: how many lit windows each footer layer keeps (see thin()). The skyline (behind the wordmark) keeps about a third; the middle distance
+// only its lower rows (y 400 of 600: below the legal row at every width); the far city only its lowest rows (y 790 of 900: behind the wordmark,
+// never behind the links or the contacts). About a quarter of round 15's 514 windows in all, a size smaller.
+const LIT_SKYLINE = { keep: 0.34, low: 0, seed: 1601 };
+const LIT_MIDS = { keep: 0.42, low: 400, seed: 1602 };
+const LIT_HAZE = { keep: 0.7, low: 790, seed: 1603 };
 const layerH = (cls, h, body) =>
   `<svg class="street-layer ${cls}" viewBox="0 0 ${W} ${h}" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">${body}</svg>`;
 
@@ -149,7 +169,7 @@ function skylineHaze() {
   const g = (x, c, w) => Math.exp(-(((x - c) / w) ** 2));
   const env = (x) => 330 + 520 * g(x, 1560, 300) + 380 * g(x, 760, 230) + 300 * g(x, 2120, 200) + 200 * g(x, 300, 220);
   let s = '';
-  let lit = '';
+  const lit = [];
   let x = -20;
   let k = 0;
   while (x < W + 20) {
@@ -175,7 +195,7 @@ function skylineHaze() {
     // A loose grid of windows; a few lit.
     for (let wy = top + 14; wy < HAZE_H - 30; wy += 22) {
       for (let wx = x + 6; wx < x + w - 8; wx += 11) {
-        if (rnd() > 0.93) lit += `<rect x="${r1(wx)}" y="${r1(wy)}" width="3.5" height="5"/>`;
+        if (rnd() > 0.93) lit.push({ y: wy, svg: `<rect x="${r1(wx)}" y="${r1(wy)}" width="3" height="4"/>` });
       }
     }
     x += w + 1 + rnd() * 8;
@@ -191,7 +211,7 @@ function skylineHaze() {
     const a = arm > 0 ? cx - 40 : cx + 40;
     s += `<path class="s-hz-line" d="M${cx} 900 L${cx} ${cy} M${a} ${cy} L${cx + arm} ${cy} M${cx} ${cy - 30} L${a} ${cy} M${cx} ${cy - 30} L${cx + arm * 0.8} ${cy} M${cx + arm * 0.7} ${cy} L${cx + arm * 0.7} ${cy + 60}" fill="none" stroke-width="2.4"/>`;
   }
-  s += `<g class="s-hz-lit">${lit}</g>`;
+  s += `<g class="s-hz-lit">${thin(lit, LIT_HAZE)}</g>`;
   return s;
 }
 
@@ -199,7 +219,7 @@ function skylineHaze() {
 function skylineMids() {
   seed = 31;
   let s = '';
-  let lit = '';
+  const lit = [];
   let x = -20;
   let k = 0;
   while (x < W + 20) {
@@ -219,14 +239,14 @@ function skylineMids() {
     }
     for (let wy = top + 12; wy < MIDS_H - 40; wy += 18) {
       for (let wx = x + 7; wx < x + w - 9; wx += 13) {
-        if (rnd() > 0.9) lit += `<rect x="${r1(wx)}" y="${r1(wy)}" width="4.5" height="6" rx="1"/>`;
+        if (rnd() > 0.9) lit.push({ y: wy, svg: `<rect x="${r1(wx)}" y="${r1(wy)}" width="4" height="5" rx="1"/>` });
       }
     }
     x += w + 2 + rnd() * 14;
   }
   // a soft tree line at the base
   for (let tx = -30; tx < W + 40; tx += 30 + rnd() * 24) s += `<circle class="s-md2" cx="${r1(tx)}" cy="${r1(MIDS_H - 18 - rnd() * 14)}" r="${r1(16 + rnd() * 14)}"/>`;
-  s += `<g class="s-md-lit">${lit}</g>`;
+  s += `<g class="s-md-lit">${thin(lit, LIT_MIDS)}</g>`;
   return s;
 }
 

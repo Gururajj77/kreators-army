@@ -74,8 +74,7 @@
     display: block;
     font-family: var(--font-display);
     font-size: 11cqw;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
+    font-weight: var(--w-semibold);
     line-height: 1.08;
     letter-spacing: -0.012em;
     text-align: center;
@@ -454,20 +453,19 @@
 
   .player-index {
     color: var(--muted);
-    font-size: 14px;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
     white-space: nowrap;
   }
 
   .player-title {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 32px;
-    letter-spacing: -0.01em;
+    font-size: var(--t-title1-size);
+    font-weight: var(--t-title1-weight);
+    line-height: var(--t-title1-lh);
+    letter-spacing: var(--t-title1-track);
     text-wrap: balance;
   }
 
@@ -480,15 +478,17 @@
 
   .player-facts dt {
     color: var(--muted);
-    font-size: 14px;
-    line-height: 18px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   .player-facts dd {
     margin: 2px 0 0;
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 22px;
+    font-size: var(--t-headline-size);
+    letter-spacing: var(--t-headline-track);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
   }
 
   .player-views {
@@ -497,10 +497,9 @@
 
   .player-views dd {
     font-family: var(--font-display);
-    font-size: 48px;
-    font-variation-settings: 'opsz' 32;
-    line-height: 52px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-figure-lg-size);
+    line-height: var(--t-figure-lg-lh);
+    letter-spacing: var(--t-figure-lg-track);
     font-variant-numeric: tabular-nums;
   }
 
@@ -515,10 +514,10 @@
   .player-next h3 {
     margin: 0 0 4px 8px;
     color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
   }
 
   .player-next-row {
@@ -573,10 +572,10 @@
   .player-next-title {
     display: -webkit-box;
     overflow: hidden;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -584,8 +583,9 @@
 
   .player-next-brand {
     color: var(--muted);
-    font-size: 13px;
-    line-height: 17px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    line-height: var(--t-footnote-lh);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -624,8 +624,9 @@
   .player-ask {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .player-cta {
@@ -650,8 +651,9 @@
 
   .player-page[data-shape='landscape'] .player-title {
     grid-column: 1;
-    font-size: 21px;
-    line-height: 25px;
+    font-size: var(--t-row-title-size);
+    letter-spacing: var(--t-row-title-track);
+    line-height: var(--t-row-title-lh);
   }
 
   .player-page[data-shape='landscape'] .player-facts {
@@ -663,9 +665,9 @@
   }
 
   .player-page[data-shape='landscape'] .player-views dd {
-    font-size: 17px;
-    line-height: 22px;
-    letter-spacing: normal;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   .player-page[data-shape='landscape'] .player-actions {
@@ -687,13 +689,15 @@
   /* Short laptop windows: the words shrink before the picture does. */
   @media (max-height: 640px) and (min-width: 735px) {
     .player-title {
-      font-size: 21px;
-      line-height: 25px;
+      font-size: var(--t-card-title-size);
+      letter-spacing: var(--t-card-title-track);
+      line-height: var(--t-card-title-lh);
     }
 
     .player-views dd {
-      font-size: 28px;
-      line-height: 32px;
+      font-size: var(--t-title1-size);
+      letter-spacing: var(--t-title1-track);
+      line-height: var(--t-title1-lh);
     }
 
     .player-ask {
@@ -798,9 +802,9 @@
       grid-column: 1 / -1;
       display: -webkit-box;
       overflow: hidden;
-      font-size: 17px;
-      line-height: 22px;
-      letter-spacing: -0.012em;
+      font-size: var(--t-body-size);
+      line-height: var(--t-body-lh);
+      letter-spacing: var(--t-body-track);
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
       line-clamp: 2;
@@ -828,16 +832,17 @@
     }
 
     .player-views dt {
-      font-size: 13px;
+      font-size: var(--t-footnote-size);
+      letter-spacing: var(--t-footnote-track);
       text-transform: lowercase;
     }
 
     .player-views dd,
     .player-page[data-shape='landscape'] .player-views dd {
       margin: 0;
-      font-size: 15px;
-      line-height: 20px;
-      letter-spacing: -0.009em;
+      font-size: var(--t-subhead-size);
+      line-height: var(--t-subhead-lh);
+      letter-spacing: var(--t-subhead-track);
     }
 
     .player-actions,
@@ -861,7 +866,8 @@
       width: auto;
       min-width: 0;
       padding-inline: 16px;
-      font-size: 16px;
+      font-size: var(--t-callout-size);
+      letter-spacing: var(--t-callout-track);
     }
   }
 
@@ -967,9 +973,10 @@
     box-shadow:
       0 0 0 1px rgb(14 14 16 / 0.08),
       0 6px 14px -6px rgb(24 20 40 / 0.35);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 16px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     pointer-events: none;
@@ -980,8 +987,8 @@
   }
 
   .vsticker b {
-    font-size: 16px;
-    letter-spacing: -0.02em;
+    font-size: var(--t-callout-size);
+    letter-spacing: var(--t-callout-track);
   }
 
   :root[data-js]:not([data-still]) .vsticker[data-pop]:not([data-in]) {
@@ -1384,10 +1391,10 @@
     padding: 9px 16px 9px 12px;
     border-radius: var(--r-pill);
     color: #f5f3ee;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
     white-space: nowrap;
     opacity: 0;
     transform: translate(-50%, -50%);
@@ -1442,16 +1449,17 @@
     display: inline-flex;
     align-items: baseline;
     gap: 5px;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-card-prose-lh);
     white-space: nowrap;
   }
 
   .vdeck-count-n {
     display: inline-block;
-    font-size: 17px;
-    letter-spacing: -0.01em;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
   }
 
   .vdeck-steps {
@@ -1698,7 +1706,7 @@
     background: var(--g-sochu);
     color: #16131b;
     font-size: calc(var(--ring) * 0.34);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .story-ring-letter[data-tone='bolu'] {
@@ -1722,7 +1730,7 @@
   .story-ring-plus {
     color: var(--ink);
     font-size: calc(var(--ring) * 0.4);
-    font-weight: 400;
+    font-weight: var(--w-normal);
     line-height: 1;
   }
 
@@ -1756,8 +1764,9 @@
     display: block;
     max-width: 100%;
     overflow: clip;
-    font-size: 12px;
-    line-height: 16px;
+    font-size: var(--t-caption-size);
+    letter-spacing: var(--t-caption-track);
+    line-height: var(--t-caption-lh);
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1765,7 +1774,7 @@
 
   .story-ring[data-selected] .story-ring-caption {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .story-ring:is(a, button):focus-visible {
@@ -1839,7 +1848,8 @@
   .coverflow-count {
     min-width: 5ch;
     color: var(--muted);
-    font-size: 14px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
     font-variant-numeric: tabular-nums;
     text-align: center;
   }
@@ -1865,9 +1875,10 @@
     border-radius: var(--r-pill);
     background: color-mix(in oklab, currentColor 10%, transparent);
     color: inherit;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 19px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
     text-decoration: none;
     touch-action: manipulation;
     transition:
@@ -1907,8 +1918,9 @@
   .player-watch .watch-link {
     min-height: 40px;
     padding-block: 4px;
-    font-size: 14px;
-    line-height: 18px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   .player-watch .arrow-disc {
@@ -1941,10 +1953,10 @@
     max-width: 24ch;
     text-wrap: balance;
     margin: 0;
-    font-size: 19px;
-    font-weight: 600;
-    line-height: 24px;
-    letter-spacing: -0.01em;
+    font-size: var(--t-title3-size);
+    font-weight: var(--t-title3-weight);
+    line-height: var(--t-title3-lh);
+    letter-spacing: var(--t-title3-track);
   }
 
   .player-failed-links {

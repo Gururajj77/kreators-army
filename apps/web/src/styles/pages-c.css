@@ -86,9 +86,10 @@
 
   .reach-row > dt {
     color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-card-prose-lh);
   }
 
   .reach-row > dd {
@@ -104,10 +105,10 @@
     align-items: center;
     min-height: 44px;
     color: var(--ink);
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 22px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
     text-decoration: none;
     text-underline-offset: 3px;
     overflow-wrap: anywhere;
@@ -131,8 +132,9 @@
   .reach-city {
     margin: 2px 0 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   /* Round 13: wide enough that "WhatsApp / Call" stays one line instead of leaving "/ Call" on a second. */
@@ -153,7 +155,8 @@
     }
 
     .reach-link {
-      font-size: 16px;
+      font-size: var(--t-callout-size);
+      letter-spacing: var(--t-callout-track);
     }
 
     .reach-email {
@@ -187,9 +190,9 @@
     grid-template-columns: 28px minmax(0, 1fr);
     align-items: start;
     gap: 14px;
-    font-size: 17px;
-    line-height: 24px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   .contact-steps > li > p {
@@ -214,8 +217,9 @@
     border-radius: var(--r-pill);
     background: var(--sunken);
     color: var(--ink);
-    font-size: 13px;
-    font-weight: 600;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
@@ -227,9 +231,9 @@
 
   .contact-q-line {
     margin: 0;
-    font-size: 19px;
-    line-height: 28px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-lede-size);
+    line-height: var(--t-lede-lh);
+    letter-spacing: var(--t-lede-track);
   }
 
   /* Socials with the dock pop (M5g): in fast with a little bounce, out slow and clean. Neighbours do nothing. */
@@ -332,8 +336,6 @@
     display: grid;
     padding: 32px 36px 36px;
     border-radius: var(--r-tile);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   @media (max-width: 734px) {
@@ -400,24 +402,26 @@
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 6px;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .cf-opt {
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 18px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-normal);
+    line-height: var(--t-footnote-lh);
   }
 
   .cf-help {
     margin: -2px 0 8px;
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   .cf-input {
@@ -466,9 +470,9 @@
     gap: 6px;
     margin: 0;
     color: var(--accent);
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
   }
 
   .cf-err:not(:empty) {
@@ -502,14 +506,14 @@
     border-radius: var(--r-field);
     background: var(--sunken);
     color: var(--ink);
-    font-size: 15px;
-    line-height: 21px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
     animation: cf-in 180ms var(--ease-out) both;
   }
 
   .cf-alert b {
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .cf-alert-icon {
@@ -526,7 +530,7 @@
     display: inline-block;
     max-width: 100%;
     color: inherit;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     text-underline-offset: 2px;
     overflow-wrap: anywhere;
   }
@@ -559,9 +563,10 @@
   .bf-progress-label {
     margin: 0;
     color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-card-prose-lh);
     font-variant-numeric: tabular-nums;
   }
 
@@ -608,10 +613,10 @@
   .bf-title {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 600;
-    line-height: 32px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-title1-size);
+    font-weight: var(--t-title1-weight);
+    line-height: var(--t-title1-lh);
+    letter-spacing: var(--t-title1-track);
   }
 
   .bf-title:focus {
@@ -635,10 +640,10 @@
     display: block;
     margin: 0 0 12px;
     padding: 0;
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 23px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
   }
 
   /* Single-select cards: real radios. The chosen card gets an ink 2 px ring and a check badge that pops. */
@@ -658,10 +663,10 @@
     background: color-mix(in oklab, var(--sunken) 60%, var(--surface));
     box-shadow: inset 0 0 0 1.5px var(--line);
     cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 21px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-callout-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-callout-lh);
+    letter-spacing: var(--t-callout-track);
     touch-action: manipulation;
     transition:
       box-shadow var(--dur-hover) ease,
@@ -757,9 +762,9 @@
     min-height: 44px;
     padding-top: 11px;
     cursor: pointer;
-    font-size: 16px;
-    line-height: 22px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-callout-size);
+    line-height: var(--t-callout-lh);
+    letter-spacing: var(--t-callout-track);
   }
 
   .bf-check > input {
@@ -841,8 +846,9 @@
     color: var(--ink);
     cursor: pointer;
     font: inherit;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
     touch-action: manipulation;
     transition:
       box-shadow var(--dur-hover) ease,
@@ -859,21 +865,16 @@
     outline-offset: 2px;
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .bf-add:hover {
-      box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--ink) 40%, transparent);
-    }
-  }
-
   :root:not([data-still]) .bf-add:active {
     transform: scale(0.97);
   }
 
   .bf-five {
     margin: 4px 0 0;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
   }
 
   .bf-guide-field {
@@ -893,9 +894,10 @@
     gap: 12px;
     min-height: 44px;
     cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
     list-style: none;
   }
 
@@ -933,8 +935,9 @@
     color: var(--muted);
     cursor: pointer;
     font: inherit;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
     text-decoration: underline;
     text-decoration-color: color-mix(in oklab, currentColor 40%, transparent);
     text-underline-offset: 3px;
@@ -987,9 +990,10 @@
   .bf-rv-title {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
   }
 
   .bf-edit {
@@ -1002,8 +1006,9 @@
     color: var(--ink);
     cursor: pointer;
     font: inherit;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    font-weight: var(--w-semibold);
     touch-action: manipulation;
     transition:
       box-shadow var(--dur-hover) ease,
@@ -1013,12 +1018,6 @@
   .bf-edit:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .bf-edit:hover {
-      box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 40%, transparent);
-    }
   }
 
   :root:not([data-still]) .bf-edit:active {
@@ -1039,22 +1038,25 @@
 
   .bf-rv-row > dt {
     color: var(--muted);
-    font-size: 14px;
-    line-height: 21px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   .bf-rv-row > dd {
     min-width: 0;
     margin: 0;
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
     overflow-wrap: anywhere;
   }
 
   .bf-rv-sub {
     display: block;
     color: var(--muted);
-    font-size: 14px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
   }
 
   .bf-rv-links {
@@ -1067,15 +1069,17 @@
 
   .bf-rv-text {
     margin: 6px 0 0;
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bf-rv-not {
     margin: 6px 0 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .bf-note {
@@ -1083,8 +1087,9 @@
     padding: 14px 16px;
     border-radius: var(--r-field);
     background: var(--sunken);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   @media (max-width: 734px) {
@@ -1097,8 +1102,9 @@
     }
 
     .bf-title {
-      font-size: 24px;
-      line-height: 28px;
+      font-size: var(--t-title2-size);
+      letter-spacing: var(--t-title2-track);
+      line-height: var(--t-title2-lh);
     }
 
     .bf-rv-row {
@@ -1290,8 +1296,9 @@
 
   .faq-index-n {
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 400;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-normal);
     font-variant-numeric: tabular-nums;
   }
 
@@ -1314,11 +1321,8 @@
   .faq-chips .chip-opt {
     min-height: 40px;
     padding: 0 14px;
-    font-size: 14px;
-  }
-
-  .faq-chips .chip-opt:not([data-on]) {
-    box-shadow: none;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
   }
 
   /* 44 px tap targets on phones (A7). */
@@ -1422,8 +1426,6 @@
   .qa-plate {
     padding: 6px;
     border-radius: var(--r-tile);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .qa-plate .faqi {
@@ -1446,7 +1448,7 @@
 
   .faq-more a {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     text-underline-offset: 2px;
     overflow-wrap: anywhere;
   }
@@ -1550,7 +1552,7 @@
     align-items: center;
     gap: 6px;
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .story-go > svg {
@@ -1635,16 +1637,16 @@
     opacity: 0.78;
   }
 
-  /* ---------- Reading: one measure for posts, answers and legal. 31em of this Inter averages 65 characters a line (measured; 65ch would be 80, because a zero is wider than the average letter). ---------- */
+  /* ---------- Reading: one measure for posts, answers and legal. 31em of Google Sans Flex averages about 64 characters a line (measured; 65ch would be 80, because a zero is wider than the average letter). ---------- */
   .read,
   .legal {
     --read-max: 31em;
   }
 
   .read {
-    font-size: 19px;
-    line-height: 31px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-article-size);
+    line-height: var(--t-article-lh);
+    letter-spacing: var(--t-article-track);
     width: var(--content-w);
     max-width: var(--read-max);
     margin-inline: auto;
@@ -1663,9 +1665,9 @@
     min-height: 44px;
     margin-bottom: 14px;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 20px;
-    letter-spacing: -0.009em;
+    font-size: var(--t-subhead-size);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
     text-decoration: none;
     transition: color var(--dur-hover) ease;
   }
@@ -1679,9 +1681,9 @@
   .read-lead {
     margin: 16px 0 0;
     color: var(--muted);
-    font-size: 21px;
-    line-height: 29px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-lede-size);
+    line-height: var(--t-lede-lh);
+    letter-spacing: var(--t-lede-track);
     text-wrap: balance;
   }
 
@@ -1693,24 +1695,24 @@
   .read-eyebrow {
     margin: 0 0 8px;
     color: var(--muted);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .read-answer {
     margin: 24px 0 0;
-    font-size: 21px;
-    line-height: 32px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-lede-size);
+    line-height: var(--t-lede-lh);
+    letter-spacing: var(--t-lede-track);
     text-wrap: balance;
   }
 
   .read-prose h2 {
     margin: 2em 0 0.5em;
     font-family: var(--font-display);
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 30px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-title2-size);
+    font-weight: var(--t-title2-weight);
+    line-height: var(--t-title2-lh);
+    letter-spacing: var(--t-title2-track);
   }
 
   .read-prose p {
@@ -1724,7 +1726,8 @@
     text-wrap: balance;
   }
 
-  .read-prose a {
+  /* Not a button: a .btn in a post (the mid-post action) keeps its own label colour (white on the red). */
+  .read-prose a:not(.btn) {
     color: inherit;
     text-underline-offset: 2px;
   }
@@ -1811,9 +1814,9 @@
     min-height: 56px;
     padding-block: 12px;
     color: var(--ink);
-    font-size: 17px;
-    line-height: 24px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
     text-decoration: none;
   }
 
@@ -1865,14 +1868,10 @@
 
   @media (max-width: 734px) {
     .read {
-      font-size: 17px;
-      line-height: 28px;
+      font-size: var(--t-article-size);
+      letter-spacing: var(--t-article-track);
+      line-height: var(--t-article-lh);
       padding-top: calc(var(--nav-offset) + 28px);
-    }
-
-    .read-answer {
-      font-size: 19px;
-      line-height: 29px;
     }
 
     .next-cover {
@@ -1896,8 +1895,9 @@
     gap: 28px;
     padding-top: calc(var(--nav-offset) + 56px);
     padding-bottom: 96px;
-    font-size: 17px;
-    line-height: 28px;
+    font-size: var(--t-article-size);
+    letter-spacing: var(--t-article-track);
+    line-height: var(--t-article-lh);
   }
 
   .legal-head {
@@ -1921,8 +1921,9 @@
 
   .legal .read-prose h2 {
     margin: 1.8em 0 0.35em;
-    font-size: 21px;
-    line-height: 26px;
+    font-size: var(--t-row-title-size);
+    letter-spacing: var(--t-row-title-track);
+    line-height: var(--t-row-title-lh);
   }
 
   .legal section {
@@ -1932,7 +1933,7 @@
   .legal-index-title {
     margin: 0 0 8px;
     color: var(--muted);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .legal-index-link {
@@ -1940,16 +1941,16 @@
     align-items: center;
     min-height: 44px;
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
     text-decoration: none;
     transition: color var(--dur-hover) ease;
   }
 
   .legal-index-link[aria-current='true'] {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   @media (hover: hover) and (pointer: fine) {

@@ -10,6 +10,7 @@ import { Lock, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { ChipRail } from '../components/tabs';
+import { withArrows } from '../components/TextArrow';
 import { Seo } from '../components/ui';
 import '../styles/admin.css';
 import { AdminApiError, adminApi, enableSessionSheet, keys, useAdminUi } from './api';
@@ -324,7 +325,7 @@ function ShortcutsDialog({ onClose }: { onClose: () => void }) {
           {rows.map(([k, v]) => (
             <div key={k}>
               <dt>
-                <kbd>{k}</kbd>
+                <kbd>{withArrows(k)}</kbd>
               </dt>
               <dd>{v}</dd>
             </div>

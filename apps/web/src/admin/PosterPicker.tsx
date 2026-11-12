@@ -3,6 +3,7 @@
 // drawer, which uploads it at once for a saved video or after create for a new one. "Upload an image" runs the same encoder. "Remove poster" is V10.
 import { Ellipsis, ImagePlus, ScanLine } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
+import { withArrows } from '../components/TextArrow';
 import { MenuButton } from './bits';
 import { captureFrame, encodeImageFile, PosterError, posterNote, seekTo, type EncodedPoster } from './posterEncode';
 
@@ -153,7 +154,7 @@ export function PosterPicker({
             aria-describedby={`${id}-scrub-keys`}
           />
           <p id={`${id}-scrub-keys`} className="adm-help">
-            ← → one frame · Shift for a second
+            {withArrows('← → one frame · Shift for a second')}
           </p>
           <div className="adm-poster-actions">
             <button type="button" className="btn btn-sm btn-ink" onClick={useFrame} disabled={working || busy}>

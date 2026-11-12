@@ -200,8 +200,8 @@ export function clear() {
 }
 
 // ---------- Saved as they go (form7) ----------
-// Once step 1 has a valid email or phone, each completed step (and leaving the page) sends the answers so far to
-// /api/contact/draft, which keeps one partial lead per form session. The session's random id, and what was last sent so
+// Once step 1 has a valid email or phone, every button press in the form, each choice (after a short pause), a field left,
+// and leaving the page send the answers so far to /api/contact/draft (save16), which keeps one partial lead per form session. The session's random id, and what was last sent so
 // nothing is sent twice, live in sessionStorage 'kreators-brief-draft'. Sending the form completes that same lead.
 
 const DRAFT_KEY = 'kreators-brief-draft';

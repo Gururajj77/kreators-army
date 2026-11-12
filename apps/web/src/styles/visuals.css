@@ -29,10 +29,10 @@
     background: var(--surface);
     box-shadow: var(--plate-edge);
     color: var(--muted);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 19px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-subhead-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
     transition:
       color 200ms ease,
       transform var(--spring-bouncy);
@@ -62,7 +62,8 @@
     border-radius: 50%;
     background: var(--sunken);
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--t-caption-size);
+    letter-spacing: var(--t-caption-track);
     font-variant-numeric: tabular-nums;
     transition:
       background-color 200ms ease,
@@ -116,14 +117,16 @@
       min-height: 36px;
       padding: 6px 12px 6px 6px;
       gap: 6px;
-      font-size: 13px;
-      line-height: 17px;
+      font-size: var(--t-footnote-size);
+      letter-spacing: var(--t-footnote-track);
+      line-height: var(--t-footnote-lh);
     }
 
     .chain-num {
       width: 22px;
       height: 22px;
-      font-size: 11px;
+      font-size: var(--t-caption2-size);
+      letter-spacing: var(--t-caption2-track);
     }
   }
 
@@ -166,9 +169,10 @@
     --clip-lit-ink: var(--ink);
     --rule: var(--line);
     --plate-bg: var(--surface);
-    background: var(--surface);
+    /* (cards16) Liquid glass (components.css): set here too, because the base .etl-plate's ink fill would outrank the shared :where() list. */
+    background: var(--lg-sheen), var(--lg-fill);
+    box-shadow: var(--lg-edge), var(--lg-halo), var(--lg-drop);
     color: var(--ink);
-    box-shadow: var(--plate-edge);
   }
 
   /* Something standing on the plate's top edge, right: a character with its bubble. */
@@ -184,11 +188,11 @@
     height: 26px;
     border-bottom: 1px solid var(--rule);
     color: var(--clip-ink);
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 14px;
+    font-size: var(--t-caption2-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-caption2-lh);
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--t-caption2-track);
   }
 
   /* Each timecode sits over its tick: the first and last are held inside the plate. */
@@ -304,9 +308,10 @@
     position: relative;
     min-width: 0;
     overflow: hidden;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 17px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -378,8 +383,9 @@
     border-radius: 50%;
     background: var(--clip-bg);
     color: var(--clip-ink);
-    font-size: 11px;
-    font-weight: 600;
+    font-size: var(--t-caption2-size);
+    letter-spacing: var(--t-caption2-track);
+    font-weight: var(--w-semibold);
     font-variant-numeric: tabular-nums;
     transition:
       background-color 200ms ease,
@@ -389,25 +395,27 @@
   .etl-step-name {
     margin: 0;
     color: var(--clip-ink);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-subhead-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
     transition: color 200ms ease;
   }
 
   .etl-step-body {
     margin: 0;
     color: var(--clip-ink);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
     /* Narrow columns run past six lines, where balance stops working: pretty, and the last two words tied (tieLastSpan). */
     text-wrap-style: pretty;
   }
 
   .etl[data-n-large] .etl-step-body {
-    font-size: 13px;
-    line-height: 18px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    line-height: var(--t-footnote-lh);
   }
 
   .etl-step[data-lit] .etl-step-name {
@@ -522,13 +530,15 @@
     }
 
     .etl-step-name {
-      font-size: 17px;
-      line-height: 22px;
+      font-size: var(--t-headline-size);
+      letter-spacing: var(--t-headline-track);
+      line-height: var(--t-headline-lh);
     }
 
     .etl-step-body {
-      font-size: 15px;
-      line-height: 21px;
+      font-size: var(--t-subhead-size);
+      letter-spacing: var(--t-subhead-track);
+      line-height: var(--t-subhead-lh);
     }
   }
 }

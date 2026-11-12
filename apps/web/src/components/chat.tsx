@@ -5,6 +5,7 @@ import { bubbleToken, Character, placeBubble, type CastId, type CharacterHandle,
 import { BODY_COLOR, RestFace, insertCoreDefs } from '../cast/rest';
 import { CAST_LINES, castById, faqBySlug, type CastLineKey } from '../lib/content';
 import { motionOk } from '../lib/motionOk';
+import { TextArrow } from './TextArrow';
 import { VideoFrame } from './frames';
 import type { ChainHandle } from './visuals';
 
@@ -515,7 +516,7 @@ export function FaqChat({ slugs, foot, className }: FaqChatProps) {
     at(FAQ_BEAT.you + FAQ_BEAT.typing + 700, () => setPhase('done'));
   };
 
-  const anchor = foot ?? <Link to="/faq">All questions →</Link>;
+  const anchor = foot ?? <Link to="/faq">All questions<TextArrow /></Link>;
 
   return (
     <div className={className ? `faqchat ${className}` : 'faqchat'} style={{ '--faq-rows': faqs.length } as CSSProperties}>
@@ -589,7 +590,7 @@ function FaqChatItem({
             <ChatBubble who="company" as="div">
               <p>{a}</p>
               <Link className="bubble-more" to={`/faq/${slug}`}>
-                Read the full answer →
+                Read the full answer<TextArrow />
               </Link>
             </ChatBubble>
           </div>

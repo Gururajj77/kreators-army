@@ -22,10 +22,10 @@ const WORD_FLOOR = 900;
  * would leave most of the cast standing on air. Tiko has the K and Bolu the peak of the A, both at the cap line. Sochu has the t, just below it. Gola, the ball, rests between the arms of the y.
  */
 const STANCE: Record<CastId, { x: number; y: number }> = {
-  tiko: { x: 373, y: 0 },
-  sochu: { x: 2860, y: 30 },
-  bolu: { x: 5722, y: 0 },
-  gola: { x: 8204, y: 256 },
+  tiko: { x: 379, y: 0 },
+  sochu: { x: 2887, y: 70 },
+  bolu: { x: 5785, y: 0 },
+  gola: { x: 8180, y: 272 },
 };
 
 /** Character width everywhere in the footer: 56 px on a phone, 128 px on a big screen. */
@@ -454,12 +454,12 @@ export function Footer() {
                   <path id="ft-word-path" d={WORDMARK.d} />
                   {/* The four quarters of the word, each in its character's colour, breaking in the gaps between letters so no letter is split. */}
                   <linearGradient id="ft-word-four" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={WORDMARK.width} y2="0">
-                    <stop offset={1932 / WORDMARK.width} stopColor="#6d61fe" />
-                    <stop offset={1932 / WORDMARK.width} stopColor="#fbd43f" />
-                    <stop offset={4347 / WORDMARK.width} stopColor="#fbd43f" />
-                    <stop offset={4347 / WORDMARK.width} stopColor="#47c349" />
-                    <stop offset={6171 / WORDMARK.width} stopColor="#47c349" />
-                    <stop offset={6171 / WORDMARK.width} stopColor="#ff8d3a" />
+                    <stop offset={1958 / WORDMARK.width} stopColor="#6d61fe" />
+                    <stop offset={1958 / WORDMARK.width} stopColor="#fbd43f" />
+                    <stop offset={4397 / WORDMARK.width} stopColor="#fbd43f" />
+                    <stop offset={4397 / WORDMARK.width} stopColor="#47c349" />
+                    <stop offset={6229 / WORDMARK.width} stopColor="#47c349" />
+                    <stop offset={6229 / WORDMARK.width} stopColor="#ff8d3a" />
                   </linearGradient>
                 </defs>
                 {/* Round 13: clean letterforms, no flutes. Faint at rest, full strength lit. */}

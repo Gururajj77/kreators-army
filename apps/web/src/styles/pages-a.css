@@ -144,9 +144,10 @@
     border-radius: var(--r-pill);
     background: var(--vs-shape);
     color: color-mix(in oklab, var(--ink) 72%, transparent);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 16px;
+    font-size: var(--t-caption-size);
+    letter-spacing: var(--t-caption-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-caption-lh);
   }
 
   .vs-ad-product {
@@ -196,9 +197,10 @@
     border-radius: var(--r-pill);
     background: var(--vs-shape);
     color: color-mix(in oklab, var(--ink) 55%, transparent);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 17px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
   }
 
   /* Clears a corner for the words without erasing the wall of ads behind them. */
@@ -235,11 +237,10 @@
 
   .vs-title {
     margin: 0;
-    font-size: 32px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 36px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-large-title-size);
+    font-weight: var(--t-large-title-weight);
+    line-height: var(--t-large-title-lh);
+    letter-spacing: var(--t-large-title-track);
   }
 
   .vs-cast {
@@ -253,9 +254,9 @@
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 21px;
-    line-height: 26px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-row-title-size);
+    line-height: var(--t-row-title-lh);
+    letter-spacing: var(--t-row-title-track);
   }
 
   .vs-list > li {
@@ -375,13 +376,15 @@
     }
 
     .vs-title {
-      font-size: 26px;
-      line-height: 30px;
+      font-size: var(--t-title1-size);
+      letter-spacing: var(--t-title1-track);
+      line-height: var(--t-title1-lh);
     }
 
     .vs-list {
-      font-size: 17px;
-      line-height: 22px;
+      font-size: var(--t-body-size);
+      letter-spacing: var(--t-body-track);
+      line-height: var(--t-body-lh);
     }
   }
 
@@ -466,16 +469,16 @@
 
   .wk-figures dt {
     color: var(--muted);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .wk-figures dd {
     margin: 0;
-    font-size: 48px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    letter-spacing: -0.02em;
+    font-size: var(--t-figure-lg-size);
+    font-weight: var(--t-figure-lg-weight);
+    letter-spacing: var(--t-figure-lg-track);
   }
 
   @media (min-width: 1069px) {
@@ -495,12 +498,13 @@
     }
 
     .wk-figures dd {
-      font-size: clamp(24px, 8vw, 34px);
+      font-size: clamp(1.5rem, 8vw, var(--t-large-title-size));
     }
 
     .wk-figures dt {
-      font-size: 13px;
-      line-height: 17px;
+      font-size: var(--t-footnote-size);
+      letter-spacing: var(--t-footnote-track);
+      line-height: var(--t-footnote-lh);
     }
   }
 
@@ -528,13 +532,14 @@
   .wk-team-item {
     margin: 0;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 25px;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
+    line-height: var(--t-body-lh);
   }
 
   .wk-team-item > b {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   /* ---------- Included ---------- */
@@ -584,8 +589,6 @@
     margin-bottom: 64px;
     overflow: clip;
     border-radius: var(--r-tile);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .vp-street .street-stage > .k-char {
@@ -708,30 +711,15 @@
     max-width: 22ch;
     margin: 0;
     color: var(--muted);
-    font-size: 64px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 68px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-display-1-size);
+    font-weight: var(--t-display-1-weight);
+    line-height: var(--t-display-1-lh);
+    letter-spacing: var(--t-display-1-track);
   }
 
   .vp-thesis-head h2 b {
     color: var(--ink);
-    font-weight: 600;
-  }
-
-  @media (max-width: 1068px) {
-    .vp-thesis-head h2.h2 {
-      font-size: 48px;
-      line-height: 52px;
-    }
-  }
-
-  @media (max-width: 734px) {
-    .vp-thesis-head h2.h2 {
-      font-size: 36px;
-      line-height: 40px;
-    }
+    font-weight: var(--w-semibold);
   }
 
   /* Six faces, six short lines, one strip from edge to edge. */
@@ -781,8 +769,9 @@
       right: 16px;
       bottom: 16px;
       left: 16px;
-      font-size: 17px;
-      line-height: 21px;
+      font-size: var(--t-body-size);
+      letter-spacing: var(--t-body-track);
+      line-height: var(--t-body-lh);
     }
   }
 
@@ -861,11 +850,10 @@
   .vp-quote > p {
     max-width: 24em;
     margin: 0 auto;
-    font-size: 32px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 40px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-large-title-size);
+    font-weight: var(--t-large-title-weight);
+    line-height: var(--t-large-title-lh);
+    letter-spacing: var(--t-large-title-track);
     text-wrap: balance;
   }
 
@@ -876,8 +864,9 @@
     gap: 12px;
     margin-top: 24px;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .vp-quote > footer::before,
@@ -927,8 +916,9 @@
     }
 
     .vp-quote > p {
-      font-size: 22px;
-      line-height: 28px;
+      font-size: var(--t-title2-size);
+      letter-spacing: var(--t-title2-track);
+      line-height: var(--t-title2-lh);
     }
   }
 
@@ -1060,70 +1050,69 @@
 
   .tm-metric {
     margin: 0;
-    font-size: 72px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
+    font-size: var(--t-figure-hero-size);
+    font-weight: var(--t-figure-hero-weight);
     line-height: 1;
-    letter-spacing: -0.03em;
+    letter-spacing: var(--t-figure-hero-track);
   }
 
   .tm-unit {
     display: block;
     margin-top: 8px;
     color: var(--muted);
-    font-size: 21px;
-    font-weight: 400;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-row-title-size);
+    font-weight: var(--w-normal);
+    line-height: var(--t-row-title-lh);
+    letter-spacing: var(--t-row-title-track);
   }
 
   .tm-figure[data-size='xl'] .tm-metric {
-    font-size: 200px;
-    letter-spacing: -0.045em;
+    font-size: var(--t-figure-hero-size);
+    letter-spacing: var(--t-figure-hero-track);
   }
 
   .tm-figure[data-size='l'] .tm-metric {
-    font-size: 76px;
-    letter-spacing: -0.035em;
+    font-size: var(--t-figure-hero-size);
+    letter-spacing: var(--t-figure-hero-track);
   }
 
   .tm-figure[data-size='l'] .tm-quote {
-    font-size: 21px;
-    line-height: 27px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-row-title-size);
+    line-height: var(--t-row-title-lh);
+    letter-spacing: var(--t-row-title-track);
   }
 
   .tm-quote {
     margin: auto 0 0;
     padding-top: 20px;
-    font-size: 17px;
-    line-height: 24px;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
+    line-height: var(--t-body-lh);
   }
 
   .tm-figure[data-size='xl'] .tm-quote {
     max-width: 28ch;
-    font-size: 28px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 34px;
-    letter-spacing: -0.008em;
+    font-size: var(--t-title1-size);
+    font-weight: var(--t-title1-weight);
+    line-height: var(--t-title1-lh);
+    letter-spacing: var(--t-title1-track);
   }
 
   .tm-who {
     margin-top: 12px;
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   .tm-quote-lg {
     margin: 0;
-    font-size: clamp(32px, 2.8vw, 40px);
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 1.15;
+    font-size: var(--t-display-3-size);
+    font-weight: var(--t-display-3-weight);
+    line-height: var(--t-display-3-lh);
     text-wrap: balance;
-    letter-spacing: -0.012em;
+    letter-spacing: var(--t-display-3-track);
   }
 
   /* (grpA13) The pull-quote sits centred in its tile, attribution close under it, instead of quote-top / name-bottom with a bare middle. */
@@ -1153,7 +1142,8 @@
     }
 
     .tm-figure[data-size='xl'] .tm-metric {
-      font-size: 160px;
+      font-size: var(--t-figure-hero-size);
+      letter-spacing: var(--t-figure-hero-track);
     }
   }
 
@@ -1178,29 +1168,28 @@
     }
 
     .tm-figure[data-size='xl'] .tm-metric {
-      font-size: 112px;
+      font-size: var(--t-figure-hero-size);
+      letter-spacing: var(--t-figure-hero-track);
     }
 
     .tm-figure[data-size='xl'] .tm-quote {
-      font-size: 21px;
-      line-height: 26px;
+      font-size: var(--t-card-title-size);
+      letter-spacing: var(--t-card-title-track);
+      line-height: var(--t-card-title-lh);
     }
 
     .tm-figure[data-size='l'] .tm-metric {
-      font-size: 72px;
+      font-size: var(--t-figure-hero-size);
+      letter-spacing: var(--t-figure-hero-track);
     }
 
     .tm-figure[data-size='m'] .tm-metric {
-      font-size: 56px;
+      font-size: var(--t-figure-lg-size);
+      letter-spacing: var(--t-figure-lg-track);
     }
 
     .tm-quote {
       padding-top: 24px;
-    }
-
-    .tm-quote-lg {
-      font-size: 24px;
-      line-height: 30px;
     }
 
   }
@@ -1251,29 +1240,29 @@
 
   .nb-value {
     margin: 0;
-    font-size: 72px;
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
+    font-size: var(--t-figure-hero-size);
+    font-weight: var(--t-figure-hero-weight);
+    line-height: var(--t-figure-hero-lh);
+    letter-spacing: var(--t-figure-hero-track);
   }
 
   .nb-figure[data-big] .nb-value {
-    font-size: 112px;
-    letter-spacing: -0.04em;
+    font-size: var(--t-figure-hero-size);
+    letter-spacing: var(--t-figure-hero-track);
   }
 
   .nb-label {
     margin: 0;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 21px;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
+    line-height: var(--t-body-lh);
   }
 
   .nb-figure[data-big] .nb-label {
-    font-size: 21px;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-row-title-size);
+    line-height: var(--t-row-title-lh);
+    letter-spacing: var(--t-row-title-track);
   }
 
   .nb-hero-tile {
@@ -1355,11 +1344,13 @@
     }
 
     .nb-value {
-      font-size: 36px;
+      font-size: var(--t-figure-lg-size);
+      letter-spacing: var(--t-figure-lg-track);
     }
 
     .nb-figure[data-big] .nb-value {
-      font-size: 80px;
+      font-size: var(--t-figure-hero-size);
+      letter-spacing: var(--t-figure-hero-track);
     }
 
     .nb-hero-tile,
@@ -1401,9 +1392,10 @@
   .nb-selection {
     margin: 16px 0 0;
     color: var(--muted);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
   }
 
   .nb-board {
@@ -1437,10 +1429,11 @@
 
   .nb-rank {
     color: var(--muted);
-    font-size: 17px;
+    font-size: var(--t-headline-size);
+    letter-spacing: var(--t-headline-track);
     font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    line-height: 21px;
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
   }
 
   .nb-thumb {
@@ -1465,8 +1458,9 @@
     display: grid;
     place-items: center;
     color: var(--muted);
-    font-size: 17px;
-    font-weight: 600;
+    font-size: var(--t-headline-size);
+    letter-spacing: var(--t-headline-track);
+    font-weight: var(--t-headline-weight);
   }
 
   .nb-info {
@@ -1478,10 +1472,10 @@
   }
 
   .nb-title {
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 21px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
   }
 
   .nb-brand {
@@ -1535,17 +1529,18 @@
   }
 
   .nb-views {
-    font-size: 21px;
+    font-size: var(--t-card-title-size);
     font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-weight: var(--t-card-title-weight);
+    line-height: var(--t-card-title-lh);
+    letter-spacing: var(--t-card-title-track);
     text-align: right;
   }
 
   .nb-row[data-lead] .nb-views {
-    font-size: 32px;
-    line-height: 36px;
+    font-size: var(--t-figure-lg-size);
+    letter-spacing: var(--t-figure-lg-track);
+    line-height: var(--t-figure-lg-lh);
   }
 
   .nb-play {
@@ -1585,8 +1580,9 @@
   .nb-note {
     margin: 0;
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   .nb-skeleton {
@@ -1645,8 +1641,9 @@
       padding: 0;
       background: none;
       color: var(--muted);
-      font-size: 13px;
-      font-weight: 400;
+      font-size: var(--t-footnote-size);
+      letter-spacing: var(--t-footnote-track);
+      font-weight: var(--w-normal);
     }
 
     .nb-views {
@@ -1665,8 +1662,9 @@
     }
 
     .nb-row[data-lead] .nb-views {
-      font-size: 24px;
-      line-height: 28px;
+      font-size: var(--t-title2-size);
+      letter-spacing: var(--t-title2-track);
+      line-height: var(--t-title2-lh);
     }
   }
 
@@ -1676,8 +1674,9 @@
   .wk-note {
     margin: -16px 0 0;
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   /* Why Kreators: the timeline (EditTimeline reveal, plate tone) with the five standing over their clips, still. */
@@ -1736,11 +1735,10 @@
     max-width: 26em;
     margin: 0;
     color: var(--ink);
-    font-size: clamp(28px, 2.8vw, 40px);
-    font-weight: 600;
-    font-variation-settings: 'opsz' 32;
-    line-height: 1.2;
-    letter-spacing: -0.018em;
+    font-size: var(--t-display-3-size);
+    font-weight: var(--t-display-3-weight);
+    line-height: var(--t-display-3-lh);
+    letter-spacing: var(--t-display-3-track);
     /* Seven lines and more at every width: past balance's six-line limit, so pretty. */
     text-wrap: pretty;
   }
@@ -1759,10 +1757,6 @@
       padding: 40px 24px;
     }
 
-    .wk-quote-text > p {
-      font-size: 24px;
-      line-height: 30px;
-    }
   }
 
   .wk-inc-link {
@@ -1771,7 +1765,7 @@
     min-height: 44px;
     margin-top: 16px;
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     text-decoration: none;
   }
 
@@ -1787,9 +1781,9 @@
   .vp-spread-line {
     margin: calc(24px - var(--vp-gap, 48px)) 0 0;
     color: #f5f3ee;
-    font-size: 19px;
-    line-height: 28px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-lede-size);
+    line-height: var(--t-lede-lh);
+    letter-spacing: var(--t-lede-track);
     text-wrap: pretty;
   }
 
@@ -1855,11 +1849,13 @@
 
   .nb-row[data-lead] .nb-views .vsticker {
     padding: 8px 14px 9px;
-    font-size: 15px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .nb-row[data-lead] .nb-views .vsticker b {
-    font-size: 22px;
+    font-size: var(--t-title2-size);
+    letter-spacing: var(--t-title2-track);
   }
 
   /* Narrow rows: a smaller sticker, so the title keeps its room. */
@@ -1868,13 +1864,15 @@
     .nb-row[data-lead] .nb-views .vsticker {
       gap: 3px;
       padding: 4px 8px 5px;
-      font-size: 11px;
-      line-height: 14px;
+      font-size: var(--t-caption2-size);
+      letter-spacing: var(--t-caption2-track);
+      line-height: var(--t-caption2-lh);
     }
 
     .nb-views .vsticker b,
     .nb-row[data-lead] .nb-views .vsticker b {
-      font-size: 13px;
+      font-size: var(--t-footnote-size);
+      letter-spacing: var(--t-footnote-track);
     }
   }
 

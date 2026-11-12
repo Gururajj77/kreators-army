@@ -862,18 +862,18 @@ export const STILLS = {
 // ---------- Navigation and footer (content §1.2, §1.3) ----------
 
 export const NAV_GROUPS = [
-  { label: 'The work', links: [['Video library', '/video-library'], ['Testimonials', '/testimonials'], ['The numbers', '/numbers']] },
-  { label: 'How we work', links: [['How we work', '/how-we-work'], ['The trial', '/trial'], ['Pricing', '/pricing'], ['Why Kreators', '/why-kreators'], ['Why vox pop', '/why-voxpop']] },
+  { label: 'The work', links: [['Video library', '/video-library'], ['Testimonials', '/testimonials'], ['The numbers', '/numbers'], ['Pricing', '/pricing']] },
+  { label: 'How we work', links: [['How we work', '/how-we-work'], ['The trial', '/trial'], ['Why Kreators', '/why-kreators'], ['Why vox pop', '/why-voxpop']] },
   { label: 'Formats', links: [['Founders', '/founders'], ['Events', '/events'], ['Retail', '/retail']] },
   { label: 'Company', links: [['Blog', '/blog'], ['Careers', '/careers'], ['FAQ', '/faq'], ['Contact', '/contact']] },
 ] as const;
 
-/** The desktop nav: Work, How we work and Pricing go straight to a page (the first two also have a menu); Formats and Company open a menu only. */
+/** The desktop nav: Work and How we work go straight to a page and also have a menu; Formats and Company open a menu only. Pricing is the last
+ *  link in the Work menu (and the footer's "The work" column), the founder's call (round 17). */
 export const NAV_TOP = [
   { label: 'Work', to: '/video-library', group: 'The work' },
   { label: 'How we work', to: '/how-we-work', group: 'How we work' },
   { label: 'Formats', group: 'Formats' },
-  { label: 'Pricing', to: '/pricing' },
   { label: 'Company', group: 'Company' },
 ] as const;
 

@@ -1,5 +1,5 @@
 /* Owner: A4 Admin (V2-SPEC 4.4). Imported by admin/AdminApp.tsx only, never by app.css, so it splits with the admin chunk. The site's tokens: plates,
-   radius 28/20/12, gap 20, Inter, red for actions only. Rows are denser than the public site (56 px of content, 44 px targets). Only transform, opacity
+   radius 28/20/12, gap 20, Google Sans Flex, red for actions only. Rows are denser than the public site (56 px of content, 44 px targets). Only transform, opacity
    and filter move; colour and shadow change on hover. Everything still under :root[data-still]. */
 @layer components {
   /* ---------- Shell ---------- */
@@ -2615,7 +2615,7 @@
     border-radius: 8px;
     background: var(--ink);
     color: var(--bg);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     line-height: 16px;
   }
@@ -2835,7 +2835,7 @@
   }
 
   .adm-lead-row[data-unread] .adm-lead-name {
-    font-weight: 700;
+    font-weight: var(--w-bold);
   }
 
   .adm-lead-row[data-unread] .adm-lead-kind {
@@ -3584,7 +3584,7 @@
   }
 
   .adm-bulk-count {
-    font-weight: 700;
+    font-weight: var(--w-bold);
     font-variant-numeric: tabular-nums;
   }
 
@@ -3950,7 +3950,7 @@
     gap: 2px 10px;
     margin: 0;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: var(--w-bold);
     line-height: 22px;
   }
 

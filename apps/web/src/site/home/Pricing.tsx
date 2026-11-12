@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { PackageCards, PackageIncludes } from '../../components/Packages';
 import { Reveal, SectionHead } from '../../components/ui';
 import { ADD_ON, FOUNDER_QUOTE, OBJECTION_SLUGS } from '../../lib/content';
+import { TextArrow } from '../../components/TextArrow';
 
 // #pricing (V2-SPEC 5.2 row 7, content §3.1.7): a summary of /pricing. The three packages with their static batch strips, the add-on and GST line in
 // view of every price, what every package includes, the founder's words, and the four doubts people have at a price, each linking to its answer.
@@ -30,7 +31,7 @@ export function Pricing() {
           </p>
           <p className="price-gst">Prices in INR. GST extra where it applies.</p>
           <Link to="/pricing" className="price-link">
-            See full pricing →
+            See full pricing<TextArrow />
           </Link>
         </Reveal>
 

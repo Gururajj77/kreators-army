@@ -38,8 +38,6 @@
     min-width: 0;
     padding: 22px 22px 24px;
     border-radius: var(--r-tile);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
     list-style: none;
     transition:
       transform var(--spring-smooth),
@@ -74,10 +72,10 @@
     border-radius: var(--r-pill);
     background: var(--surface);
     box-shadow: var(--plate-edge);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 19px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-subhead-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
     list-style: none;
     transition:
       transform var(--spring-smooth),
@@ -130,11 +128,22 @@
     fill: currentColor;
     font-family: inherit;
     font-size: 17px;
-    font-weight: 700;
+    font-weight: var(--w-bold);
   }
 
+  /* (typefix17) The A and B letters: 11 units, so 11 px on screen in the 40 px disc (the viewBox is 40 wide). In the 22 px chip frame they would
+     be 6 px, too small to read, so there the pill and its toned thumb carry the picture alone; the chip's own words name the mechanism. */
   .mech-art .d-ab-txt {
-    font-size: 9px;
+    font-size: 11px;
+  }
+
+  .mech-frame .d-ab-txt {
+    display: none;
+  }
+
+  /* The ? and ! marks in the 22 px chip frame: 20 units, so 11 px on screen (17 units would be 9.4 px). */
+  .mech-frame > .mech-art text {
+    font-size: 20px;
   }
 
   .d-tone {
@@ -586,9 +595,10 @@
       var(--plate-edge),
       0 0 0 1px var(--line);
     color: var(--muted);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-card-prose-lh);
     white-space: nowrap;
     transition: color 240ms ease;
   }
@@ -630,8 +640,9 @@
     max-width: 40ch;
     margin: 0;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 25px;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
+    line-height: var(--t-body-lh);
     text-align: center;
   }
 
@@ -651,8 +662,9 @@
     .loop-node-pill {
       min-height: 32px;
       padding: 6px 8px;
-      font-size: 13px;
-      line-height: 16px;
+      font-size: var(--t-footnote-size);
+      letter-spacing: var(--t-footnote-track);
+      line-height: var(--t-footnote-lh);
     }
   }
 
@@ -672,18 +684,16 @@
     min-width: 0;
     padding: 28px;
     border-radius: var(--r-tile);
-    background: var(--surface);
     color: var(--ink);
-    box-shadow: var(--plate-edge);
   }
 
   .split-title {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-subhead-size);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
+    letter-spacing: var(--t-subhead-track);
   }
 
   .split-list {
@@ -698,9 +708,9 @@
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    font-size: 17px;
-    line-height: 24px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   .split-check {
@@ -743,6 +753,7 @@
     justify-content: flex-start;
     padding-bottom: calc(var(--split-cast) * 0.92 + 120px);
     background: var(--c-ground);
+    box-shadow: var(--plate-edge);
     color: #f5f3ee;
     --ink: #f5f3ee;
     --muted: #c8c5bf;
@@ -765,9 +776,9 @@
     max-width: 52ch;
     margin: 8px 0 0;
     color: var(--ink);
-    font-size: 21px;
-    line-height: 30px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-lede-size);
+    line-height: var(--t-lede-lh);
+    letter-spacing: var(--t-lede-track);
   }
 
   @media (max-width: 734px) {
@@ -784,9 +795,5 @@
       padding-bottom: calc(var(--split-cast) * 0.92 + 96px);
     }
 
-    .split-foot {
-      font-size: 19px;
-      line-height: 27px;
-    }
   }
 }

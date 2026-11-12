@@ -51,9 +51,10 @@
     flex: none;
     margin: 0;
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 17px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-footnote-lh);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -66,11 +67,8 @@
   .hww-chips .chip-opt {
     min-height: 40px;
     padding: 0 14px;
-    font-size: 14px;
-  }
-
-  .hww-chips .chip-opt:not([data-on]) {
-    box-shadow: none;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
   }
 
   /* 44 px tap targets on phones (A7). */
@@ -168,9 +166,9 @@
     max-width: 40em;
     margin: 0;
     color: var(--ink);
-    font-size: 19px;
-    line-height: 30px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-lede-size);
+    line-height: var(--t-lede-lh);
+    letter-spacing: var(--t-lede-track);
     text-wrap: balance;
   }
 
@@ -185,18 +183,19 @@
     max-width: 36em;
     margin: 0;
     color: var(--ink);
-    font-size: 21px;
-    font-weight: 600;
-    line-height: 29px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-card-title-size);
+    font-weight: var(--t-card-title-weight);
+    line-height: var(--t-card-title-lh);
+    letter-spacing: var(--t-card-title-track);
     text-wrap: balance;
   }
 
   .hww-small {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   /* Chapter 1: the chain on its plate, Tiko on the plate's top edge, and the four example cards with their demos. */
@@ -205,8 +204,6 @@
     margin-top: calc(var(--hww-k-sm) * 0.8);
     padding: 26px 28px;
     border-radius: var(--r-tile);
-    background: var(--surface);
-    box-shadow: var(--plate-edge);
   }
 
   .hww-chain-tiko {
@@ -225,10 +222,10 @@
 
   .hww-example-text {
     margin: 0;
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 23px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
     text-wrap: balance;
   }
 
@@ -265,9 +262,9 @@
     align-items: flex-end;
     padding: 4px 4px 6px;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 24px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
     text-wrap: balance;
   }
 
@@ -301,10 +298,10 @@
   }
 
   .hww-job-name {
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 22px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
   }
 
   /* Chapter 3: five tiles, the first one wide, each with a small still street scene. */
@@ -342,7 +339,8 @@
     display: block;
     overflow: clip;
     border-radius: var(--r-tile) var(--r-tile) 0 0;
-    background: var(--sunken);
+    background: var(--lg-well);
+    box-shadow: var(--lg-well-edge);
   }
 
   .hww-vignette > .street-vignette-box > svg {
@@ -372,8 +370,9 @@
   .hww-tile-copy > p {
     margin: 0;
     color: var(--muted);
-    font-size: 16px;
-    line-height: 25px;
+    font-size: var(--t-prose-size);
+    letter-spacing: var(--t-prose-track);
+    line-height: var(--t-prose-lh);
     /* Seven to fourteen lines in these tiles: past balance's six-line limit, so pretty. */
     text-wrap: pretty;
   }
@@ -427,16 +426,17 @@
   .hww-two-title {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
   }
 
   .hww-two-plate > p {
     margin: 0;
-    font-size: 17px;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   /* Chapter 5: the lock list. Checks pop in order on view (scale .4 to 1 on --spring-bouncy, 60 ms apart); all ticked with no JS or under still. */
@@ -462,9 +462,9 @@
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    font-size: 17px;
-    line-height: 24px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   .hww-lock-check {
@@ -515,9 +515,9 @@
 
   .hww-two-tone {
     margin: 0;
-    font-size: 24px;
-    line-height: 32px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-title2-size);
+    line-height: var(--t-title2-lh);
+    letter-spacing: var(--t-title2-track);
   }
 
   /* Chapter 6: the plain ink callout (no motion), the loop, and the pull quote on Sochu's tile. */
@@ -529,10 +529,10 @@
     max-width: 30em;
     margin: 0;
     font-family: var(--font-display);
-    font-size: 26px;
-    font-weight: 600;
-    line-height: 33px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-title1-size);
+    font-weight: var(--t-title1-weight);
+    line-height: var(--t-title1-lh);
+    letter-spacing: var(--t-title1-track);
     text-wrap: balance;
   }
 
@@ -553,10 +553,10 @@
     .hww-loop .loop-caption {
       max-width: 18em;
       color: var(--ink);
-      font-size: 21px;
-      font-weight: 600;
-      line-height: 29px;
-      letter-spacing: -0.014em;
+      font-size: var(--t-card-title-size);
+      font-weight: var(--t-card-title-weight);
+      line-height: var(--t-card-title-lh);
+      letter-spacing: var(--t-card-title-track);
       text-align: left;
       text-wrap: balance;
     }
@@ -575,17 +575,18 @@
   .hww-quote blockquote p {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 26px;
-    font-weight: 600;
-    line-height: 34px;
-    letter-spacing: -0.016em;
+    font-size: var(--t-title1-size);
+    font-weight: var(--t-title1-weight);
+    line-height: var(--t-title1-lh);
+    letter-spacing: var(--t-title1-track);
     text-wrap: pretty;
   }
 
   .hww-quote figcaption {
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   /* Tablets: the chips take over; two columns where four were. */
@@ -632,14 +633,10 @@
       border-radius: 0;
     }
 
-    .hww-body {
-      font-size: 17px;
-      line-height: 27px;
-    }
-
     .hww-line {
-      font-size: 19px;
-      line-height: 27px;
+      font-size: var(--t-title3-size);
+      letter-spacing: var(--t-title3-track);
+      line-height: var(--t-title3-lh);
     }
 
     /* The chain needs the full width for three pills a row: no plate around it on phones. */
@@ -704,8 +701,9 @@
     }
 
     .hww-two-tone {
-      font-size: 21px;
-      line-height: 28px;
+      font-size: var(--t-title3-size);
+      letter-spacing: var(--t-title3-track);
+      line-height: var(--t-title3-lh);
     }
 
     .hww-callout {
@@ -714,8 +712,9 @@
 
     .hww-callout > p,
     .hww-quote blockquote p {
-      font-size: 21px;
-      line-height: 28px;
+      font-size: var(--t-card-title-size);
+      letter-spacing: var(--t-card-title-track);
+      line-height: var(--t-card-title-lh);
     }
 
     .hww-quote {
@@ -806,8 +805,9 @@
   .tr-what-body {
     margin: 0;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 25px;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
+    line-height: var(--t-body-lh);
   }
 
   .tr-glyph {
@@ -854,8 +854,9 @@
     border-radius: 50%;
     background: var(--ink);
     color: var(--bg);
-    font-size: 13px;
-    font-weight: 600;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    font-weight: var(--w-semibold);
     font-variant-numeric: tabular-nums;
   }
 
@@ -866,8 +867,9 @@
   .tr-card-q {
     margin: 0;
     color: var(--muted);
-    font-size: 16px;
-    line-height: 24px;
+    font-size: var(--t-prose-size);
+    letter-spacing: var(--t-prose-track);
+    line-height: var(--t-prose-lh);
   }
 
   /* Display-only chips: a plain list, no thumb, no selection, no hover. */
@@ -888,9 +890,9 @@
     border-radius: var(--r-pill);
     box-shadow: inset 0 0 0 1px var(--line);
     color: var(--ink);
-    font-size: 14px;
-    line-height: 18px;
-    letter-spacing: -0.006em;
+    font-size: var(--t-card-prose-size);
+    line-height: var(--t-card-prose-lh);
+    letter-spacing: var(--t-card-prose-track);
   }
 
   /* (grpD13) The two cards without options left a hollow lower half in a 3 x 2 grid of chip-filled siblings. Each now shows, drawn and decorative
@@ -972,9 +974,10 @@
     min-height: 44px;
     border-top: 1px solid var(--line);
     cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
+    line-height: var(--t-subhead-lh);
     list-style: none;
   }
 
@@ -1032,8 +1035,9 @@
     margin: 4px 0 0;
     padding: 0 0 0 18px;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
     /* The longest item runs past six lines, where balance stops working. */
     text-wrap-style: pretty;
   }
@@ -1041,7 +1045,7 @@
   .tr-guide-list strong,
   .bf-guide-list strong {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   /* The note tile on Gola's gradient, Gola standing at its foot. */
@@ -1072,9 +1076,9 @@
   .tr-note-copy > p {
     max-width: 40em;
     margin: 0;
-    font-size: 19px;
-    line-height: 28px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-lede-size);
+    line-height: var(--t-lede-lh);
+    letter-spacing: var(--t-lede-track);
   }
 
   /* Seven lines on a phone, past balance's limit. */
@@ -1119,9 +1123,9 @@
   .tr-rules > li {
     position: relative;
     padding-left: 26px;
-    font-size: 18px;
-    line-height: 28px;
-    letter-spacing: -0.014em;
+    font-size: var(--t-lede-size);
+    line-height: var(--t-lede-lh);
+    letter-spacing: var(--t-lede-track);
     text-wrap: balance;
   }
 
@@ -1154,7 +1158,8 @@
     bottom: 9%;
     translate: -50% 0;
     padding: 6px 14px;
-    font-size: 14px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
     white-space: nowrap;
   }
 
@@ -1174,8 +1179,9 @@
     max-width: 44em;
     margin: 24px 0 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .tr-links {
@@ -1193,7 +1199,7 @@
     gap: 6px;
     min-height: 44px;
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     text-decoration: none;
   }
 
@@ -1301,21 +1307,12 @@
       padding-bottom: 8px;
     }
 
-    .tr-note-copy > p {
-      font-size: 17px;
-      line-height: 26px;
-    }
-
     /* Room above Gola for the bubble, so it never sits on the note's words. */
     .tr-note-gola {
       justify-self: end;
       margin-top: 64px;
     }
 
-    .tr-rules > li {
-      font-size: 17px;
-      line-height: 26px;
-    }
   }
 
   /* =============================== Pricing =============================== */
@@ -1352,8 +1349,9 @@
   .pr-fine {
     margin: 8px 0 0;
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
     text-align: center;
   }
 
@@ -1420,7 +1418,7 @@
   }
 
   .pr-questions-in .chip-opt {
-    background: var(--surface);
+    --btn-hue: var(--surface);
     color: var(--ink);
     white-space: normal;
     text-align: left;
@@ -1447,10 +1445,10 @@
   }
 
   .calc-label {
-    font-size: 17px;
-    font-weight: 600;
-    line-height: 22px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-headline-size);
+    font-weight: var(--t-headline-weight);
+    line-height: var(--t-headline-lh);
+    letter-spacing: var(--t-headline-track);
   }
 
   .calc-stepper {
@@ -1483,18 +1481,12 @@
 
   .calc-step:disabled {
     cursor: default;
-    opacity: 0.35;
+    opacity: 0.45;
   }
 
   .calc-step:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .calc-step:hover:not(:disabled) {
-      background: color-mix(in oklab, var(--ink) 12%, var(--sunken));
-    }
   }
 
   .calc-field {
@@ -1506,8 +1498,9 @@
     background: var(--surface);
     color: var(--ink);
     font: inherit;
-    font-size: 24px;
-    font-weight: 600;
+    font-size: var(--t-title2-size);
+    letter-spacing: var(--t-title2-track);
+    font-weight: var(--t-title2-weight);
     font-variant-numeric: tabular-nums;
     text-align: center;
   }
@@ -1584,8 +1577,9 @@
     display: flex;
     justify-content: space-between;
     color: var(--muted);
-    font-size: 13px;
-    line-height: 16px;
+    font-size: var(--t-footnote-size);
+    letter-spacing: var(--t-footnote-track);
+    line-height: var(--t-footnote-lh);
     font-variant-numeric: tabular-nums;
   }
 
@@ -1606,8 +1600,9 @@
   .calc-help {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .calc-out {
@@ -1624,7 +1619,8 @@
     gap: 14px;
     padding: 30px 30px 28px;
     border-radius: var(--r-inner);
-    background: var(--sunken);
+    background: var(--lg-well);
+    box-shadow: var(--lg-well-edge);
   }
 
   .calc-live {
@@ -1637,10 +1633,10 @@
   .calc-big {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 64px;
-    font-weight: 600;
-    line-height: 68px;
-    letter-spacing: -0.02em;
+    font-size: var(--t-figure-hero-size);
+    font-weight: var(--t-figure-hero-weight);
+    line-height: var(--t-figure-hero-lh);
+    letter-spacing: var(--t-figure-hero-track);
     font-variant-numeric: tabular-nums;
   }
 
@@ -1649,29 +1645,30 @@
   }
 
   .calc-big-words {
-    font-size: 44px;
-    line-height: 50px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-display-3-size);
+    line-height: var(--t-display-3-lh);
+    letter-spacing: var(--t-display-3-track);
   }
 
   .calc-each {
     margin-top: -4px;
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
   }
 
   .calc-line {
     margin: 0;
-    font-size: 17px;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
   }
 
   .calc-small {
     margin: 0;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 21px;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    line-height: var(--t-subhead-lh);
   }
 
   .calc-snaps {
@@ -1690,8 +1687,9 @@
     color: var(--ink);
     cursor: pointer;
     font: inherit;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--t-subhead-size);
+    letter-spacing: var(--t-subhead-track);
+    font-weight: var(--w-semibold);
     font-variant-numeric: tabular-nums;
     touch-action: manipulation;
     transition:
@@ -1709,17 +1707,12 @@
     outline-offset: 2px;
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .calc-snap:hover {
-      box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 40%, transparent);
-    }
-  }
-
   .calc-terms {
     margin: 0;
     color: var(--muted);
-    font-size: 14px;
-    line-height: 20px;
+    font-size: var(--t-card-prose-size);
+    letter-spacing: var(--t-card-prose-track);
+    line-height: var(--t-card-prose-lh);
   }
 
   .calc-cta {
@@ -1769,16 +1762,17 @@
     border-radius: 50%;
     background: var(--ink);
     color: var(--bg);
-    font-size: 16px;
-    font-weight: 600;
+    font-size: var(--t-callout-size);
+    letter-spacing: var(--t-callout-track);
+    font-weight: var(--w-semibold);
     font-variant-numeric: tabular-nums;
   }
 
   .pr-track-text {
     margin: 0;
-    font-size: 17px;
-    line-height: 25px;
-    letter-spacing: -0.012em;
+    font-size: var(--t-body-size);
+    line-height: var(--t-body-lh);
+    letter-spacing: var(--t-body-track);
     text-wrap: balance;
   }
 
@@ -1797,9 +1791,10 @@
 
   .pr-late-title {
     margin: 0;
-    font-size: 19px;
-    font-weight: 600;
-    line-height: 24px;
+    font-size: var(--t-title3-size);
+    letter-spacing: var(--t-title3-track);
+    font-weight: var(--t-title3-weight);
+    line-height: var(--t-title3-lh);
   }
 
   .pr-late-list {
@@ -1814,8 +1809,9 @@
     position: relative;
     padding-left: 22px;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 24px;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
+    line-height: var(--t-body-lh);
   }
 
   .pr-late-list > li::before {
@@ -1838,8 +1834,9 @@
   .pr-pay-lines > p {
     margin: 0;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 25px;
+    font-size: var(--t-body-size);
+    letter-spacing: var(--t-body-track);
+    line-height: var(--t-body-lh);
   }
 
   @media (max-width: 1068px) {
@@ -1877,13 +1874,9 @@
     }
 
     .calc-big {
-      font-size: 48px;
-      line-height: 52px;
-    }
-
-    .calc-big-words {
-      font-size: 34px;
-      line-height: 40px;
+      font-size: var(--t-figure-lg-size);
+      letter-spacing: var(--t-figure-lg-track);
+      line-height: var(--t-figure-lg-lh);
     }
 
     .calc-live {
@@ -1920,7 +1913,8 @@
       flex: none;
       width: 32px;
       height: 32px;
-      font-size: 14px;
+      font-size: var(--t-card-prose-size);
+      letter-spacing: var(--t-card-prose-track);
     }
 
     .pr-late {

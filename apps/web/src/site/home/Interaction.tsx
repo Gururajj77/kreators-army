@@ -5,6 +5,7 @@ import { ChatThread, ChatThreadSkeleton } from '../../components/chat';
 import { SectionHead } from '../../components/ui';
 import { InteractionChain, type ChainHandle } from '../../components/visuals';
 import { resolveThread, THREAD_CAST } from '../../lib/thread';
+import { TextArrow } from '../../components/TextArrow';
 
 // #interaction (V2-SPEC 5.2 row 5, content §3.1.5): the chain of six, then the four characters each asking a real question we have filmed, each
 // answered by its real video. Every bubble and every answer shows from the start; as the thread comes into view all four questions type out together,
@@ -34,7 +35,7 @@ export function Interaction({ videos, onOpen }: { videos: Video[] | undefined; o
         <div className="ix-foot">
           <p className="ix-caption">Real questions we've filmed. The answers are in the videos.</p>
           <Link to="/how-we-work" className="ix-link">
-            How we work →
+            How we work<TextArrow />
           </Link>
         </div>
       </div>

@@ -13,6 +13,7 @@ import { HERO, IMPACT, JOURNEY, RESULTS_NOTE, SITE, STILLS, TEAM } from '../../l
 import { motionOk, useMotionOk, useRunning } from '../../lib/motionOk';
 import { useVideos } from '../../lib/queries';
 import { spring } from '../../lib/spring';
+import { TextArrow } from '../../components/TextArrow';
 
 // ---------- Scripted vs Vox pop: one stage, two worlds, a divider you can drag. ----------
 
@@ -442,7 +443,7 @@ export default function WhyKreators() {
             <SectionHead center={false} title="Every package&nbsp;includes" lead="The same people and production in every package, whatever its size." />
             <Reveal>
               <Link to="/pricing" className="wk-inc-link">
-                See pricing →
+                See pricing<TextArrow />
               </Link>
             </Reveal>
           </div>
