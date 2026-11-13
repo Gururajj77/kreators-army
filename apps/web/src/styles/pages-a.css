@@ -1285,6 +1285,17 @@
     bottom: 10px;
   }
 
+  /* (r20bubbles) Sochu's line rises to the plate's top edge at 1440 (its top 0.3 px under the clip) and past it where the plate is shorter: the plate
+     holds no media, so it does not clip (as the careers cards and the army tiles), and the cell with the line up sits over its neighbours. */
+  .plate:has(> .nb-hero-tile) {
+    overflow: visible;
+  }
+
+  .nb-cell:has(.cast-bubble:is([data-show], [data-hover]):not([data-yield])) {
+    position: relative;
+    z-index: 3;
+  }
+
   .nb-sat {
     display: flex;
     flex: 1;

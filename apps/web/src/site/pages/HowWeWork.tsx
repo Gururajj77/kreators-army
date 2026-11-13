@@ -321,7 +321,7 @@ function InTheEdit() {
       <div className="hww-sub">
         <h3 className="h3">One planned production cycle</h3>
         <p className="hww-body">
-          We make the agreed batch in one planned cycle. We don't change direction from one video to the next. We can share work at agreed check-ins, mostly
+          We make the agreed batch in one planned cycle, usually 14 to 21 days. We don't change direction from one video to the next. We can share work at agreed check-ins, mostly
           early on, while the batch keeps to its plan. Working this way is how we keep our prices where they are.
         </p>
       </div>

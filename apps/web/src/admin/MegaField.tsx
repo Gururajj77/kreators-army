@@ -175,7 +175,7 @@ export function MegaField({
       status = (
         <p className="adm-mega-line" data-tone="amber" data-legacy>
           <span>This video's key is still in the old MEGA_LINKS secret.</span>{' '}
-          <button type="button" className="adm-link-btn" onClick={onAdopt} disabled={busy === 'adopt'}>
+          <button type="button" className="adm-link-btn" data-intent="positive" onClick={onAdopt} disabled={busy === 'adopt'}>
             {busy === 'adopt' ? 'Moving…' : 'Move it into the library'}
           </button>
         </p>

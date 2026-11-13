@@ -7,11 +7,13 @@ import { EditTimeline, type TimelineStep } from '../../components/visuals';
 import { JOURNEY, PLATFORMS_HEAD, type CastLineKey } from '../../lib/content';
 import { PlatformStrip } from './Platforms';
 import { TextArrow } from '../../components/TextArrow';
+import { useTheme } from '../../lib/store';
 
-// #how-it-works and #services (V2-SPEC 5.2 row 4), dark in both themes. The journey is an editing timeline in a 160 vh stage (M9): the playhead follows
-// the scroll, the clip under it lights, and v1's cast scenes stand on the plate's top edge, re-mapped to the v2 steps (content §2.4). Each step's
-// speaker says its line once as the playhead lands. Round 16: the scene walks left to right over the clips with the scroll and stands on the active
-// one (EditTimeline travel). Phones get the vertical list, with the step's speaker walking a mini-track above it.
+// #how-it-works and #services (V2-SPEC 5.2 row 4). (r20) It follows the theme: in light an open section on the field with the timeline on the light
+// liquid-glass plate, like every other light section; in dark the dark panel (.band-dark) with the ink plate, as before. The journey is an
+// editing timeline in a 160 vh stage (M9): the playhead follows the scroll, the clip under it lights, and v1's cast scenes stand on the plate's
+// top edge, re-mapped to the v2 steps (content §2.4). Each step's speaker says its line once as the playhead lands. Round 16: the scene walks
+// left to right over the clips with the scroll and stands on the active one (EditTimeline travel). Phones get the vertical list, with the step's speaker walking a mini-track above it.
 
 interface Part {
   expression?: Expression;
@@ -95,6 +97,8 @@ function Stage({ step, actors, cast }: { step: number; actors: RefObject<Partial
 
   return (
     <div className="how-stage" data-size={scene.size}>
+      {/* (r20) The end mark: EditTimeline ends the walk by the time the plate's top is this far down the screen (home.css .how-end). */}
+      <span className="how-end" data-etl-end="" aria-hidden />
       {ORDER.map((who) => {
         const part = scene.parts[who];
         return (
@@ -146,6 +150,9 @@ export function Process() {
   // The step whose line is due. Said after the render that put its speaker on stage, so the speaker is on screen when it speaks.
   const [due, setDue] = useState<number | null>(null);
   const onStep = useCallback((k: number) => setDue(k), []);
+  // (r20) The founder: "from trial to batch doesnt turn light in light mode". The store follows the theme attribute inside the toggle's view
+  // transition, so the new snapshot already has the light section.
+  const dark = useTheme((s) => s.theme) === 'dark';
 
   useEffect(() => {
     if (due === null) return;
@@ -170,7 +177,7 @@ export function Process() {
   }, [due, say, hide]);
 
   return (
-    <section id="how-it-works" className="band-dark how-section" data-bubble-bounds="">
+    <section id="how-it-works" className={dark ? 'band-dark how-section' : 'how-section'} data-bubble-bounds="">
       <div className="wrap section">
         <SectionHead center={false} eyebrow="How it works" title="From trial to batch" lead="Start with a trial on your own brand. If you want to continue, this is how it runs." />
 
@@ -178,6 +185,7 @@ export function Process() {
           className="how-timeline"
           steps={STEPS}
           mode="stage"
+          tone={dark ? 'ink' : 'plate'}
           travel
           onStep={onStep}
           label="From trial to batch, in five steps"

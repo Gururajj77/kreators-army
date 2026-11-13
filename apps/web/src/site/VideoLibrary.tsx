@@ -8,7 +8,7 @@ import { CastBubble, useCastLine } from '../components/chat';
 import { DeckCard, previewSource, toneOf, useSeenBrands } from '../components/frames';
 import { CardRing } from '../components/ring';
 import { ChipRail } from '../components/tabs';
-import { Cta, RollNumber, Seo } from '../components/ui';
+import { Cta, PrimaryFace, RollNumber, Seo } from '../components/ui';
 import { TileSkeletons, VideoPlayerDialog, VideoTile } from '../components/video';
 import { PRIMARY_ACTION, brandLogo, contactHref } from '../lib/content';
 import { motionOk } from '../lib/motionOk';
@@ -712,9 +712,7 @@ function LibraryEnd({ fill, videos }: { fill: number[]; videos: Video[] }) {
     <div className="lib-end" data-r4={r4} data-r3={r3} data-r2={r2} style={style}>
       <DeckCard videos={videos} to={contactHref()} className="lib-end-card">
         <span className="lib-end-title">Want one for your brand?</span>
-        <span className="btn btn-accent btn-sm lib-end-go" aria-hidden>
-          {PRIMARY_ACTION.label}
-        </span>
+        <PrimaryFace size="sm" className="lib-end-go" />
         <span className="sr-only">{PRIMARY_ACTION.label}</span>
       </DeckCard>
     </div>

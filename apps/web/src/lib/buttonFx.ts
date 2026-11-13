@@ -2,7 +2,8 @@ import { finePointer, motionOk } from './motionOk';
 import { spring } from './spring';
 
 /**
- * Every control that takes the liquid fill, the press ripple and the magnet (styles/buttons.css). Keep this list and the CSS one in step.
+ * Every control that takes the liquid fill, the press ripple and the magnet (styles/buttons.css draws them all as frosted glass, with the liquid
+ * inside and a hover outline over it). Keep this list and the CSS one in step.
  * Tabs, chips and the segment kit are not here: they have their own sliding thumb.
  */
 export const FX_BUTTONS =
@@ -22,14 +23,16 @@ const pulls = new Map<HTMLElement, Pull>();
 let frame = 0;
 let last = 0;
 
-const off = (el: Element) => el.matches(':disabled, [aria-disabled="true"]') || window.location.pathname.startsWith('/admin');
+// (r20admbtn) The admin takes the same effects as the public site (the founder): the liquid's entry point, the ripple and the magnet run there too.
+const off = (el: Element) => el.matches(':disabled, [aria-disabled="true"]');
 const fx = (target: EventTarget | null) => (target instanceof Element ? (target.closest(FX_BUTTONS) as HTMLElement | null) : null);
 const clamp = (v: number, limit: number) => Math.max(-limit, Math.min(limit, v));
 
-/** Where the liquid starts or drains to, and how big the drop must grow to cover the button from that point. */
+/** Where the liquid starts or drains to (l), or the ripple starts (p), and how big the drop must grow to cover the button from that point. */
 function setOrigin(el: HTMLElement, rect: DOMRect, x: number, y: number, prefix: 'l' | 'p') {
-  el.style.setProperty(`--${prefix}x`, `${Math.round(x - rect.left)}px`);
-  el.style.setProperty(`--${prefix}y`, `${Math.round(y - rect.top)}px`);
+  // Kept on the button's edge: a pointer that has already left reports a point outside, and a drop moved out there would uncover the far side at once.
+  el.style.setProperty(`--${prefix}x`, `${Math.round(Math.max(0, Math.min(rect.width, x - rect.left)))}px`);
+  el.style.setProperty(`--${prefix}y`, `${Math.round(Math.max(0, Math.min(rect.height, y - rect.top)))}px`);
   el.style.setProperty('--blob', `${Math.ceil(2.4 * Math.hypot(rect.width, rect.height))}px`);
 }
 
@@ -135,9 +138,10 @@ function onDown(e: PointerEvent) {
 let installed = false;
 
 /**
- * Buttons, round 16: one delegated set of listeners for the whole site, so no button needs its own code. The fill and the ripple are CSS, fed the
- * pointer's entry and press points; the magnet is a physics spring (spring.follow) that runs only for a mouse, only with motion allowed, and only while
- * a button is leaning or settling. Touch gets the ripple and the press, never the magnet.
+ * Buttons: one delegated set of listeners for the whole site, so no button needs its own code. The frosted body, the liquid fill, the press ripple
+ * and the hover outline are CSS (styles/buttons.css), fed the pointer's entry and press points; the magnet is a physics spring (spring.follow) that
+ * runs only for a mouse, only with motion allowed, and only while a button is leaning or settling. Touch gets the ripple and the press, never the
+ * magnet.
  */
 export function installButtonFx() {
   if (installed || typeof document === 'undefined') return;

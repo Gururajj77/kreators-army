@@ -35,7 +35,7 @@ function Motion({ children }: { children: ReactNode }) {
   );
 }
 
-// Every button's liquid fill, press ripple and magnet: one set of delegated listeners (lib/buttonFx.ts).
+// Every button's magnet: one set of delegated listeners (lib/buttonFx.ts). The frosted look and hover outline are CSS (styles/buttons.css).
 installButtonFx();
 
 // Numbers the glass cards so neighbours show different silhouettes (lib/silhouettes.ts).

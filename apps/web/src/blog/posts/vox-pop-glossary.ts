@@ -707,7 +707,7 @@ const post: Post = {
       type: 'definition',
       id: 'pilot',
       term: 'Pilot',
-      text: 'A pilot is the first paid engagement after a trial. You give consolidated feedback, choose a package for one brand, sign a pilot agreement and pay in advance. Delivery timelines are confirmed in that agreement once pre-production alignment is complete.',
+      text: 'A pilot is the first paid engagement after a trial. You give consolidated feedback, choose a package for one brand, sign a pilot agreement and pay in advance. A batch usually takes 14 to 21 days, and the exact delivery dates are confirmed in that agreement once pre-production alignment is complete.',
     },
     {
       type: 'definition',
@@ -735,11 +735,11 @@ const post: Post = {
       intro: 'The crew terms above, in the order you meet them.',
       steps: [
         { name: 'Send the brief', text: 'Tell us the objective, how your brand should show up and what every video must include.' },
-        { name: 'Review the trial', text: 'See the format on your own brand, on the scope agreed in writing.' },
+        { name: 'Review the trial', text: 'See the format on your own brand, on the scope agreed in writing. A trial usually takes 7 to 14 days.' },
         { name: 'Send consolidated feedback', text: 'Share feedback through one point of contact, then choose a package.' },
         { name: 'Sign and prepay', text: 'Sign the pilot agreement and pay in advance. Production starts when payment arrives.' },
         { name: 'Lock the list', text: 'Before each shoot, fix the nine points of the [lock list](#lock-list) with us.' },
-        { name: 'Shoot, edit and review', text: 'We produce the batch in one planned cycle, with review checkpoints where useful.' },
+        { name: 'Shoot, edit and review', text: 'We produce the batch in one planned cycle, usually 14 to 21 days, with review checkpoints where useful.' },
         { name: 'Receive the rights', text: 'Usage rights for the final videos transfer on full payment.' },
       ],
     },

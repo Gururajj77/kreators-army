@@ -6,7 +6,7 @@
 // (api.ts), so work in progress survives an expired session.
 import type { AdminSession } from '@kreators/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Lock, X } from 'lucide-react';
+import { Lock, LogOut, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { ChipRail } from '../components/tabs';
@@ -17,6 +17,7 @@ import { AdminApiError, adminApi, enableSessionSheet, keys, useAdminUi } from '.
 import { Modal, SplitButton, Spinner, inField } from './bits';
 import { EnquiriesScreen } from './EnquiriesScreen';
 import { ImportScreen } from './ImportScreen';
+import { installLitLabels } from './litLabels';
 import { LockScreen, type PassState } from './LockScreen';
 import { startAuto } from './mediaGen/auto';
 import { MediaGenChip, MediaGenPanel } from './mediaGen/MediaGenControl';
@@ -39,6 +40,9 @@ export function AdminApp() {
     gcTime: Infinity,
     refetchOnWindowFocus: false,
   });
+
+  // (r20admbtn) The label flip of the intent buttons' fills (litLabels.ts), on the lock screen and in the shell.
+  useEffect(() => installLitLabels(), []);
 
   const forgetData = () => qc.removeQueries({ predicate: (q) => q.queryKey[0] === 'admin' && q.queryKey[1] !== 'session' });
 
@@ -195,7 +199,7 @@ function Shell({
             }
             onClick={() => onLock(false)}
             menuLabel="More ways to lock"
-            items={[{ label: 'Lock everywhere', onSelect: () => onLock(true) }]}
+            items={[{ label: 'Lock everywhere', icon: <LogOut className="size-4" aria-hidden />, onSelect: () => onLock(true), danger: true }]}
           />
         </div>
       </header>
@@ -240,7 +244,7 @@ function PasskeyBanner() {
   return (
     <p className="adm-banner" data-tone="quiet">
       <span>Your passkey is short. Set a longer one: four or more random words.</span>
-      <button type="button" className="adm-banner-x" aria-label="Hide this note" onClick={() => setHidden(true)}>
+      <button type="button" className="btn adm-icon-btn adm-banner-x" aria-label="Hide this note" onClick={() => setHidden(true)}>
         <X className="size-4" aria-hidden />
       </button>
     </p>
@@ -277,7 +281,7 @@ function LegacyBanner({ secretSet }: { secretSet: boolean }) {
         <span>
           {n === 1 ? '1 video still streams from the old MEGA_LINKS secret.' : `${n} videos still stream from the old MEGA_LINKS secret.`}
         </span>
-        <button type="button" className="btn btn-sm btn-ink adm-banner-action" onClick={adopt} disabled={busy}>
+        <button type="button" className="btn btn-sm btn-ink adm-banner-action" data-intent="positive" data-fill="" onClick={adopt} disabled={busy}>
           {busy ? 'Moving…' : n === 1 ? 'Move it into the library' : 'Move them into the library'}
         </button>
       </p>
@@ -296,7 +300,7 @@ function LegacyBanner({ secretSet }: { secretSet: boolean }) {
         <span>
           {done ? 'Done. ' : ''}You can delete the secret now: <code className="adm-code">wrangler secret delete MEGA_LINKS</code>
         </span>
-        <button type="button" className="adm-banner-x" aria-label="Hide this note" onClick={() => setHidden(true)}>
+        <button type="button" className="btn adm-icon-btn adm-banner-x" aria-label="Hide this note" onClick={() => setHidden(true)}>
           <X className="size-4" aria-hidden />
         </button>
       </p>

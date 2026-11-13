@@ -119,7 +119,12 @@ export function CastBubble({ who, line, show, side = 'center', tone, className }
   const was = useRef(show);
   const [leaving, setLeaving] = useState(false);
   useLayoutEffect(() => {
-    if (show && ref.current) place(ref.current, side);
+    if (!show || !ref.current) return;
+    // (r20bubbles) A speaker still popping in or walking (How it works' stage eases after the scroll) is measured where it is passing: the
+    // bubble is placed again once it has landed, which only moves it when the first place no longer fits.
+    place(ref.current, side);
+    const t = window.setTimeout(() => ref.current && place(ref.current, side), 650);
+    return () => window.clearTimeout(t);
   }, [show, side, line]);
   // The leave lifts 4 px while it fades; the next arrival starts from below again.
   useEffect(() => {

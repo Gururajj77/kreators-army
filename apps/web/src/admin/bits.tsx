@@ -102,13 +102,15 @@ export function Modal({
   );
 }
 
-/** "Delete this video? …" and its kind: a small modal with Cancel and one action. The action is red only when it destroys something. */
+/** "Delete this video? …" and its kind: a small modal with Cancel and one action. The action is solid red when it destroys something, solid green
+ *  otherwise (round 20: the colour says what the button does; `icon` goes left of the label, aria-hidden). */
 export function ConfirmDialog({
   title,
   body,
   confirmLabel,
   cancelLabel = 'Cancel',
   danger = false,
+  icon,
   busy = false,
   onConfirm,
   onCancel,
@@ -119,6 +121,8 @@ export function ConfirmDialog({
   confirmLabel: string;
   cancelLabel?: string;
   danger?: boolean;
+  /** A lucide icon (size-4, aria-hidden) before the confirm label. */
+  icon?: ReactNode;
   busy?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -134,10 +138,11 @@ export function ConfirmDialog({
         {body && <div className="adm-confirm-body">{body}</div>}
         {children}
         <div className="adm-confirm-actions">
-          <button type="button" className="btn btn-sm btn-ghost" onClick={onCancel} disabled={busy}>
+          <button type="button" className="btn btn-sm btn-ghost" data-intent="neutral" onClick={onCancel} disabled={busy}>
             {cancelLabel}
           </button>
-          <button type="button" className={`btn btn-sm ${danger ? 'btn-accent' : 'btn-ink'}`} onClick={onConfirm} disabled={busy} autoFocus>
+          <button type="button" className="btn btn-sm btn-ink" data-intent={danger ? 'danger' : 'positive'} data-fill="" onClick={onConfirm} disabled={busy} autoFocus>
+            {icon}
             {confirmLabel}
           </button>
         </div>
@@ -270,7 +275,7 @@ export function MenuButton({
   children,
   items,
   className,
-  buttonClass = 'adm-icon-btn',
+  buttonClass = 'btn adm-icon-btn',
   align = 'end',
 }: {
   /** The button's accessible name. */
@@ -343,10 +348,10 @@ export function MenuButton({
 export function SplitButton({ label, onClick, menuLabel, items, className }: { label: ReactNode; onClick: () => void; menuLabel: string; items: MenuItem[]; className?: string }) {
   return (
     <span className={`adm-split ${className ?? ''}`}>
-      <button type="button" className="adm-split-main" onClick={onClick}>
+      <button type="button" className="btn btn-sm adm-split-main" onClick={onClick}>
         {label}
       </button>
-      <MenuButton label={menuLabel} items={items} buttonClass="adm-split-more">
+      <MenuButton label={menuLabel} items={items} buttonClass="btn btn-sm adm-split-more">
         <ChevronDown className="size-4" aria-hidden />
       </MenuButton>
     </span>

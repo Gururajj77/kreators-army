@@ -68,7 +68,7 @@ export function Toasts() {
             {t.action && (
               <button
                 type="button"
-                className="adm-toast-action"
+                className="btn btn-sm adm-toast-action"
                 onClick={() => {
                   dismissToast(t.id);
                   t.action?.run();

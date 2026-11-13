@@ -603,7 +603,7 @@ const post: Post = {
         { name: 'Confirm and sign', text: 'Confirm the package and sign the pilot agreement.' },
         { name: 'Receive the invoice', text: 'Expect an invoice from us for the package fee, with GST added where applicable.' },
         { name: 'Pay in advance', text: 'Pay the full package fee in advance, before pre-production or production begins.' },
-        { name: 'Start production', text: 'Production begins when payment arrives. Delivery timelines are confirmed in the pilot agreement once pre-production alignment is complete.' },
+        { name: 'Start production', text: 'Production begins when payment arrives. A batch usually takes 14 to 21 days, and the exact delivery dates are confirmed in the pilot agreement once pre-production alignment is complete.' },
       ],
     },
 

@@ -1726,8 +1726,9 @@
     text-wrap: balance;
   }
 
-  /* Not a button: a .btn in a post (the mid-post action) keeps its own label colour (white on the red). */
-  .read-prose a:not(.btn) {
+  /* Not a button: a .btn in a post (the mid-post action) keeps its own label colour (white on the red). (r20audit) Nor a text action
+     (buttons.css): the blog's arrow links take the text actions' colour and hover from there. */
+  .read-prose a:not(.btn, .how-link, .why-copy-link, .contact-after, .tr-link, .read-onward-link, .ix-link, .price-link, .wk-inc-link, .fmt-ideas-link, .bp-cta-more, .bp-video-more) {
     color: inherit;
     text-underline-offset: 2px;
   }

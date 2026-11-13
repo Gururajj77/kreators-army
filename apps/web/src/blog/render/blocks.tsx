@@ -29,15 +29,19 @@ const CHIP_TONES = ['sochu', 'bolu', 'tiko', 'gola'] as const;
 /** The site's one primary action, as PrimaryCta draws it (a plain link here; the live page routes the click). */
 export function PrimaryAction({ className }: { className?: string }) {
   return (
-    <a href={PRIMARY_ACTION.to} className={`btn btn-accent btn-disc ${className ?? ''}`}>
+    <a href={PRIMARY_ACTION.to} className={`btn btn-accent ${className ?? ''}`}>
       <span className="label-roll">
         <span>{PRIMARY_ACTION.label}</span>
         <span aria-hidden>{PRIMARY_ACTION.label}</span>
       </span>
-      <span className="arrow-disc" data-kind="go" aria-hidden>
-        <svg viewBox="0 0 16 16" width="14" height="14" focusable="false">
-          <path d="M4.5 11.5l7-7M5.5 4.5h6v6" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+      <ArrowRight className="btn-arrow size-4" aria-hidden />
+      {/* The ink copy the yellow hover fill shows (components/ui.tsx ActionLit): its words come from data-label, so the link's text is unchanged. */}
+      <span className="btn-lit" aria-hidden>
+        <span className="label-roll">
+          <span data-label={PRIMARY_ACTION.label} />
+          <span aria-hidden data-label={PRIMARY_ACTION.label} />
+        </span>
+        <ArrowRight className="btn-arrow size-4" aria-hidden />
       </span>
     </a>
   );

@@ -38,23 +38,11 @@ export function ThemeToggle() {
           <rect x="-4" y="-4" width="36" height="36" fill="#fff" />
           <m.circle cx="23.2" cy="6.7" r="11" fill="#000" initial={false} animate={{ x: dark ? 0 : 22, y: dark ? 0 : -22 }} transition={transition} />
         </mask>
-        {/* Round 17: the knob is a glossy pearl, a lit top-left and a deeper rim, like the 3D buttons around it. */}
-        <radialGradient id={`${mask}-lit`} cx="0.36" cy="0.26" r="0.7">
-          <stop offset="0" stopColor="#fff" stopOpacity="0.72" />
-          <stop offset="0.45" stopColor="#fff" stopOpacity="0.14" />
-          <stop offset="1" stopColor="#fff" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id={`${mask}-rim`} cx="0.5" cy="0.4" r="0.62">
-          <stop offset="0.7" stopColor="#7a2a00" stopOpacity="0" />
-          <stop offset="1" stopColor="#7a2a00" stopOpacity="0.32" />
-        </radialGradient>
         <g mask={`url(#${mask})`}>
           {/* M5f: the knob squashes at mid-travel, 1 → 1.12 → 1, once per flip. */}
           <m.g key={flips} initial={false} animate={flips > 0 ? { scaleX: [1, 1.12, 1] } : undefined} transition={{ duration: 0.36, ease: 'easeOut' }} style={{ transformOrigin: '14px 14px' }}>
           <m.g initial={false} animate={{ rotate: dark ? -12 : 0 }} transition={transition} style={{ transformOrigin: '14px 14px' }}>
             <circle cx="14" cy="14" r="12" fill="#ff8d3a" />
-            <circle cx="14" cy="14" r="12" fill={`url(#${mask}-rim)`} />
-            <circle cx="14" cy="14" r="12" fill={`url(#${mask}-lit)`} />
             <m.g initial={false} animate={{ x: dark ? -3.4 : 0, y: dark ? 2.9 : 0 }} transition={transition}>
               <path d="M6.9 13.4c1.1-1.5 2.9-1.5 4 0" fill="none" stroke="#111" strokeWidth="1.5" strokeLinecap="round" />
               <m.circle

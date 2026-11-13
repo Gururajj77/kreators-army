@@ -170,7 +170,7 @@
     --rule: var(--line);
     --plate-bg: var(--surface);
     /* (cards16) Liquid glass (components.css): set here too, because the base .etl-plate's ink fill would outrank the shared :where() list. */
-    background: var(--lg-sheen), var(--lg-fill);
+    background: var(--lg-grain), var(--lg-sheen), var(--lg-fill);
     box-shadow: var(--lg-edge), var(--lg-halo), var(--lg-drop);
     color: var(--ink);
   }
@@ -318,6 +318,23 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
     hyphens: auto;
+  }
+
+  /* (r20fix) Tablets: a clip is about 60 to 90 px wide, so "Feedback and a package" and "Shoot, edit, deliver" need three lines. Three 14px lines
+     at 12px still fit the 52px clip, which keeps its height (the walk's fit is unchanged). */
+  @media (max-width: 1023.98px) {
+    .etl-clip {
+      gap: 6px;
+      padding: 0 8px 0 8px;
+    }
+
+    .etl-clip-name {
+      font-size: 12px;
+      letter-spacing: 0;
+      line-height: 14px;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+    }
   }
 
   /* The playhead: Sochu's yellow, never red. It moves by transform only: x = progress x the track's width. */

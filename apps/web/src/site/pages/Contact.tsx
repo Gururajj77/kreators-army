@@ -14,7 +14,7 @@ import { SITE, SOCIALS, whatsappHref, whatsappPhone } from '../../lib/content';
 const NEXT_STEPS = [
   'We read your brief.',
   "We confirm the trial's scope, number of videos and any fee in writing.",
-  'We make the trial on your brand.',
+  'We make the trial on your brand, usually in 7 to 14 days.',
   'You review it and decide whether to continue.',
 ];
 

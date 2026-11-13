@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router';
 import { PRIMARY_ACTION, RESULTS_NOTE, contactHref, type ContactIntent, type Stat } from '../lib/content';
 import { finePointer, motionOk, useMotionOk, useRunning } from '../lib/motionOk';
 import { spring } from '../lib/spring';
-import { ArrowDisc, LabelRoll } from './tabs';
+import { LabelRoll } from './tabs';
 import { WORDMARK } from './wordmark';
 
 // Segment moved to the tab kit (tabs.tsx); re-exported so v1 imports keep working.
@@ -330,9 +330,10 @@ export const useActionInView = () =>
   );
 
 /**
- * The one primary action, "Request a trial video": same words, same red, everywhere (content §6.1). `intent` carries what the visitor chose to the form
- * (`/contact?package=10`, `?videos=25&brands=2`, `?format=founders`). `chrome` marks the copies in the nav, the menu, the footer, the player and the phone
- * bar itself; every other copy counts as the page's own. The label rolls on hover (M5b); the arrow disc (M5c) shows on md and lg sizes.
+ * The one primary action, "Request a trial video": same words, same orange-red face on its lip (the --cta tokens), everywhere (content §6.1). `intent` carries
+ * what the visitor chose to the form (`/contact?package=10`, `?videos=25&brands=2`, `?format=founders`). `chrome` marks the copies in the nav, the menu, the
+ * footer, the player and the phone bar itself; every other copy counts as the page's own. The label rolls on hover (M5b); a trailing arrow shows on md and
+ * lg sizes. The ink copy (ActionLit) is what the yellow fill shows.
  */
 export function PrimaryCta({
   intent,
@@ -345,25 +346,70 @@ export function PrimaryCta({
   size?: ButtonSize;
   className?: string;
   chrome?: boolean;
-  /** Show the arrow disc. Default: on for md and lg, off for sm. */
+  /** Show the trailing arrow. Default: on for md and lg, off for sm. */
   disc?: boolean;
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
   useEffect(() => {
     if (!chrome && ref.current) return watchAction(ref.current);
   }, [chrome]);
-  const withDisc = disc ?? size !== 'sm';
+  const withArrow = disc ?? size !== 'sm';
   return (
-    <Link ref={ref} to={contactHref(intent)} className={`btn btn-accent ${BUTTON_SIZE[size]} ${withDisc ? 'btn-disc' : ''} ${className ?? ''}`}>
-      <LabelRoll>{PRIMARY_ACTION.label}</LabelRoll>
-      {withDisc && <ArrowDisc />}
+    <Link ref={ref} to={contactHref(intent)} className={`btn btn-accent ${BUTTON_SIZE[size]} ${className ?? ''}`}>
+      <PrimaryInner arrow={withArrow} />
     </Link>
   );
 }
 
+/** The primary action's face inside: the rolling label, the trailing arrow and the ink copy the yellow fill shows. */
+function PrimaryInner({ arrow }: { arrow: boolean }) {
+  return (
+    <>
+      <LabelRoll>{PRIMARY_ACTION.label}</LabelRoll>
+      {arrow && <ArrowRight className="btn-arrow size-4" aria-hidden />}
+      <ActionLit label={PRIMARY_ACTION.label} roll arrow={arrow} />
+    </>
+  );
+}
+
 /**
- * A button-shaped link. `to` for a route, `href` for mailto or an outside site, neither for a real <button>. Press and hover are CSS. Ink by default: red
- * belongs to the one primary action (PrimaryCta) alone. The arrow points across for a link that stays on the site, and up and out for one that opens a new tab.
+ * (r20audit) The primary action's face drawn inside a card that is itself the link (the library's end card): the same button as PrimaryCta, as a
+ * span, so there is one link. It stays a real pointer target (never pointer-events: none), so the shared system gives it the fill, the label
+ * split, the outline, the magnet and the press; a click on it reaches the card's link. Hidden from assistive tech: the card carries the words.
+ */
+export function PrimaryFace({ size = 'md', className, disc }: { size?: ButtonSize; className?: string; disc?: boolean }) {
+  return (
+    <span className={`btn btn-accent ${BUTTON_SIZE[size]} ${className ?? ''}`} aria-hidden>
+      <PrimaryInner arrow={disc ?? size !== 'sm'} />
+    </span>
+  );
+}
+
+/**
+ * The primary action's filled face: the same label (and arrow) again, in warm ink on Sochu yellow, laid over the white one and clipped to the hover fill's
+ * circle (styles/buttons.css), so the label is ink exactly where the yellow has reached. Put it last inside every `.btn-accent`. The words are drawn from
+ * data-label by CSS, so the button's text and accessible name stay as they were. `roll` mirrors a LabelRoll label; `arrow` a trailing ArrowRight.
+ */
+export function ActionLit({ label, roll = false, arrow = false }: { label: string; roll?: boolean; arrow?: boolean }) {
+  return (
+    <span className="btn-lit" aria-hidden>
+      {roll ? (
+        <span className="label-roll">
+          <span data-label={label} />
+          <span aria-hidden data-label={label} />
+        </span>
+      ) : (
+        <span data-label={label} />
+      )}
+      {arrow && <ArrowRight className="btn-arrow size-4" aria-hidden />}
+    </span>
+  );
+}
+
+/**
+ * A button-shaped link. `to` for a route, `href` for mailto or an outside site, neither for a real <button>. Press and hover are CSS. Ink by default: the
+ * orange-red primary face belongs to the primary action (PrimaryCta, and the brief's Next and Send) alone; `ghost` is the secondary (the orange tint),
+ * `ink` and `light` the neutral. The arrow points across for a link that stays on the site, and up and out for one that opens a new tab.
  */
 export function Cta({
   to,
@@ -391,6 +437,7 @@ export function Cta({
     <>
       {children}
       {arrow && <Arrow className={`btn-arrow size-4 ${external ? 'btn-arrow-out' : ''}`} aria-hidden />}
+      {kind === 'accent' && typeof children === 'string' && <ActionLit label={children} arrow={arrow && !external} />}
     </>
   );
   if (to)

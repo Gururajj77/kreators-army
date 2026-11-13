@@ -1,25 +1,42 @@
-/* Buttons, round 17: glossy 3D candy buttons, with the round 16 liquid fill, press ripple and magnet kept inside the shell.
+/* Buttons, round 20 (r20sys): one token-driven system from the founder's two references, with our effects kept.
 
-   One recipe, every variant: a button sets only its colour (--btn-hue) and, if it needs to, how much lighter its top is (--btn-lift), how much
-   deeper its bottom is (--btn-sink) and what its drop shadow is tinted with (--btn-shadow). From those the shared rules below draw:
-   - the body: a vertical gradient of its own colour, lighter at the top, deeper at the bottom (--btn-top, --btn-bottom, --btn-body);
-   - the shell (::after, above the liquid, under the label): a domed white sheen along the top, a crisp 1px top rim, a soft shade along the
-     bottom and an inner shadow at the bottom edge in a darker shade of the button's own colour;
-   - the drop: a tight dark contact shadow plus a soft shadow in the button's own hue (--btn-shadow), sized per kind (--btn-y, --btn-blur) and
-     scaled by state (--btn-k: 1 at rest, raised on hover, almost flat when pressed or disabled).
-   Solid kinds (accent red, ink, light) are opaque colours; everything else is frosted: a translucent white (--frost, per theme and per dark
-   band) with a neutral shadow.
+   Shape: rounded rectangles, never pills (--btn-r-sm 10 px, --btn-r 12 px, --btn-r-lg 14 px; icon buttons 12 px squares at 44 px). Each kind
+   stands on a lip (a solid shadow under the face); a press sinks the face on to it. Kinds (the second half of this sheet):
+   - Primary (.btn-accent): a solid orange-red face, lit from the top, a darker red-orange lip, a white label and a trailing arrow. Hover: Sochu
+     yellow floods in from where the pointer came in, and an ink copy of the label (.btn-lit, components/ui.tsx ActionLit) is clipped to the same
+     circle, so the label is ink exactly where the yellow has reached and every glyph keeps AA throughout. (r20refine) The face is a diagonal
+     gradient (brighter top left, deeper bottom right) that shifts a few degrees redder on hover; the yellow is a warm gold run; the lip is static.
+   - Secondary (.btn-ghost and the outline buttons), (r20refine): the primary's inverse in the same 3D style: a white face, a yellow outline, a
+     yellow-amber lip, an ink label; hover floods the gold run in from the pointer and the label stays ink.
+   - Shadows and lips never animate or glow (the founder, r20refine): only the face and the thin outline ring move.
+   - Neutral (.btn-ink, .btn-light, the icon buttons and the small controls): white with an ink label in light, slate with a white label in dark.
+   - Text (the arrow links): an orange label, a trailing arrow that nudges, and an underline that grows on hover. Links still.
+   - Switches (the footer's Pause animations): a neutral track off, the primary face on, a white knob with a shadow.
 
-   Motion, as in round 16: on a mouse hover a drop of the button's own deeper (or tinted) colour (--liq, ::before) grows from the point the
-   pointer came in, turning slowly so its edge reads as liquid, under the shell's highlight, so the liquid is seen moving inside the glass. A
-   press sends a ripple out from the press point (drawn in the shell, under its gloss), the body moves down and the inner shadow deepens. The
-   magnet leans the button toward the mouse, up to its --pull, and the label leans a little further. lib/buttonFx.ts feeds the pointer in:
-   --lx/--ly (where the fill starts), --px/--py (where the ripple starts), --blob (a drop big enough to cover the button), --mx/--my (the lean).
-   Only translate, scale, rotate and opacity move continuously; the box-shadow transitions only on the element whose state changed, and the
-   ripple animates two registered numbers on that one button's shell. Under Pause animations or reduced motion (data-still) nothing moves:
-   hover is a plain colour change to the same --liq and the press only deepens the shadow.
+   Kept from rounds 16 to 20: the liquid (::before, a drop of --liq that grows from the entry point and drains on leave; lib/buttonFx.ts feeds
+   --lx/--ly, --px/--py, --blob and data-ripple), the press ripple (the top layer of the body: --rip, --rip-a), the slow outline (::after, a 1 px
+   ring with two warm glints going round once every 4.4 s on hover) and the magnet (--mx/--my, fine pointers only; the label leans a little further).
+   Under Pause animations or reduced motion (data-still) nothing moves: hover is the static fill colour (the primary's yellow and ink label at once)
+   and a static outline; there is no ripple and no press movement.
 
-   The list is FX_BUTTONS in lib/buttonFx.ts: keep the two in step. */
+   The admin (r20admbtn, the founder: "all button styles needs to be updated including admin") takes the same system and effects. Its rules here
+   are a second arm on the shared rules (`:is(.adm, .adm-lock) …`), so the public arm keeps its weight: every admin .btn is the neutral kind, and
+   its intents re-scope this sheet's tokens in admin.css: a solid save or confirm (data-intent="positive" data-fill) is the primary in green, a
+   tinted positive the secondary in green, and a danger button the neutral whose fill is red (a solid one: the primary in red). The admin's label
+   copies are admin/litLabels.ts. The list is FX_BUTTONS in lib/buttonFx.ts: keep the two in step. */
+@property --btn-wash {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --btn-turn {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* The press ripple: how far it has spread (0 to 1) and how strong it still is. */
 @property --rip {
   syntax: '<number>';
   inherits: false;
@@ -32,77 +49,133 @@
   initial-value: 0;
 }
 
+/* The primary's yellow fill: the radius of its circle (buttons.css .btn-lit). Registered, so it transitions while the centre (the entry point) jumps. */
+@property --fill-r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* (r20refine) The two ends of the primary's orange face and of the gold fill. Registered, so the small colour shift on hover runs smoothly. Only
+   the face and the thin outline ever move: the lip and the shadow under it are static (no transition, no glow). */
+@property --face-a {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+@property --face-b {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+@property --gold-a {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+@property --gold-b {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
 @layer components {
-  /* ---------- The frost: the body of every non-solid button, per context. Light: a pearl of white. Dark (theme, dark bands, the views pill): a veil of light. ---------- */
+  /* ---------- The frost, per context. Light: a veil of white. Dark (theme, dark bands): a smoky veil, dense enough that the light
+     label keeps AA even over a white backdrop. ---------- */
   :root {
-    --frost: rgb(255 255 255 / 0.84);
-    --frost-sheen: 0.55;
-    --frost-shadow: rgb(44 36 72);
-    --frost-a: 26%;
-    --btn-contact: rgb(24 20 40 / 0.2);
+    --frost-hue: #ffffff;
+    --frost-a: 62%;
+    --frost-inner: rgb(255 255 255 / 0.7);
+    --frost-drop: 0 1px 2px rgb(24 20 40 / 0.07);
+    --frost-hover: 0.12;
   }
 
   [data-theme='dark'],
-  .band-dark,
-  .vdeck-views {
-    --frost: rgb(255 255 255 / 0.1);
-    --frost-sheen: 0.34;
-    --frost-shadow: rgb(0 0 0);
-    --frost-a: 60%;
-    --btn-contact: rgb(0 0 0 / 0.55);
+  .band-dark {
+    --frost-hue: #26262d;
+    --frost-a: 70%;
+    --frost-inner: rgb(255 255 255 / 0.07);
+    --frost-drop: 0 1px 2px rgb(0 0 0 / 0.3);
+    --frost-hover: 0.04;
   }
 
   /* The footer is a .band-dark that the light theme turns into a pale sheet: its buttons take the light frost. */
   :root:not([data-theme='dark']) .ft {
-    --frost: rgb(255 255 255 / 0.84);
-    --frost-sheen: 0.55;
-    --frost-shadow: rgb(44 36 72);
-    --frost-a: 26%;
-    --btn-contact: rgb(24 20 40 / 0.2);
+    --frost-hue: #ffffff;
+    --frost-a: 62%;
+    --frost-inner: rgb(255 255 255 / 0.7);
+    --frost-drop: 0 1px 2px rgb(24 20 40 / 0.07);
+    --frost-hover: 0.12;
   }
 
-  /* ---------- The 3D recipe, on every button and on the static 3D parts (chips, sliding thumbs, the arrow disc, the switch). A kind sets
-     --btn-hue (and, if it must, --btn-lift, --btn-sink, --btn-shadow, the gloss alphas and the drop size); the rest follows. Default: frosted.
-     --btn-body (the gradient), --btn-gloss (sheen and bottom shade), --btn-rims (inset rims) and --btn-drop (the shadows) are the shared stacks. */
+  /* No blur to frost with: the veil turns solid, never to worse text. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    :root,
+    :root:not([data-theme='dark']) .ft {
+      --frost-a: 94%;
+    }
+
+    [data-theme='dark'],
+    .band-dark {
+      --frost-hue: #26262c;
+      --frost-a: 96%;
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    :root,
+    :root:not([data-theme='dark']) .ft {
+      --frost-a: 94%;
+    }
+
+    [data-theme='dark'],
+    .band-dark {
+      --frost-hue: #26262c;
+      --frost-a: 96%;
+    }
+  }
+
+  /* ---------- The recipe, on every button and on the static parts (chips, sliding thumbs). Default: the context's frost. ---------- */
   :where(
     .btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear,
-    .chip-opt, .segment-thumb, .tab-bar-thumb, .chip-thumb, .arrow-disc, .ft-pause-track, .ft-pause-thumb
+    .chip-opt, .segment-thumb, .tab-bar-thumb, .chip-thumb
   ) {
-    --btn-hue: var(--frost);
-    --btn-lift: 12%;
-    --btn-sink: 5%;
-    --btn-shadow: var(--frost-shadow);
+    --btn-hue: var(--frost-hue);
     --btn-a: var(--frost-a);
-    --btn-top: color-mix(in oklab, var(--btn-hue), #ffffff var(--btn-lift));
-    --btn-bottom: color-mix(in oklab, var(--btn-hue), #000000 var(--btn-sink));
-    --btn-edge: color-mix(in oklab, var(--btn-shadow) 34%, transparent);
-    /* The gloss: the domed sheen, the crisp top rim and the bottom shade, as alphas. */
-    --btn-sheen: var(--frost-sheen);
-    --btn-rim: 0.7;
-    --btn-depth: 0.06;
-    /* The drop, per size; --btn-k scales it per state; --btn-in is the pressed-in inner shadow. */
-    --btn-y: 5px;
     --btn-blur: 14px;
-    --btn-k: 1;
-    --btn-in: 0;
-    --btn-body: linear-gradient(180deg, var(--btn-top), var(--btn-hue) 50%, var(--btn-bottom));
-    --btn-gloss:
-      radial-gradient(150% 92% at 50% -16%, rgb(255 255 255 / var(--btn-sheen)) 0%, rgb(255 255 255 / calc(var(--btn-sheen) * 0.32)) 36%, transparent 60%),
-      linear-gradient(180deg, transparent 50%, rgb(0 0 0 / var(--btn-depth)) 100%);
-    --btn-rims:
-      inset 0 1px 0.5px rgb(255 255 255 / var(--btn-rim)),
-      inset 0 calc(-2px + var(--btn-in) * 1px) calc(3px - var(--btn-in) * 1px) var(--btn-edge),
-      inset 0 calc(var(--btn-in) * 2px) calc(var(--btn-in) * 5px) rgb(0 0 0 / calc(var(--btn-in) * 0.22));
-    --btn-drop:
-      0 calc(1px * var(--btn-k)) calc(1.5px * var(--btn-k)) var(--btn-contact),
-      0 calc(var(--btn-y) * var(--btn-k)) calc(var(--btn-blur) * var(--btn-k)) calc(var(--btn-blur) * -0.4) color-mix(in oklab, var(--btn-shadow) var(--btn-a), transparent);
+    --btn-line: color-mix(in oklab, currentColor 16%, transparent);
+    --btn-inner: var(--frost-inner);
+    --btn-drop: var(--frost-drop);
+    --btn-hover: var(--frost-hover);
+    /* The hover outline: the whole hairline a little brighter, and two glints of the label's colour going round it. */
+    --btn-line-on: color-mix(in oklab, currentColor 22%, transparent);
+    --btn-glint: color-mix(in oklab, currentColor 40%, transparent);
+    --btn-fill: color-mix(in oklab, var(--btn-hue) var(--btn-a), transparent);
+    /* Top to bottom: the press ripple (transparent at rest), the white wash, the tint. */
+    --btn-body:
+      radial-gradient(
+        circle farthest-corner at var(--px, 50%) var(--py, 50%),
+        color-mix(in oklab, var(--ripple, currentColor) calc(var(--rip-a) * 100%), transparent) calc(var(--rip) * 100% - 12%),
+        transparent calc(var(--rip) * 100%)
+      ),
+      linear-gradient(rgb(255 255 255 / var(--btn-wash)), rgb(255 255 255 / var(--btn-wash))),
+      var(--btn-fill);
+    --btn-edge:
+      inset 0 0 0 1px var(--btn-line),
+      inset 0 1px 0 var(--btn-inner),
+      var(--btn-drop);
+    --btn-frost: blur(var(--btn-blur)) saturate(160%);
   }
 
   /* The buttons with the liquid, the ripple and the magnet (FX_BUTTONS). */
   :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear) {
-    /* How far the magnet may lean the button, and the colour its liquid fills it with. Set per kind below. */
+    /* How far the magnet may lean the button (set per size below), and the liquid and the ripple (set per kind below). By default the liquid is
+       the label's own colour at 10%: a deeper frost in light, a lighter smoke in dark. */
     --pull: 4px;
-    --liq: color-mix(in oklab, currentColor 12%, transparent);
+    --liq: color-mix(in oklab, currentColor 10%, transparent);
     --ripple: currentColor;
     --ripple-o: 0.2;
     position: relative;
@@ -111,13 +184,27 @@
     translate: var(--mx, 0px) var(--my, 0px);
   }
 
-  /* The body and the drop. At class weight and last in the cascade, so it replaces each kind's old flat fill or outline. */
-  :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear) {
+  /* The body. At class weight and last in the cascade, so it replaces each kind's old flat fill or outline. */
+  :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear),
+  .chip-opt:not([data-on], [aria-pressed='true']) {
     background: var(--btn-body);
-    box-shadow: var(--btn-drop);
+    box-shadow: var(--btn-edge);
+    -webkit-backdrop-filter: var(--btn-frost);
+    backdrop-filter: var(--btn-frost);
     transition:
       transform var(--spring-release),
-      box-shadow 240ms var(--ease-out),
+      --btn-wash 280ms var(--ease-out),
+      color var(--dur-hover) ease,
+      opacity 200ms ease;
+  }
+
+  /* blog.css loads with the blog, after this sheet, and paints its round buttons: they need one more class of weight. */
+  :root .bw-round {
+    background: var(--btn-body);
+    box-shadow: var(--btn-edge);
+    transition:
+      transform var(--spring-release),
+      --btn-wash 280ms var(--ease-out),
       color var(--dur-hover) ease,
       opacity 200ms ease;
   }
@@ -127,7 +214,8 @@
     translate: calc(var(--mx, 0px) * 0.4) calc(var(--my, 0px) * 0.4);
   }
 
-  /* The liquid: an uneven drop centred on the entry point, over the body and under the shell. It turns while it shows, so its edge moves. */
+  /* The liquid: an uneven drop centred on the entry point, over the frosted body and under the outline ring and the label. It turns while it
+     shows, so its edge moves. */
   :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)::before {
     content: '';
     position: absolute;
@@ -145,35 +233,45 @@
     animation: btn-liquid-turn 2.4s linear infinite paused;
   }
 
-  /* The shell: the gloss over the body and the liquid, under the label. Top to bottom of the stack: the domed sheen, the bottom shade, the
-     press ripple; and the rims as inset shadows: the crisp top highlight, the inner shadow at the bottom edge, and the pressed-in shadow. */
-  :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)::after {
+  /* The hover outline: a 1px ring (the padding box minus the content box), hidden at rest. Its conic gradient turns while it shows. */
+  :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear, .chip-opt)::after {
     content: '';
     position: absolute;
     z-index: -1;
     inset: 0;
+    padding: 1px;
     border-radius: inherit;
-    background:
-      var(--btn-gloss),
-      radial-gradient(
-        circle farthest-corner at var(--px, 50%) var(--py, 50%),
-        color-mix(in oklab, var(--ripple) calc(var(--rip-a) * 100%), transparent) calc(var(--rip) * 100% - 12%),
-        transparent calc(var(--rip) * 100%)
-      );
-    box-shadow: var(--btn-rims);
+    background: conic-gradient(
+      from var(--btn-turn),
+      var(--btn-line-on) 0turn,
+      var(--btn-glint) 0.1turn,
+      var(--btn-line-on) 0.26turn,
+      var(--btn-line-on) 0.5turn,
+      var(--btn-glint) 0.6turn,
+      var(--btn-line-on) 0.76turn,
+      var(--btn-line-on) 1turn
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    opacity: 0;
     pointer-events: none;
+    transition: opacity 360ms var(--ease-out);
+    /* (r20refine) Slower (2.8 s was), so the light flows along the outline rather than spins. */
+    animation: btn-orbit 4.4s linear infinite paused;
   }
 
   @media (hover: hover) and (pointer: fine) {
-    /* Hover: a slight raise; the drop grows. */
-    :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):hover:not(:disabled, [aria-disabled='true']) {
-      --btn-k: 1.4;
+    /* Chips brighten with the white wash; the buttons fill with their liquid instead. */
+    .chip-opt:not([data-on], [aria-pressed='true'], :disabled):hover {
+      --btn-wash: var(--btn-hover);
     }
 
-    :root:not([data-still]) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):hover:not(:disabled, [aria-disabled='true']) {
-      transform: translateY(-1px);
-    }
-
+    /* The liquid flows in from the entry point. */
     :root:not([data-still])
       :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):hover:not(
         :disabled,
@@ -185,7 +283,7 @@
       animation-play-state: running;
     }
 
-    /* Still: the same colour, at once, with nothing moving. */
+    /* Still: the same liquid colour, at once, with nothing moving. */
     :root[data-still]
       :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):hover:not(
         :disabled,
@@ -193,38 +291,66 @@
       ) {
       background: linear-gradient(var(--liq), var(--liq)), var(--btn-body);
     }
+
+    :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):hover:not(:disabled, [aria-disabled='true'])::after,
+    .chip-opt:not([data-on], [aria-pressed='true'], :disabled):hover::after {
+      opacity: 1;
+      animation-play-state: running;
+    }
+
+    /* Still: the outline brightens evenly, at once, and nothing turns. */
+    :root[data-still] :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear, .chip-opt):hover::after {
+      background: color-mix(in oklab, currentColor 30%, transparent);
+    }
   }
 
-  /* The 3D press: the drop shrinks to a contact shadow, the inner shadow deepens, and the body moves down. Touch too. */
+  /* The press: a small squash, touch too. */
   :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):active:not(:disabled, [aria-disabled='true']) {
-    --btn-k: 0.3;
-    --btn-in: 1;
+    --btn-wash: calc(var(--btn-hover) * 0.5);
   }
 
   :root:not([data-still]) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):active:not(:disabled, [aria-disabled='true']) {
-    transform: translateY(1.5px) scale(0.98);
+    transform: scale(0.98);
     transition-duration: var(--dur-press), 90ms, var(--dur-hover), 200ms;
     transition-timing-function: var(--ease-out);
   }
 
-  :root[data-still] :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear) {
+  /* Chips: no lift on hover (the outline is the hover), and the same small squash on a press. Their label darkens on hover, so the glints are fainter. */
+  .chip-opt {
+    --btn-line-on: color-mix(in oklab, currentColor 20%, transparent);
+    --btn-glint: color-mix(in oklab, currentColor 32%, transparent);
+  }
+
+  :root:not([data-still]) .chip-opt:not([data-on], [aria-pressed='true']):hover {
+    transform: none;
+  }
+
+  :root:not([data-still]) .chip-opt:not(:disabled):active {
+    transform: scale(0.98);
+  }
+
+  :root[data-still] :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear, .chip-opt) {
     transform: none;
     transition: none;
   }
 
-  /* Disabled: flatter (the drop all but gone, a fainter gloss) and desaturated. */
-  :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear):disabled {
-    --btn-k: 0.25;
-    --btn-sheen: 0.25;
-    --btn-rim: 0.35;
-    filter: saturate(0.4);
+  :root[data-still] :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear, .chip-opt)::after {
+    animation: none;
+    transition: none;
   }
 
-  :root:not([data-still]) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)[data-ripple='a']::after {
+  @keyframes btn-orbit {
+    to {
+      --btn-turn: 360deg;
+    }
+  }
+
+  /* The press ripple: two names, so a second press restarts it (lib/buttonFx.ts flips data-ripple). Never under data-still. */
+  :root:not([data-still]) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)[data-ripple='a'] {
     animation: btn-ripple-a 720ms var(--ease-out);
   }
 
-  :root:not([data-still]) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)[data-ripple='b']::after {
+  :root:not([data-still]) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .reel-pause, .player-close, .calc-step, .bw-round, .lib-search-clear)[data-ripple='b'] {
     animation: btn-ripple-b 720ms var(--ease-out);
   }
 
@@ -271,12 +397,9 @@
     }
   }
 
-  /* ---------- Per kind: the reach, the drop size, the colour and the liquid. Every pair keeps AA at rest, mid-fill, filled and pressed, in both themes. ---------- */
+  /* ---------- Per size: the reach. ---------- */
   .btn {
     --pull: 7px;
-    --liq: color-mix(in oklab, currentColor 10%, transparent);
-    --btn-y: 7px;
-    --btn-blur: 18px;
   }
 
   .btn-sm,
@@ -286,210 +409,517 @@
   .lib-btn,
   .nav-menu-btn {
     --pull: 5px;
-    --btn-y: 5px;
-    --btn-blur: 14px;
   }
 
   .btn-lg {
     --pull: 10px;
-    --btn-y: 9px;
-    --btn-blur: 22px;
   }
 
-  /* The red: a touch deeper than --action so the lit top still holds white at AA, glowing red underneath. Its liquid deepens (white on it 7:1);
-     its ripple is darker still, so a press never lightens the red under white text. */
-  .btn-accent {
-    --btn-hue: color-mix(in oklab, var(--action), #000000 7%);
-    --btn-lift: 14%;
-    --btn-sink: 18%;
-    --btn-shadow: color-mix(in oklab, var(--action) 85%, #000000);
-    --btn-a: 46%;
-    --btn-sheen: 0.42;
-    --btn-rim: 0.5;
-    --btn-depth: 0.1;
-    --btn-edge: color-mix(in oklab, var(--action), #000000 45%);
-    --liq: #ad1111;
-    --ripple: #3d0202;
-    --ripple-o: 0.45;
-  }
-
-  /* Ink: a black gloss in light, a pearl in dark; its shadow stays neutral, so the light pearl never glows. */
+  /* (r20admbtn) The frosted ink and white kinds the admin drew are gone (every kind below sets its own face); only the ink's press wash stays. */
   .btn-ink {
-    --btn-hue: var(--ink);
-    --btn-lift: 16%;
-    --btn-sink: 12%;
-    --btn-a: 40%;
-    --btn-sheen: 0.32;
-    --btn-rim: 0.32;
-    --btn-depth: 0.12;
-    --liq: color-mix(in oklab, var(--ink) 80%, var(--bg));
+    --btn-hover: 0.08;
   }
 
-  .btn-ghost {
-    --liq: color-mix(in oklab, var(--ink) 10%, transparent);
+  /* ---------- The public button system (r20sys), from the founder's two references. Tokens: tokens.css (--btn-r*, --btn-lip*, --cta-*, --sec-*,
+     --neu-*, --act-*, --tog-*). The admin shares it through a second arm on each rule it takes (r20admbtn, see the header).
+
+     The lip: each kind stands on a darker lip drawn as a solid shadow under the face (--lip-h tall, --lip-c), with a soft shadow below it. A press
+     sinks the face on to the lip (the face moves down, the lip shrinks to 1 px), so the bottom edge stays where it was. Nothing changes size. */
+  :where(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .calc-step, .bw-round):not(:is(.adm, .adm-lock) *),
+  :is(.adm, .adm-lock) :where(.btn) {
+    --lip: var(--btn-lip-soft);
+    --lip-h: var(--lip);
+    --lip-c: var(--neu-lip);
+    --lip-shade: rgb(24 20 40 / 0.16);
+    --btn-drop: 0 var(--lip-h) 0 var(--lip-c), 0 calc(var(--lip-h) + 3px) 10px -5px var(--lip-shade);
   }
 
-  /* White on a poster or a colour tile: a pearl. */
-  .btn-light {
-    --btn-hue: #ffffff;
-    --btn-lift: 0%;
-    --btn-sink: 9%;
-    --btn-shadow: rgb(20 16 36);
-    --btn-a: 34%;
-    --btn-sheen: 0.8;
-    --btn-rim: 1;
-    --liq: #e9e3d9;
-  }
-
-  .nav-icon,
-  .rail-paddle,
-  .copy-btn,
-  .calc-step,
-  .bw-round,
-  .lib-search-clear {
-    --btn-y: 4px;
-    --btn-blur: 12px;
-  }
-
-  .rail-paddle {
-    --liq: color-mix(in oklab, var(--ink) 10%, transparent);
-  }
-
-  .calc-step,
-  .bw-round {
-    --liq: color-mix(in oklab, var(--ink) 12%, transparent);
-  }
-
-  .calc-snap {
-    --liq: color-mix(in oklab, var(--ink) 8%, transparent);
-  }
-
-  .copy-btn {
-    --liq: color-mix(in oklab, var(--ink) 8%, transparent);
-  }
-
-  /* Over a video: a dark glass sphere that holds the white icon at AA over a white frame; its liquid is a lighter glass. */
-  .reel-pause,
-  .player-close {
-    --btn-hue: var(--glass-media-bg);
-    --btn-lift: 14%;
-    --btn-sink: 10%;
-    --btn-shadow: rgb(0 0 0);
-    --btn-a: 50%;
-    --btn-sheen: 0.38;
-    --btn-rim: 0.4;
-    --btn-y: 4px;
-    --btn-blur: 12px;
-    --btn-contact: rgb(0 0 0 / 0.4);
-    --liq: rgb(78 78 82 / 0.84);
-  }
-  /* ---------- The static 3D parts: the same recipe, drawn in one box (no liquid in them, so the gloss and rims sit on the element). ---------- */
-
-  /* Chips: a frosted pill each; the chosen one is the glossy ink thumb sliding under it, or (multi-select) an ink pill of its own. */
-  .chip-opt:not([data-on], [aria-pressed='true']) {
-    --btn-y: 3px;
-    --btn-blur: 10px;
-    background: var(--btn-gloss), var(--btn-body);
-    box-shadow: var(--btn-rims), var(--btn-drop);
+  /* (r20refine) The founder: "make sure the shadows and elevations dont have the animated glows". Only the face (its colour shift and the liquid)
+     and the thin outline ring animate. The lip, the shade under it and the elevation never transition: no box-shadow or transform in this list. */
+  :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .calc-step, .bw-round):not(:is(.adm, .adm-lock) *),
+  :is(.adm, .adm-lock) .btn {
     transition:
+      --btn-wash 280ms var(--ease-out),
       color var(--dur-hover) ease,
-      box-shadow 240ms var(--ease-out),
-      transform var(--spring-smooth);
+      opacity 200ms ease,
+      --face-a 700ms var(--ease-out),
+      --face-b 700ms var(--ease-out);
   }
 
-  .chip-rail[data-mode='multi'] .chip-opt[aria-pressed='true'],
-  .chip-thumb {
-    --btn-hue: var(--ink);
-    --btn-lift: 16%;
-    --btn-sink: 12%;
-    --btn-sheen: 0.3;
-    --btn-rim: 0.3;
-    --btn-depth: 0.12;
-    --btn-y: 3px;
-    --btn-blur: 10px;
-    background: var(--btn-gloss), var(--btn-body);
-    box-shadow: var(--btn-rims), var(--btn-drop);
+  /* The press: the face sinks on to its lip (touch too), in one step with the lip, so the bottom edge never moves and the shadow never animates.
+     Under data-still nothing moves, and the lip stays. */
+  :root:not([data-still])
+    :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .calc-step, .bw-round):not(:is(.adm, .adm-lock) *):active:not(
+      :disabled,
+      [aria-disabled='true']
+    ),
+  :root:not([data-still]) :is(.adm, .adm-lock) .btn:active:not(:disabled, [aria-disabled='true']) {
+    --lip-h: 1px;
+    transform: translateY(calc(var(--lip) - 1px));
+    transition-duration: 90ms, var(--dur-hover), 200ms, 700ms, 700ms;
+    transition-timing-function: var(--ease-out);
+    transition-delay: 0s;
+  }
+
+  /* Neutral (the default kind): white with an ink label in light, slate with a white label in dark (re-scoped below). Solid, so no frost. In the
+     admin, every .btn starts here (its intents re-scope it, admin.css). */
+  :is(.btn-ink, .btn-light, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .calc-step, .bw-round):not(:is(.adm, .adm-lock) *),
+  :is(.adm, .adm-lock) .btn {
+    --btn-fill: var(--neu-fill);
+    --btn-line: var(--neu-line);
+    --btn-inner: rgb(255 255 255 / 0.08);
+    --btn-frost: none;
+    --liq: var(--neu-liq);
+    --ripple: var(--neu-ink);
+    --ripple-o: 0.1;
+    color: var(--neu-ink);
+  }
+
+  /* White on a poster or a colour tile stays white in both themes. */
+  .btn-light:not(:is(.adm, .adm-lock) *) {
+    --btn-fill: #ffffff;
+    --btn-line: rgb(14 14 16 / 0.12);
+    --liq: #efeae3;
+    --lip-c: #d7d1c8;
+    --ripple: #141416;
+    color: #141416;
+  }
+
+  /* Secondary (every outline button: "Browse video library", "View more work", "Read them all", Back). (r20refine) The primary's inverse in the
+     same 3D style: a white face (warm near-white in dark), a 1.5 px yellow outline, a yellow-amber lip as tall as the primary's, a warm ink label
+     and arrow. Hover: the gold run floods in from where the pointer came in (a circle, like the primary's), and warms a little while it stays;
+     the label stays ink. Solid: no frost. In the admin: a tinted positive (admin.css re-scopes the tokens to green). */
+  :is(.btn-ghost, .bf-add, .bf-edit):not(:is(.adm, .adm-lock) *),
+  :is(.adm, .adm-lock) .btn[data-intent='positive']:not([data-fill]) {
+    --lip: var(--btn-lip);
+    --btn-fill: var(--sec-fill);
+    --btn-line: var(--sec-line);
+    --btn-inner: rgb(255 255 255 / 0.9);
+    --btn-frost: none;
+    --btn-edge:
+      inset 0 0 0 1.5px var(--btn-line),
+      inset 0 1px 0 var(--btn-inner),
+      var(--btn-drop);
+    --lip-c: var(--sec-lip);
+    --lip-shade: var(--sec-shade);
+    --liq: var(--sec-liq);
+    --ripple: var(--sec-lip);
+    --ripple-o: 0.22;
+    --btn-line-on: var(--sec-ring);
+    --btn-glint: var(--sec-ring-glint);
+    color: var(--sec-ink);
+  }
+
+  /* The gold fill: the liquid layer (::before) becomes the face-sized gold run, clipped to a circle that grows from the entry point (--lx/--ly,
+     --blob from lib/buttonFx.ts), as on the primary. */
+  :is(.btn-ghost, .bf-add, .bf-edit):not(:is(.adm, .adm-lock) *)::before,
+  :is(.adm, .adm-lock) .btn[data-intent='positive']:not([data-fill])::before {
+    --gold-a: var(--gold-top);
+    --gold-b: var(--gold-deep);
+    --fill-r: 0px;
+    inset: 0;
+    top: 0;
+    left: 0;
+    width: auto;
+    aspect-ratio: auto;
+    border-radius: inherit;
+    background:
+      linear-gradient(180deg, var(--gold-sheen), transparent 32%),
+      linear-gradient(to bottom right, var(--gold-a), var(--gold-b));
+    translate: none;
+    scale: 1;
+    clip-path: circle(var(--fill-r) at var(--lx, 50%) var(--ly, 50%));
+    animation: none;
+    transition:
+      --fill-r 520ms var(--ease-in-out),
+      --gold-a 900ms ease,
+      --gold-b 900ms ease;
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .chip-opt:not([data-on], [aria-pressed='true']):hover {
-      --btn-k: 1.4;
+    :is(.btn-ghost, .bf-add, .bf-edit):not(:is(.adm, .adm-lock) *):hover:not(:disabled, [aria-disabled='true']),
+    :is(.adm, .adm-lock) .btn[data-intent='positive']:not([data-fill]):hover:not(:disabled, [aria-disabled='true']) {
+      color: var(--sec-ink-hover);
+    }
+
+    :root:not([data-still]) :is(.btn-ghost, .bf-add, .bf-edit):not(:is(.adm, .adm-lock) *):hover:not(:disabled, [aria-disabled='true'])::before,
+    :root:not([data-still]) :is(.adm, .adm-lock) .btn[data-intent='positive']:not([data-fill]):hover:not(:disabled, [aria-disabled='true'])::before {
+      --fill-r: calc(var(--blob, 900px) / 2.4);
+      --gold-a: var(--gold-top-on);
+      --gold-b: var(--gold-deep-on);
+      transition:
+        --fill-r 880ms cubic-bezier(0.38, 0.12, 0.22, 1),
+        --gold-a 1400ms ease,
+        --gold-b 1400ms ease;
+    }
+
+    /* Still: the gold at once, in its hovered colours, nothing moving. */
+    :root[data-still] :is(.btn-ghost, .bf-add, .bf-edit):not(:is(.adm, .adm-lock) *):hover:not(:disabled, [aria-disabled='true'])::before,
+    :root[data-still] :is(.adm, .adm-lock) .btn[data-intent='positive']:not([data-fill]):hover:not(:disabled, [aria-disabled='true'])::before {
+      --gold-a: var(--gold-top-on);
+      --gold-b: var(--gold-deep-on);
+      clip-path: inset(0);
     }
   }
 
-  :root:not([data-still]) .chip-opt:not([data-on], [aria-pressed='true']):active {
-    --btn-k: 0.3;
-    --btn-in: 1;
+  /* A press (touch too): the gold at once, from the press point. */
+  :is(.btn-ghost, .bf-add, .bf-edit):not(:is(.adm, .adm-lock) *):not(:disabled, [aria-disabled='true']):active::before,
+  :is(.adm, .adm-lock) .btn[data-intent='positive']:not([data-fill]):not(:disabled, [aria-disabled='true']):active::before {
+    --fill-r: calc(var(--blob, 900px) / 2.4);
+    clip-path: circle(var(--fill-r) at var(--px, 50%) var(--py, 50%));
+    transition: --fill-r 0s;
   }
 
-  /* Segments and tab bars: the platter is a sunken well; the thumb that slides in it is a pearl. */
-  :is(.segment, .tab-bar) {
+  :root[data-still] :is(.btn-ghost, .bf-add, .bf-edit)::before,
+  :root[data-still] :is(.adm, .adm-lock) .btn[data-intent='positive']:not([data-fill])::before {
+    transition: none;
+  }
+
+  /* Primary (every "Request a trial video", the brief's Next and Send): the reference's orange-red face, lit from the top, on a darker lip, with a
+     white label. Solid: no frost. The hover outline is warm orange with pale yellow glints. In the admin: a solid save or confirm (admin.css
+     re-scopes the tokens to green, or to red for a final destructive confirm). */
+  .btn-accent:not(:is(.adm, .adm-lock) *),
+  :is(.adm, .adm-lock) .btn[data-fill]:is([data-intent='positive'], [data-intent='danger']) {
+    --lip: var(--btn-lip);
+    --lip-c: var(--cta-lip);
+    --lip-shade: rgb(var(--cta-shade) / 0.42);
+    /* (r20refine) A brighter orange at the top left to a deeper orange-red at the bottom right, under a soft top sheen above the label. */
+    --face-a: var(--cta-face-a);
+    --face-b: var(--cta-face-b);
+    --btn-fill:
+      linear-gradient(180deg, var(--cta-sheen), transparent 28%),
+      linear-gradient(to bottom right, var(--face-a), var(--face-b));
+    --btn-line: rgb(120 30 0 / 0.22);
+    --btn-inner: var(--cta-line);
+    --btn-frost: none;
+    --btn-hover: 0;
+    --btn-line-on: var(--cta-ring);
+    --btn-glint: var(--cta-ring-glint);
+    --liq: var(--cta-lit);
+    --ripple: var(--cta-ripple);
+    --ripple-o: 0.5;
+    color: var(--cta-ink);
+  }
+
+  /* The fill, with its ink label: a second copy of the label and arrow (components/ui.tsx, the brief's buttons), laid out exactly over the white
+     one, on Sochu yellow, clipped to a circle that grows from where the pointer came in (lib/buttonFx.ts sets --lx/--ly and --blob). The label is
+     ink exactly where the yellow has reached and white everywhere else, so every glyph keeps AA at every moment of the fill and the drain. */
+  .btn-lit {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: inherit;
+    padding: inherit;
+    border-radius: inherit;
+    /* (r20refine) The warm gold run: light gold at the top left to deeper amber at the bottom right, warming a little while hovered. */
+    --gold-a: var(--gold-top);
+    --gold-b: var(--gold-deep);
+    background:
+      linear-gradient(180deg, var(--gold-sheen), transparent 32%),
+      linear-gradient(to bottom right, var(--gold-a), var(--gold-b));
+    color: var(--cta-ink-lit);
+    pointer-events: none;
+    --fill-r: 0px;
+    clip-path: circle(var(--fill-r) at var(--lx, 50%) var(--ly, 50%));
+    transition:
+      --fill-r 520ms var(--ease-in-out),
+      --gold-a 900ms ease,
+      --gold-b 900ms ease;
+    translate: none;
+  }
+
+  .btn-lit > * {
+    translate: calc(var(--mx, 0px) * 0.4) calc(var(--my, 0px) * 0.4);
+  }
+
+  /* The ink words, drawn from data-label so the button's text stays single. A bare label mirrors a bare text label, which does not lean. */
+  .btn-lit [data-label]::before {
+    content: attr(data-label);
+  }
+
+  .btn-lit > [data-label] {
+    translate: none;
+  }
+
+  /* The outline ring sits over the fill; the button's own liquid steps aside for it. (The admin's copies: admin/litLabels.ts.) */
+  .btn-accent:has(> .btn-lit)::after,
+  :is(.adm, .adm-lock) .btn:has(> .btn-lit)::after {
+    z-index: 1;
+  }
+
+  .btn-accent:has(> .btn-lit)::before,
+  :is(.adm, .adm-lock) .btn:has(> .btn-lit)::before {
+    display: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    /* The yellow floods in from the entry point (slow at first, so it is seen to spread from the pointer), warming a little as it stays. */
+    .btn-accent:not(:disabled, [aria-disabled='true']):hover > .btn-lit,
+    :is(.adm, .adm-lock) .btn:not(:disabled, [aria-disabled='true']):hover > .btn-lit {
+      --fill-r: calc(var(--blob, 900px) / 2.4);
+      --gold-a: var(--gold-top-on);
+      --gold-b: var(--gold-deep-on);
+      transition:
+        --fill-r 880ms cubic-bezier(0.38, 0.12, 0.22, 1),
+        --gold-a 1400ms ease,
+        --gold-b 1400ms ease;
+    }
+
+    /* (r20refine) The orange face shifts a few degrees redder and a touch deeper while hovered (smoothly, 700 ms). The lip stays as it is: no
+       shadow or lip colour changes on hover (it used to turn gold). */
+    .btn-accent:not(:is(.adm, .adm-lock) *):not(:disabled, [aria-disabled='true']):hover,
+    :is(.adm, .adm-lock) .btn[data-fill]:is([data-intent='positive'], [data-intent='danger']):not(:disabled, [aria-disabled='true']):hover {
+      --face-a: var(--cta-face-a-on);
+      --face-b: var(--cta-face-b-on);
+    }
+
+    /* A primary without the ink copy (none ship): the label turns ink once the liquid has covered it. */
+    .btn-accent:not(:has(> .btn-lit)):not(:disabled, [aria-disabled='true']):hover {
+      color: var(--cta-ink-lit);
+      transition-delay: 0s, 300ms, 0s, 0s, 0s;
+    }
+
+    /* The ink copy rolls and its arrow nudges with the white one. */
+    :root:not([data-still]) .btn:hover > .btn-lit > .label-roll > span {
+      transform: translateY(-105%);
+      transition: transform var(--spring-snappy);
+    }
+
+    :root:not([data-still]) .btn:hover > .btn-lit > .label-roll > span[aria-hidden] {
+      transform: none;
+    }
+
+    :root:not([data-still]) .btn:hover > .btn-arrow:not(.btn-arrow-out),
+    :root:not([data-still]) .btn:hover > .btn-lit > .btn-arrow {
+      transform: translateX(3px);
+    }
+  }
+
+  .btn-lit > .label-roll > span[aria-hidden] {
+    transform: translateY(105%);
+  }
+
+  .btn-lit > .label-roll > span,
+  .btn-arrow {
+    transition: transform var(--spring-smooth);
+  }
+
+  /* A press (touch too): the yellow at once, from the press point, with the ink label. */
+  .btn-accent:not(:disabled, [aria-disabled='true']):active > .btn-lit,
+  :is(.adm, .adm-lock) .btn:not(:disabled, [aria-disabled='true']):active > .btn-lit {
+    --fill-r: calc(var(--blob, 900px) / 2.4);
+    clip-path: circle(var(--fill-r) at var(--px, 50%) var(--py, 50%));
+    transition: --fill-r 0s;
+  }
+
+  /* Still: the yellow and the ink label at once on hover, nothing moving. */
+  :root[data-still] .btn-lit {
+    transition: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root[data-still] .btn-accent:not(:disabled, [aria-disabled='true']):hover > .btn-lit,
+    :root[data-still] :is(.adm, .adm-lock) .btn:not(:disabled, [aria-disabled='true']):hover > .btn-lit {
+      clip-path: inset(0);
+      transition: none;
+    }
+
+    :root[data-still] .btn.btn-accent:hover::after,
+    :root[data-still] :is(.adm, .adm-lock) .btn:has(> .btn-lit):hover::after {
+      background: var(--cta-ring);
+    }
+
+    :root[data-still] :is(.btn-ghost, .bf-add, .bf-edit):not(:is(.adm, .adm-lock) *):hover::after,
+    :root[data-still] :is(.adm, .adm-lock) .btn[data-intent='positive']:not([data-fill]):hover::after {
+      background: var(--sec-ring);
+    }
+  }
+
+  /* (r20refine) A deeper shade, never a coloured glow (it was the orange --cta-glow). */
+  .mobile-cta .btn-accent {
+    --lip-shade: rgb(var(--cta-shade) / 0.5);
+  }
+
+  /* Disabled: a flat sunken face, no lip, a muted label (5.5:1 light, 9.9:1 dark). */
+  .btn:not(:is(.adm, .adm-lock) *)[disabled] {
+    --btn-fill: var(--sunken);
+    --btn-frost: none;
+    --lip-h: 0px;
+    color: var(--muted);
+  }
+
+  /* ---------- Icon buttons: rounded squares (12 px at 44 px), neutral. ---------- */
+  :is(.nav-icon, .rail-paddle, .calc-step, .bw-round, .copy-btn, .reel-pause, .player-close, .lib-search-clear):not(:is(.adm, .adm-lock) *) {
+    border-radius: var(--btn-r-icon);
+  }
+
+  :root .bw-round {
+    border-radius: var(--btn-r-icon);
+  }
+
+  .nav-menu-btn {
+    border-radius: var(--btn-r);
+  }
+
+  /* Small controls inside a field or a chip keep a flat face: the search's clear button. */
+  .lib-search-clear {
+    border-radius: 8px;
+  }
+
+  /* Over a video: a smoky frost that holds the white icon at AA over a white frame, a rounded square, no lip. */
+  .reel-pause,
+  .player-close {
+    --btn-hue: rgb(24 24 27);
+    --btn-a: 62%;
+    --btn-blur: 10px;
+    --btn-line: rgb(255 255 255 / 0.18);
+    --btn-inner: rgb(255 255 255 / 0.1);
+    --btn-drop: 0 1px 2px rgb(0 0 0 / 0.25);
+    --btn-hover: 0.06;
+    /* The liquid: a lighter smoke. */
+    --liq: rgb(255 255 255 / 0.1);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .reel-pause,
+    .player-close {
+      --btn-a: 90%;
+    }
+  }
+
+  /* ---------- Dark contexts: the dark theme and the dark bands already re-scope the tokens. (r20pillbg: the hero deck's views row has no dark card
+     any more, so its step buttons keep the page's own set.) The light theme's footer is a pale sheet, so it takes the light set back. ---------- */
+  :root:not([data-theme='dark']) .ft {
+    --sec-fill: #ffffff;
+    --sec-liq: transparent;
+    --sec-line: #f2b81e;
+    --sec-ink: #1d1206;
+    --sec-ink-hover: #1d1206;
+    --sec-lip: #d99a0f;
+    --sec-shade: rgb(150 95 0 / 0.22);
+    --neu-fill: #ffffff;
+    --neu-liq: #efeae3;
+    --neu-line: rgb(14 14 16 / 0.12);
+    --neu-ink: #141416;
+    --neu-lip: #dbd5cc;
+    --act-ink: #a33508;
+    --act-ink-hover: #872b06;
+    --tog-off: #8a8379;
+    --cta-shade: 150 40 6;
+  }
+
+  :is([data-theme='dark'], .band-dark) :is(.btn, .bf-add, .bf-edit, .calc-snap, .lib-btn, .nav-menu-btn, .nav-icon, .rail-paddle, .copy-btn, .calc-step, .bw-round):not(:is(.adm, .adm-lock) *, .btn-accent),
+  [data-theme='dark'] :is(.adm, .adm-lock) .btn:not([data-fill]) {
+    --lip-shade: rgb(0 0 0 / 0.4);
+  }
+
+  :root:not([data-theme='dark']) .ft :is(.btn, .nav-icon):not(.btn-accent, :is(.adm, .adm-lock) *) {
+    --lip-shade: rgb(24 20 40 / 0.16);
+  }
+
+  /* ---------- Text actions: the arrow links ("Every step after the trial", "How we work", "Who makes the videos"). Links still: an orange label
+     and a trailing arrow, no fill; on hover the arrow nudges the way it points (each link's own rule) and an underline grows from the left. ---------- */
+  :is(.how-link, .why-copy-link, .contact-after, .tr-link, .read-onward-link, .ix-link, .price-link, .wk-inc-link, .fmt-ideas-link, .bp-cta-more, .bp-video-more) {
+    color: var(--act-ink);
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 calc(100% - 9px);
+    background-repeat: no-repeat;
+    background-size: 0% 1.5px;
+    transition:
+      color var(--dur-hover) ease,
+      background-size 320ms var(--ease-out);
+  }
+
+  /* The one-line link inside a sentence: its line box is the text, so the underline sits just under it. */
+  .fmt-ideas-link {
+    background-position: 0 100%;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :is(.how-link, .why-copy-link, .contact-after, .tr-link, .read-onward-link, .ix-link, .price-link, .wk-inc-link, .fmt-ideas-link, .bp-cta-more, .bp-video-more):hover {
+      color: var(--act-ink-hover);
+      text-decoration: none;
+      background-size: 100% 1.5px;
+    }
+  }
+
+  :root[data-still] :is(.how-link, .why-copy-link, .contact-after, .tr-link, .read-onward-link, .ix-link, .price-link, .wk-inc-link, .fmt-ideas-link, .bp-cta-more, .bp-video-more) {
+    transition: none;
+  }
+
+  /* (r20audit) The blog's arrow links ("Or browse the video library", "More from … in the video library") had no hover at all: they are text
+     actions now, and their arrow nudges the way it points, like the others'. */
+  :is(.bp-cta-more, .bp-video-more) > svg {
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :root:not([data-still]) :is(.bp-cta-more, .bp-video-more):hover > svg {
+      transform: translateX(3px);
+    }
+  }
+
+  /* ---------- The static parts: the same frost, no outline motion (chips excepted: they take the hover outline above). ---------- */
+
+  /* Chips: a frosted pill each; the chosen one is the smoky ink thumb sliding under it, or (multi-select) a smoky ink pill of its own. */
+  .chip-rail[data-mode='multi'] .chip-opt[aria-pressed='true'],
+  .chip-thumb {
+    --btn-hue: var(--ink);
+    --btn-a: 86%;
+    --btn-inner: rgb(255 255 255 / 0.1);
+    background: var(--btn-fill);
     box-shadow:
-      inset 0 1.5px 3px color-mix(in oklab, var(--frost-shadow) 18%, transparent),
-      inset 0 -1px 0 color-mix(in oklab, var(--frost) 70%, transparent);
+      inset 0 0 0 1px color-mix(in oklab, var(--ink) 30%, transparent),
+      inset 0 1px 0 var(--btn-inner),
+      var(--btn-drop);
   }
 
+  /* Segments and tab bars: a flat platter; the thumb that slides in it is a dense frost with a hairline. */
   :is(.segment-thumb, .tab-bar-thumb) {
     --btn-hue: var(--surface-5);
-    --btn-lift: 10%;
-    --btn-sink: 6%;
-    --btn-y: 3px;
-    --btn-blur: 8px;
-    background: var(--btn-gloss), var(--btn-body);
-    box-shadow: var(--btn-rims), var(--btn-drop);
+    --btn-a: 92%;
+    --btn-line: var(--line);
+    background: var(--btn-fill);
+    box-shadow: var(--btn-edge);
   }
 
-  /* The arrow disc inside the red action: a white pearl. */
+  /* The arrow disc (the watch links' and the player's): a flat white disc. */
   .arrow-disc {
-    --btn-hue: #ffffff;
-    --btn-lift: 0%;
-    --btn-sink: 10%;
-    --btn-sheen: 0.9;
-    --btn-rim: 1;
-    --btn-shadow: rgb(60 0 0);
-    --btn-a: 40%;
-    --btn-y: 2px;
-    --btn-blur: 5px;
-    --btn-contact: rgb(60 0 0 / 0.3);
-    background: var(--btn-gloss), var(--btn-body);
-    box-shadow: var(--btn-rims), var(--btn-drop);
+    background: rgb(255 255 255 / 0.94);
+    box-shadow: inset 0 0 0 1px rgb(14 14 16 / 0.06);
   }
 
-  /* The theme toggle: its sun knob is a glossy pearl (Nav.tsx draws the light on it); here, the knob's own soft shadow. */
-  .nav-icon[aria-pressed] > svg {
-    filter: drop-shadow(0 1.5px 1.5px rgb(110 40 0 / 0.32));
-  }
-
-  /* The footer's Pause animations switch: a sunken track and a white pearl knob; on, the track is a glossy green. */
+  /* ---------- Switches: the footer's Pause animations. Off: a neutral track; on: the primary's orange-red face on its lip, the knob white with
+     a soft shadow. ---------- */
   .ft-pause-track {
+    background: var(--tog-off);
     box-shadow:
-      inset 0 1.5px 3px rgb(0 0 0 / 0.28),
-      inset 0 -1px 0 rgb(255 255 255 / 0.12);
+      inset 0 1px 2px rgb(0 0 0 / 0.14),
+      inset 0 0 0 1px rgb(0 0 0 / 0.04);
+    transition:
+      background-color var(--dur-hover) ease,
+      box-shadow var(--dur-hover) ease;
   }
 
   .ft-pause[aria-checked='true'] .ft-pause-track {
-    --btn-hue: var(--c-green);
-    --btn-lift: 18%;
-    --btn-sink: 16%;
-    --btn-sheen: 0.4;
-    background: var(--btn-gloss), var(--btn-body);
+    background: linear-gradient(180deg, var(--cta-top), var(--cta-face) 40%, var(--cta-base));
     box-shadow:
-      inset 0 1.5px 3px rgb(0 40 0 / 0.3),
-      inset 0 -1px 0 rgb(255 255 255 / 0.2);
+      inset 0 -2px 0 var(--cta-lip),
+      inset 0 1px 0 var(--cta-line);
   }
 
   :root .ft .ft-pause-thumb {
-    --btn-hue: #ffffff;
-    --btn-lift: 0%;
-    --btn-sink: 12%;
-    --btn-sheen: 0.9;
-    --btn-rim: 1;
-    --btn-shadow: rgb(0 0 0);
-    --btn-a: 45%;
-    --btn-y: 2px;
-    --btn-blur: 4px;
-    --btn-contact: rgb(0 0 0 / 0.3);
-    background: var(--btn-gloss), var(--btn-body);
-    box-shadow: var(--btn-rims), var(--btn-drop);
+    background: #ffffff;
+    box-shadow:
+      0 1px 3px rgb(0 0 0 / 0.3),
+      0 0 0 0.5px rgb(0 0 0 / 0.06);
+  }
+
+  :root[data-still] .ft-pause-track {
+    transition: none;
   }
 }

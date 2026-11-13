@@ -3,7 +3,7 @@
 // finds duplicates, and every MEGA row is checked three at a time. Nothing goes live: every video comes in as a draft, and a whole import can be undone.
 import { IMPORT_LIMITS, parseImport, type AdminVideo, type AdminVideoList } from '@kreators/shared';
 import { useQueryClient } from '@tanstack/react-query';
-import { Download, FileUp, ListChecks, Wand2 } from 'lucide-react';
+import { Download, FileUp, ListChecks, RotateCcw, Trash2, Undo2, Upload, Wand2 } from 'lucide-react';
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { Link } from 'react-router';
 import { Character } from '../cast';
@@ -213,7 +213,7 @@ function AddStep() {
           }}
         />
         <span className="adm-grow" />
-        <button type="button" className="btn btn-accent adm-read-btn" onClick={() => void readLinks()} disabled={!text.trim() || reading}>
+        <button type="button" className="btn btn-ink adm-read-btn" data-intent="positive" data-fill="" onClick={() => void readLinks()} disabled={!text.trim() || reading}>
           {reading ? 'Reading…' : 'Read the links'}
         </button>
       </div>
@@ -362,7 +362,8 @@ function ReviewStep() {
           ) : (
             <p className="adm-help">
               {waiting ? 'Waiting for the checks to finish…' : ticked ? `${ticked} ticked. Each comes in as a draft.` : 'Tick the videos to import.'}{' '}
-              <button type="button" className="adm-link-btn" onClick={() => reset(true)}>
+              <button type="button" className="adm-link-btn" data-intent="danger" onClick={() => reset(true)}>
+                <RotateCcw className="size-3.5" aria-hidden />
                 Start over
               </button>
             </p>
@@ -372,7 +373,8 @@ function ReviewStep() {
               {commitError}
             </p>
           )}
-          <button type="button" className="btn btn-accent" onClick={() => void commitTicked()} disabled={!ticked || waiting || !!committing} data-import-btn>
+          <button type="button" className="btn btn-ink" data-intent="positive" data-fill="" onClick={() => void commitTicked()} disabled={!ticked || waiting || !!committing} data-import-btn>
+            <Upload className="size-4" aria-hidden />
             {committing ? 'Importing…' : `Import ${ticked} as drafts`}
           </button>
         </div>
@@ -482,7 +484,8 @@ function DoneStep() {
             Review the drafts
           </Link>
           {!undone && created > 0 && (
-            <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmUndo(true)}>
+            <button type="button" className="btn btn-sm btn-ghost" data-intent="danger" onClick={() => setConfirmUndo(true)}>
+              <Undo2 className="size-4" aria-hidden />
               Undo this import
             </button>
           )}
@@ -510,6 +513,7 @@ function DoneStep() {
           body="Videos you have published since stay where they are. The bin keeps the rest for 30 days."
           confirmLabel="Move to the bin"
           danger
+          icon={<Trash2 className="size-4" aria-hidden />}
           busy={undoing}
           onConfirm={() => void undo()}
           onCancel={() => setConfirmUndo(false)}

@@ -723,7 +723,7 @@ const post: Post = {
 
     { type: 'h2', id: 'after-you-send-it', text: 'What happens after you send the brief?', toc: 'What happens next' },
 
-    'We plan a short trial on your brand from it, so you can see the format before you commit. Its scope, the number of trial videos and any fee are confirmed in writing first.',
+    'We plan a short trial on your brand from it, usually 7 to 14 days, so you can see the format before you commit. Its scope, the number of trial videos and any fee are confirmed in writing first.',
 
     {
       type: 'list',
@@ -734,7 +734,7 @@ const post: Post = {
         '**A package.** If you go ahead, you choose a 5, 10 or 20 video package for one brand.',
         '**Pilot agreement and prepayment.** We sign a pilot agreement, and the full package fee is paid in advance.',
         '**Pre-production alignment.** Before each shoot we lock the nine points above. Your completed brief is the starting point.',
-        '**Shoot, edit, deliver.** We produce the batch in one planned cycle, with review checkpoints where useful and minor revisions included. Usage rights transfer on full payment.',
+        '**Shoot, edit, deliver.** We produce the batch in one planned cycle, usually 14 to 21 days, with review checkpoints where useful and minor revisions included. Usage rights transfer on full payment.',
       ],
     },
 

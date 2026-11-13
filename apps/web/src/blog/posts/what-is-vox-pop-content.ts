@@ -696,10 +696,10 @@ const post: Post = {
       ordered: true,
       items: [
         '**Send the brief.** The objective, how your brand should show up and what every video must include.',
-        `**The trial.** We make a short trial on your brand, so you can see the format before you commit. Scope, the number of videos and any fee are confirmed in writing. Trial videos are for evaluation only and can't be published.`,
+        `**The trial.** We make a short trial on your brand, usually in 7 to 14 days, so you can see the format before you commit. Scope, the number of videos and any fee are confirmed in writing. Trial videos are for evaluation only and can't be published.`,
         '**Feedback and a package.** Consolidated feedback through one point of contact, then a 5, 10 or 20 video package for one brand.',
         '**Prepay and plan.** Before each shoot we lock the objective, products, audience and must-haves.',
-        '**Shoot, edit, deliver.** One planned production cycle, with minor revisions included. Usage rights transfer on full payment.',
+        '**Shoot, edit, deliver.** One planned production cycle, usually 14 to 21 days, with minor revisions included. Usage rights transfer on full payment.',
       ],
     },
 

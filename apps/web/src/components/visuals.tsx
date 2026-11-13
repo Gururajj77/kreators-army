@@ -388,7 +388,8 @@ export function EditTimeline({ steps, mode, tone = 'ink', onStep, onDone, aside,
   // page still under the visitor's scroll, which read as the page being stuck.
   // (r18) A travelling timeline counts from its plate, not the stage over it, and a little later: the playhead sets off as the plate's top reaches 66%
   // of the screen and ends as its bottom reaches 50%, so step 1 holds while the section scrolls in and the walk starts with the clips and their captions
-  // on screen (it used to start with the track still at the bottom edge), and step 5 lands with the scene above the plate still in view.
+  // on screen (it used to start with the track still at the bottom edge), and step 5 lands with the scene above the plate still in view. (r20) Or
+  // sooner, on a short screen: see `fit` below.
   const walking = travel && mode === 'stage';
   const { scrollYProgress } = useScroll(walking ? { target: plate, offset: ['start 66%', 'end 50%'] } : { target: stage, offset: ['start 75%', 'end 60%'] });
   const walkTo = useTravel(walking, root);
@@ -396,11 +397,26 @@ export function EditTimeline({ steps, mode, tone = 'ink', onStep, onDone, aside,
   const held = useRef<{ k: number; y: number } | null>(null);
   useEffect(() => {
     if (!armed || mode !== 'stage') return;
-    const apply = (v: number) => {
+    // (r20) On a short screen 'end 50%' came too late: step 5's scene stood under the nav, or above the top edge, before the walk was over. A
+    // `[data-etl-end]` element in the scene gives, as its height, the lowest the plate's top may sit when the walk ends (nav, a margin and the last
+    // scene's tallest figure), so the walk finishes there whenever that comes first, with the scene, the clips and the captions all in frame. Same
+    // start, linear in the scroll (monotonic), and hidden (phones: the scene steps off) or absent it is the r18 window.
+    let fit = 1;
+    const measure = () => {
+      const el = root.current;
+      const pl = plate.current;
+      const endTop = (walking && el?.querySelector<HTMLElement>('[data-etl-end]')?.offsetHeight) || 0;
+      if (!pl || !endTop) return void (fit = 1);
+      const vh = window.innerHeight;
+      const span = pl.offsetHeight + 0.16 * vh;
+      fit = Math.min(1, Math.max(Math.min(1, 240 / span), (0.66 * vh - endTop) / span));
+    };
+    const apply = (raw: number) => {
       if (held.current) {
         if (Math.abs(window.scrollY - held.current.y) < 80) return;
         held.current = null;
       }
+      const v = raw / fit;
       const p = Math.min(1, Math.max(0, v));
       setP(p);
       const k = p <= 0 ? -1 : Math.min(n - 1, Math.floor(p * n - 1e-6));
@@ -413,13 +429,18 @@ export function EditTimeline({ steps, mode, tone = 'ink', onStep, onDone, aside,
       if (at !== Math.round(at)) idle = window.setTimeout(() => walkTo.current?.(Math.round(at)), 180);
     };
     let idle = 0;
+    measure();
     apply(scrollYProgress.get());
     const stop = scrollYProgress.on('change', apply);
+    const ro = walking && plate.current ? new ResizeObserver(() => (measure(), apply(scrollYProgress.get()))) : null;
+    // The plate (captions rewrap) and the end mark (its height follows the screen's height) each change the fit.
+    for (const e of [plate.current, root.current?.querySelector('[data-etl-end]')]) if (ro && e) ro.observe(e);
     return () => {
       stop();
+      ro?.disconnect();
       window.clearTimeout(idle);
     };
-  }, [armed, mode, n, land, setP, scrollYProgress, walkTo]);
+  }, [armed, mode, n, land, setP, scrollYProgress, walkTo, walking]);
 
   // Still (or before arming): the walker stands on the step that shows, the last one.
   useEffect(() => {

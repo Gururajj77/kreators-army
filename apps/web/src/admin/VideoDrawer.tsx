@@ -17,7 +17,7 @@ import {
   type VideoWrite,
 } from '@kreators/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, ExternalLink, Trash2, X } from 'lucide-react';
+import { Check, ExternalLink, Eye, EyeOff, RotateCcw, Save, Trash2, TriangleAlert, X } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useBlocker, useNavigate } from 'react-router';
 import { VideoFrame } from '../components/frames';
@@ -119,10 +119,13 @@ export function VideoDrawer({ id, closeTo }: { id: string | null; closeTo: strin
 }
 
 /** The label of a save button rolls to "Saved" (or "Published") with a check that pops (visual §1.4). */
-function SaveLabel({ label, done, doneLabel }: { label: string; done: boolean; doneLabel: string }) {
+function SaveLabel({ label, done, doneLabel, icon }: { label: string; done: boolean; doneLabel: string; icon?: ReactNode }) {
   return (
     <span className="adm-save-roll" data-done={done ? '' : undefined}>
-      <span>{label}</span>
+      <span>
+        {icon}
+        {label}
+      </span>
       <span aria-hidden>
         <Check className="adm-save-check size-4" /> {doneLabel}
       </span>
@@ -580,7 +583,7 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
             {base ? 'Edit video' : 'New video'}
           </h2>
           {base && <span className="adm-drawer-sub">{base.published ? 'Published' : base.deletedAt ? 'In the bin' : 'Draft'}</span>}
-          <button type="button" className="adm-icon-btn adm-drawer-x" aria-label="Close" onClick={() => askClose('button')}>
+          <button type="button" className="btn adm-icon-btn adm-drawer-x" aria-label="Close" onClick={() => askClose('button')}>
             <X className="size-5" aria-hidden />
           </button>
         </header>
@@ -593,7 +596,7 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
                 // #t=0.001 makes the browser paint the first frame instead of a black box (a fragment: the address the server sees is unchanged).
                 <video ref={preview} key={previewSrc} className="adm-preview-video" controls playsInline preload="metadata" src={posterUrl ? previewSrc : `${previewSrc}#t=0.001`} poster={posterUrl ?? undefined} />
               ) : embedFallback ? (
-                <iframe className="adm-preview-video" src={embedFallback} title="MEGA's player" allow="autoplay; fullscreen" allowFullScreen referrerPolicy="no-referrer" />
+                <iframe className="adm-preview-video" src={embedFallback} title="MEGA's player" allow="autoplay; fullscreen" referrerPolicy="no-referrer" />
               ) : (
                 <div className="adm-preview-empty">
                   {posterUrl ? <img src={posterUrl} alt="" /> : <p>{megaRef && megaPreview.loading ? 'Opening the video from MEGA…' : 'The preview shows here once the MEGA link checks out.'}</p>}
@@ -845,43 +848,47 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
 
         <footer className="adm-drawer-foot">
           {base && (
-            <button type="button" className="btn btn-sm btn-ghost adm-danger-text adm-delete-btn" onClick={() => setConfirmDelete(true)} disabled={!!saving}>
+            <button type="button" className="btn btn-sm btn-ghost adm-delete-btn" data-intent="danger" onClick={() => setConfirmDelete(true)} disabled={!!saving}>
               <Trash2 className="size-4" aria-hidden /> Delete
             </button>
           )}
           <div className="adm-foot-actions">
-            <button type="button" className="btn btn-sm btn-ghost" onClick={() => askClose('button')} disabled={!!saving}>
+            <button type="button" className="btn btn-sm btn-ghost" data-intent="neutral" onClick={() => askClose('button')} disabled={!!saving}>
               Cancel
             </button>
             {isPublished ? (
               <>
-                <button type="button" className="btn btn-sm btn-ghost" onClick={() => save('hide')} disabled={!!saving} data-hide>
-                  <SaveLabel label={saving === 'hide' ? 'Hiding…' : 'Hide from the site'} done={done === 'hide'} doneLabel="Hidden" />
+                <button type="button" className="btn btn-sm btn-ghost" data-intent="neutral" onClick={() => save('hide')} disabled={!!saving} data-hide>
+                  <SaveLabel label={saving === 'hide' ? 'Hiding…' : 'Hide from the site'} done={done === 'hide'} doneLabel="Hidden" icon={<EyeOff className="size-4" aria-hidden />} />
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-sm btn-accent"
+                  className="btn btn-sm btn-ink"
+                  data-intent="positive"
+                  data-fill=""
                   data-save
                   disabled={!!saving || !!megaUnsettled || (form.published && publishBlocked)}
                   aria-describedby={publishBlocked ? `${uid}-why` : undefined}
                 >
-                  <SaveLabel label={saving === 'save' ? 'Saving…' : 'Save'} done={done === 'save'} doneLabel="Saved" />
+                  <SaveLabel label={saving === 'save' ? 'Saving…' : 'Save'} done={done === 'save'} doneLabel="Saved" icon={<Save className="size-4" aria-hidden />} />
                 </button>
               </>
             ) : (
               <>
-                <button type="submit" className="btn btn-sm btn-ghost" disabled={!!saving || !!megaUnsettled} data-save>
-                  <SaveLabel label={saving === 'save' ? 'Saving…' : 'Save'} done={done === 'save'} doneLabel="Saved" />
+                <button type="submit" className="btn btn-sm btn-ghost" data-intent="positive" disabled={!!saving || !!megaUnsettled} data-save>
+                  <SaveLabel label={saving === 'save' ? 'Saving…' : 'Save'} done={done === 'save'} doneLabel="Saved" icon={<Save className="size-4" aria-hidden />} />
                 </button>
                 <button
                   type="button"
-                  className="btn btn-sm btn-accent"
+                  className="btn btn-sm btn-ink"
+                  data-intent="positive"
+                  data-fill=""
                   onClick={() => save('publish')}
                   disabled={!!saving || publishBlocked}
                   aria-describedby={publishBlocked ? `${uid}-why` : undefined}
                   data-publish
                 >
-                  <SaveLabel label={saving === 'publish' ? 'Publishing…' : 'Save and publish'} done={done === 'publish'} doneLabel="Published" />
+                  <SaveLabel label={saving === 'publish' ? 'Publishing…' : 'Save and publish'} done={done === 'publish'} doneLabel="Published" icon={<Eye className="size-4" aria-hidden />} />
                 </button>
               </>
             )}
@@ -901,6 +908,7 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
           cancelLabel="Keep editing"
           confirmLabel="Discard"
           danger
+          icon={<RotateCcw className="size-4" aria-hidden />}
           onCancel={() => {
             setConfirmClose(false);
             if (blocker.state === 'blocked') blocker.reset();
@@ -919,6 +927,8 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
           body="Load the latest version, or save yours over it."
           cancelLabel="Load latest"
           confirmLabel="Overwrite"
+          danger
+          icon={<TriangleAlert className="size-4" aria-hidden />}
           onCancel={() => {
             replaceBase(stale, false);
             setCheck(stale.mega ? { kind: 'saved' } : { kind: 'empty' });
@@ -942,6 +952,7 @@ function DrawerForm({ video, closeTo }: { video: AdminVideo | null; closeTo: str
           body="It goes to the bin, and you can restore it for 30 days."
           confirmLabel="Delete"
           danger
+          icon={<Trash2 className="size-4" aria-hidden />}
           busy={deleting}
           onCancel={() => setConfirmDelete(false)}
           onConfirm={async () => {

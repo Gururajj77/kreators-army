@@ -168,10 +168,10 @@ export const PLATFORMS_HEAD = { strong: 'Vox pop as a service for brands.', rest
 /** Five steps, trial to batch (content §2.4). Home How it works, Why Kreators, Contact. */
 export const JOURNEY = [
   { name: 'Send the brief', body: 'Tell us your goal, how your brand should show up and what every video must include.' },
-  { name: 'The trial', body: 'We make a short trial on your brand, so you can see the format before you commit. Scope, the number of videos and any fee are confirmed in writing.' },
+  { name: 'The trial', body: 'We make a short trial on your brand, usually in 7 to 14 days, so you can see the format before you commit. Scope, the number of videos and any fee are confirmed in writing.' },
   { name: 'Feedback and a package', body: 'Send all your feedback through one contact. Then pick a 5, 10 or 20 video package for one brand.' },
   { name: 'Prepay and plan', body: 'Sign the pilot agreement and pay for the package up front. Before each shoot, we lock the goal, products, audience and must-haves.' },
-  { name: 'Shoot, edit, deliver', body: 'We make the batch in one planned cycle, with check-ins where useful. Minor edits are included. Usage rights pass to you on full payment.' },
+  { name: 'Shoot, edit, deliver', body: 'We make the batch in one planned cycle, usually 14 to 21 days, with check-ins where useful. Minor edits are included. Usage rights pass to you on full payment.' },
 ];
 
 /** After the trial: the paid pilot, seven steps (content §2.5). /trial#after. */
@@ -181,12 +181,12 @@ export const PILOT_STEPS = [
   { name: 'Package selection', body: 'You choose a 5, 10 or 20 video package for a single brand.' },
   { name: 'Pilot agreement and prepayment', body: 'We sign a pilot agreement and send an invoice. You pay the full package fee up front. Work starts when the payment arrives.' },
   { name: 'Pre-production alignment', body: 'Before each shoot, we lock the goal, products, audience, message and must-haves. Your brief is where we start.' },
-  { name: 'Shoot, edit and delivery', body: 'We make the agreed batch in one planned cycle, with check-ins where useful. Minor edits are included.' },
+  { name: 'Shoot, edit and delivery', body: 'We make the agreed batch in one planned cycle, usually 14 to 21 days, with check-ins where useful. Minor edits are included.' },
   { name: 'Usage rights', body: 'The rights to use the final videos pass to you on full payment, on the terms of the pilot agreement.' },
 ];
 
 /** Always under the pilot steps, outside any animation. */
-export const PILOT_FOOTNOTE = 'We confirm delivery dates in the pilot agreement, once planning for the shoot is done.';
+export const PILOT_FOOTNOTE = 'A batch usually takes 14 to 21 days. We confirm the exact delivery dates in the pilot agreement, once planning for the shoot is done.';
 
 // ---------- Packages and pricing (content §2.1 to §2.3, §3.4, §4) ----------
 
@@ -398,7 +398,7 @@ export const FAQS: Faq[] = [
     slug: 'how-does-the-trial-work',
     group: 'The trial',
     q: 'How does the trial work?',
-    a: 'You complete a short brief, we make the trial on your brand, and you review it. Nothing in the trial commits either of us to a paid pilot.',
+    a: 'You complete a short brief, we make the trial on your brand, usually in 7 to 14 days, and you review it. Nothing in the trial commits either of us to a paid pilot.',
   },
   {
     slug: 'what-do-you-need-for-the-trial',
@@ -422,7 +422,7 @@ export const FAQS: Faq[] = [
     slug: 'is-this-a-monthly-plan',
     group: 'Packages and pricing',
     q: 'Is it a monthly plan?',
-    a: 'No. You pay per package: one batch of videos for one brand, paid in full in advance.',
+    a: 'No. You pay per package: one batch of videos for one brand, paid in full in advance. A batch usually takes 14 to 21 days.',
   },
   {
     slug: 'can-i-order-a-different-number',
@@ -452,7 +452,7 @@ export const FAQS: Faq[] = [
     slug: 'how-long-does-production-take',
     group: 'Production',
     q: 'How long does it take?',
-    a: 'We confirm delivery dates in the pilot agreement, once planning for the shoot is done. Then we make the agreed batch in one planned cycle, not one video at a time.',
+    a: 'The trial usually takes 7 to 14 days. For a paid package, we make the agreed batch in one planned cycle, not one video at a time. A batch usually takes 14 to 21 days. We confirm the exact delivery dates in the pilot agreement, once planning for the shoot is done.',
   },
   {
     slug: 'do-you-handle-the-shoot',

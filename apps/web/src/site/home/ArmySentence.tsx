@@ -1,4 +1,4 @@
-import { m, useMotionValue, useMotionValueEvent, useScroll, useTransform, type MotionValue } from 'motion/react';
+import { m, useMotionValue, useMotionValueEvent, useScroll, useTransform, type MotionStyle, type MotionValue } from 'motion/react';
 import { useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Character, cascade, type CastId, type CharacterHandle } from '../../cast';
 import { ARMY_SENTENCE, FOOTER_CAST_ORDER } from '../../lib/content';
@@ -61,7 +61,8 @@ function Flyer({ who, index, p, geo, version, handle }: { who: CastId; index: nu
   const y = useTransform([p, version], ([v]: number[]) => at(v ?? 0).y);
   const scale = useTransform([p, version], ([v]: number[]) => at(v ?? 0).s);
   return (
-    <m.div className="army-flyer" style={{ x, y, scale }}>
+    // (r20bubbles) --fs: the same scale, for the hover bubble to undo (home.css), so a flyer in its word-sized slot still speaks at full size.
+    <m.div className="army-flyer" style={{ x, y, scale, '--fs': scale } as MotionStyle}>
       <Character ref={handle} who={who} size="var(--army-fly)" />
     </m.div>
   );

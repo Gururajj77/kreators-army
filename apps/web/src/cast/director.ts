@@ -1311,8 +1311,11 @@ export function perform(actor: Actor, action: CastAction, opts: PlayOptions = {}
   // Already performing: a click that follows the hover's run would start the move again over its own scheduled steps, and the first run's release would
   // hand the token on halfway through the second.
   if (playing.has(actor) && !opts.force) return false;
+  // (r20bubbles) Off screen, a move is never seen, and it must not hold the site-wide token: How it works' first scene played Sochu's signature on
+  // mount, far below the fold, and held the token for 2.5 s, so the hero's wave and Bolu's intro line (which waits 600 ms) never came.
+  if (!actor.visible && !opts.force) return false;
   // The token is shared with speech bubbles. The actor's own bubble holds it under the same root, so a character can speak and move together.
-  const took = bubbleToken.take(actor.root);
+  const took = actor.visible && bubbleToken.take(actor.root);
   // A hover is the visitor's own doing: it plays even while another character speaks, and it never queues behind one.
   if (!took && !opts.force && source !== 'hover') {
     queued ??= { actor, action, opts, at: t };

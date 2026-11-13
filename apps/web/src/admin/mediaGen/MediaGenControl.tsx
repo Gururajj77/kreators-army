@@ -5,7 +5,7 @@
 // chip (MediaGenChip) on any admin screen, which shows a run that started by itself (auto.ts), Pause and Resume, and MEGA's limit.
 import type { AdminVideo } from '@kreators/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Clapperboard, Pause, Play, RotateCcw } from 'lucide-react';
+import { Clapperboard, Eraser, Pause, Play, RefreshCw, RotateCcw } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { adminApi, keys, retryOnce } from '../api';
 import { ConfirmDialog, Modal } from '../bits';
@@ -263,11 +263,12 @@ export function MediaGenPanel() {
                   <Pause className="size-4" aria-hidden /> Pause
                 </button>
               ) : paused && (active > 0 || (auto && counts.todo > 0)) ? (
-                <button type="button" className="btn btn-sm btn-accent" onClick={() => resume()} data-mediagen-resume>
+                <button type="button" className="btn btn-sm btn-ink" data-intent="positive" data-fill="" onClick={() => resume()} data-mediagen-resume>
                   <Play className="size-4" aria-hidden /> Resume
                 </button>
               ) : (
-                <button type="button" className="btn btn-sm btn-accent" onClick={makeMissing} disabled={counts.todo === 0 || quotaUntil > 0} data-mediagen-make>
+                <button type="button" className="btn btn-sm btn-ink" data-intent="positive" data-fill="" onClick={makeMissing} disabled={counts.todo === 0 || quotaUntil > 0} data-mediagen-make>
+                  <Clapperboard className="size-4" aria-hidden />
                   {counts.todo === 0 ? 'Nothing missing' : `Make missing (${counts.todo})`}
                 </button>
               )}
@@ -306,7 +307,8 @@ export function MediaGenPanel() {
             )}
             <div className="mg-storage" data-mediagen-storage>
               <span>Storage: thumbnails and previews of binned videos, old link checks and sign-ins, old copies of the site in this browser.</span>
-              <button type="button" className="adm-link-btn" onClick={() => setClearCache(true)} data-clear-cache>
+              <button type="button" className="adm-link-btn" data-intent="danger" onClick={() => setClearCache(true)} data-clear-cache>
+                <Eraser className="size-3.5" aria-hidden />
                 Clear unused cache…
               </button>
             </div>
@@ -325,6 +327,7 @@ export function MediaGenPanel() {
           title="Regenerate every preview?"
           body="Every video with a MEGA or bundled file gets a new preview, and a new thumbnail where the last one was made here. This reads each video again, so it takes a while."
           confirmLabel="Regenerate all"
+          icon={<RefreshCw className="size-4" aria-hidden />}
           onCancel={() => setConfirmAll(false)}
           onConfirm={() => {
             setConfirmAll(false);

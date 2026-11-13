@@ -4,7 +4,7 @@
 // a failure, with a summary that names the videos that couldn't take the action and why. Export as CSV writes the import template's columns.
 import { BLOCKING_PROBLEMS, VIDEO_ASPECTS, type AdminVideo, type BulkAction, type BulkFailure, type BulkField, type BulkFields, type BulkResult, type VideoProblem } from '@kreators/shared';
 import { useQueryClient } from '@tanstack/react-query';
-import { Archive, Check, ChevronDown, ChevronLeft, Clapperboard, Download, Ellipsis, Eye, EyeOff, Minus, RefreshCw, RotateCcw, Star, StarOff, Trash2, X } from 'lucide-react';
+import { ArchiveRestore, Check, ChevronDown, ChevronLeft, Clapperboard, Download, Ellipsis, Eraser, Eye, EyeOff, Minus, RefreshCw, Star, StarOff, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { AdminApiError, adminApi, keys } from './api';
 import { MenuButton, Spinner, usePopover } from './bits';
@@ -566,11 +566,13 @@ function SetFieldPop({
             )}
             <div className="adm-bulk-form-actions">
               {clearable && (
-                <button type="button" className="btn btn-sm btn-ghost" data-clear onClick={() => apply(null)}>
+                <button type="button" className="btn btn-sm btn-ghost" data-intent="danger" data-clear onClick={() => apply(null)}>
+                  <Eraser className="size-4" aria-hidden />
                   {field === 'uploadDate' ? 'Clear date' : 'Clear field'}
                 </button>
               )}
-              <button type="submit" className="btn btn-sm btn-ink" data-apply>
+              <button type="submit" className="btn btn-sm btn-ink" data-intent="positive" data-fill="" data-apply>
+                <Check className="size-4" aria-hidden />
                 Set for {what}
               </button>
             </div>
@@ -655,19 +657,19 @@ export function BulkBar({
         )}
         {bin ? (
           <>
-            <button type="button" className="btn btn-sm btn-ghost adm-bulk-btn" data-bulk="restore" disabled={busy} onClick={() => onAction('restore')}>
-              {spin('restore') ?? <RotateCcw className="size-4" aria-hidden />} <Lbl long="Restore" short="Restore" />
+            <button type="button" className="btn btn-sm btn-ghost adm-bulk-btn" data-intent="positive" data-bulk="restore" disabled={busy} onClick={() => onAction('restore')}>
+              {spin('restore') ?? <ArchiveRestore className="size-4" aria-hidden />} <Lbl long="Restore" short="Restore" />
             </button>
-            <button type="button" className="btn btn-sm btn-ghost adm-bulk-btn adm-danger-text" data-bulk="purge" disabled={busy} onClick={onPurge}>
+            <button type="button" className="btn btn-sm btn-ghost adm-bulk-btn" data-intent="danger" data-bulk="purge" disabled={busy} onClick={onPurge}>
               {spin('purge') ?? <Trash2 className="size-4" aria-hidden />} <Lbl long="Delete forever" short="Delete" />
             </button>
           </>
         ) : (
           <>
-            <button type="button" className="btn btn-sm btn-ink adm-bulk-btn" data-bulk="publish" disabled={busy} onClick={() => onAction('publish')}>
+            <button type="button" className="btn btn-sm btn-ink adm-bulk-btn" data-intent="positive" data-fill="" data-bulk="publish" disabled={busy} onClick={() => onAction('publish')}>
               {spin('publish') ?? <Eye className="size-4" aria-hidden />} <Lbl long="Publish" short="Publish" />
             </button>
-            <button type="button" className="btn btn-sm btn-ghost adm-bulk-btn" data-bulk="unpublish" disabled={busy} onClick={() => onAction('unpublish')}>
+            <button type="button" className="btn btn-sm btn-ghost adm-bulk-btn" data-intent="neutral" data-bulk="unpublish" disabled={busy} onClick={() => onAction('unpublish')}>
               {spin('unpublish') ?? <EyeOff className="size-4" aria-hidden />} <Lbl long="Move to drafts" short="Drafts" />
             </button>
             <SetFieldPop count={sel.count} lists={lists} disabled={busy} onSet={onSet} />
@@ -686,8 +688,8 @@ export function BulkBar({
               {spin('feature') ?? spin('unfeature') ?? spin('recheck') ?? <Ellipsis className="size-4" aria-hidden />}
               <Lbl long="More" short="More" />
             </MenuButton>
-            <button type="button" className="btn btn-sm btn-ghost adm-bulk-btn adm-danger-text" data-bulk="bin" disabled={busy} onClick={() => onAction('bin')}>
-              {spin('bin') ?? <Archive className="size-4" aria-hidden />} <Lbl long="Move to bin" short="Bin" />
+            <button type="button" className="btn btn-sm btn-ghost adm-bulk-btn" data-intent="danger" data-bulk="bin" disabled={busy} onClick={() => onAction('bin')}>
+              {spin('bin') ?? <Trash2 className="size-4" aria-hidden />} <Lbl long="Move to bin" short="Bin" />
             </button>
           </>
         )}
@@ -709,7 +711,7 @@ export function BulkNote({ summary, showing, onShow, onDismiss }: { summary: Bul
                 Show {summary.failed.length === 1 ? 'it' : `these ${summary.failed.length}`}
               </button>
             )}
-            <button type="button" className="adm-icon-btn" aria-label="Dismiss" onClick={onDismiss}>
+            <button type="button" className="btn adm-icon-btn" aria-label="Dismiss" onClick={onDismiss}>
               <X className="size-4" aria-hidden />
             </button>
           </div>

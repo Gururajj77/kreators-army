@@ -284,7 +284,7 @@ export function LeadDetail({ lead: initial, back, onGone }: { lead: AdminLead; b
           </button>
         )}
         {lead.status === 'archived' && (
-          <button type="button" className="btn btn-sm btn-ghost adm-danger-text" onClick={() => setConfirmDelete(true)}>
+          <button type="button" className="btn btn-sm btn-ghost" data-intent="danger" onClick={() => setConfirmDelete(true)}>
             <Trash2 className="size-4" aria-hidden /> Delete permanently
           </button>
         )}
@@ -350,6 +350,7 @@ export function LeadDetail({ lead: initial, back, onGone }: { lead: AdminLead; b
           body="Use this when someone asks you to remove their details."
           confirmLabel="Delete permanently"
           danger
+          icon={<Trash2 className="size-4" aria-hidden />}
           busy={deleting}
           onConfirm={() => void remove()}
           onCancel={() => setConfirmDelete(false)}

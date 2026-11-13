@@ -565,6 +565,19 @@
     translate: var(--shift, 0px) 0;
   }
 
+  /* (r20bubbles) The plate style's ink, set where the plate colour (--surface-5) is set, so a tile that re-scopes --ink for its own fill cannot
+     reach it: on Tiko's purple tile --ink is white, which printed his line white on the white plate in light (1:1, the words gone). */
+  :root {
+    --cb-plate-ink: #0e0e10;
+    --cb-plate-label: #5f5d58;
+  }
+
+  [data-theme='dark'],
+  .band-dark {
+    --cb-plate-ink: #f5f3ee;
+    --cb-plate-label: #c8c5bf;
+  }
+
   /* On a tile of the speaker's own colour, or when asked: the plate style, with a coloured name dot. */
   .cast-bubble[data-plate],
   [data-tone='bolu'] .cast-bubble[data-who='bolu'],
@@ -572,8 +585,8 @@
   [data-tone='gola'] .cast-bubble[data-who='gola'],
   [data-tone='sochu'] .cast-bubble[data-who='sochu'] {
     --b-bg: var(--surface-5);
-    --b-ink: var(--ink);
-    --b-label: var(--muted);
+    --b-ink: var(--cb-plate-ink);
+    --b-label: var(--cb-plate-label);
   }
 
   .cast-bubble[data-plate] .bubble-label::before,

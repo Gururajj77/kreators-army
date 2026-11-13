@@ -350,13 +350,14 @@
   }
 
   /* ---------- Shared micro-animations: hover to ink with a 1 px lift, press .97, the focus ring ---------- */
+  /* (r20audit) The blog's before/after tabs (.bw-ba-tab) are a segment too: they had no hover at all. */
   @media (hover: hover) and (pointer: fine) {
     :is(.segment-opt, .tab-opt, .index-rail-link):hover,
-    .chip-opt:not([data-on], [aria-pressed='true']):hover {
+    :is(.chip-opt:not([data-on], [aria-pressed='true']), .bw-ba-tab:not([data-on])):hover {
       color: var(--ink);
     }
 
-    :root:not([data-still]) :is(.segment-opt[aria-checked='false'], .tab-opt[aria-selected='false'], .chip-opt:not([data-on], [aria-pressed='true'])):hover {
+    :root:not([data-still]) :is(.segment-opt[aria-checked='false'], .tab-opt[aria-selected='false'], .chip-opt:not([data-on], [aria-pressed='true']), .bw-ba-tab:not([data-on])):hover {
       transform: translateY(-1px);
       transition:
         color var(--dur-hover) ease,
@@ -364,7 +365,7 @@
     }
   }
 
-  :root:not([data-still]) :is(.segment-opt, .tab-opt, .chip-opt, .index-rail-link):active {
+  :root:not([data-still]) :is(.segment-opt, .tab-opt, .chip-opt, .index-rail-link, .bw-ba-tab):active {
     transform: scale(0.97);
     transition-duration: var(--dur-press);
   }
@@ -395,13 +396,14 @@
     transform: translateY(105%);
   }
 
+  /* (r20audit) .btn too: a button face drawn as a span inside a card link (ui.tsx PrimaryFace) rolls like the others. */
   @media (hover: hover) and (pointer: fine) {
-    :root:not([data-still]) :is(a, button):hover > .label-roll > span {
+    :root:not([data-still]) :is(a, button, .btn):hover > .label-roll > span {
       transform: translateY(-105%);
       transition: transform var(--spring-snappy);
     }
 
-    :root:not([data-still]) :is(a, button):hover > .label-roll > span[aria-hidden] {
+    :root:not([data-still]) :is(a, button, .btn):hover > .label-roll > span[aria-hidden] {
       transform: none;
     }
   }
@@ -419,11 +421,6 @@
     background: rgb(255 255 255 / 0.92);
     color: #0e0e10;
     transition: transform var(--spring-smooth);
-  }
-
-  /* Red stays the button's: the disc is white, and only on the red action does its arrow take the red. */
-  .btn-accent > .arrow-disc {
-    color: var(--action);
   }
 
   .arrow-disc > svg {
@@ -450,16 +447,6 @@
   :root:not([data-still]) :is(a, button):active > .arrow-disc {
     transform: scale(0.92);
     transition-duration: var(--dur-press);
-  }
-
-  /* The primary action with its disc: the padding on the disc's side tightens so the disc sits 6 px from the edge. */
-  .btn.btn-disc {
-    gap: 12px;
-    padding-right: 8px;
-  }
-
-  .btn-lg.btn-disc {
-    padding-right: 10px;
   }
 
   :root[data-still] :is(.label-roll > span, .arrow-disc, .arrow-disc > svg) {

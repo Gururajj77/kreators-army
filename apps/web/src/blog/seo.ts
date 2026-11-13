@@ -309,6 +309,7 @@ export function llmsTxt(metas: readonly PostMeta[]): string {
     `- Beyond ${ADD_ON.after} videos: blocks of ${ADD_ON.blockOf} at ${inr(ADD_ON.fee)} a block (${inr(ADD_ON.perVideo)} a video).`,
     '- Fees exclude applicable taxes, including GST where applicable. Packages are fully prepaid, and usage rights for the final videos transfer on full payment.',
     `- The trial: ${CLOSING.body}`,
+    '- Turnaround: a trial usually takes 7 to 14 days, and a paid batch usually takes 14 to 21 days. Exact delivery dates are confirmed in the pilot agreement.',
     `- Results: ${RESULTS_NOTE.long}`,
     `- Contact: ${SITE.email}, or "${PRIMARY_ACTION.label}" at ${SITE_ORIGIN}${PRIMARY_ACTION.to}.`,
     '',

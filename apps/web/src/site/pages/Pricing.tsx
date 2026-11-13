@@ -281,7 +281,7 @@ function Payment() {
           </Reveal>
           <div className="pr-pay-lines">
             <p>Refund and delivery guarantee terms are in the pilot agreement.</p>
-            <p>{keepPre('We confirm delivery dates in the pilot agreement, once planning for the shoot is done.')}</p>
+            <p>{keepPre('A batch usually takes 14 to 21 days. We confirm the exact delivery dates in the pilot agreement, once planning for the shoot is done.')}</p>
           </div>
         </div>
       </div>

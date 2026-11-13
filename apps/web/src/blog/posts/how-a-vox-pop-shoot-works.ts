@@ -662,10 +662,10 @@ const post: Post = {
       ordered: true,
       items: [
         '**Send the brief.** The objective, how your brand should show up and what every video must include.',
-        '**The trial.** We make a short trial on your brand, so you can see the format before you commit. Scope, the number of videos and any fee are confirmed in writing.',
+        '**The trial.** We make a short trial on your brand, usually in 7 to 14 days, so you can see the format before you commit. Scope, the number of videos and any fee are confirmed in writing.',
         '**Feedback and a package.** Consolidated feedback through one point of contact, then a 5, 10 or 20 video package for one brand.',
         '**Prepay and plan.** Sign the pilot agreement and pay the package in advance. Before each shoot we lock the objective, products, audience and must-haves.',
-        '**Shoot, edit, deliver.** We produce the batch in one planned cycle, with review checkpoints where useful and minor revisions included. Usage rights transfer on full payment.',
+        '**Shoot, edit, deliver.** We produce the batch in one planned cycle, usually 14 to 21 days, with review checkpoints where useful and minor revisions included. Usage rights transfer on full payment.',
       ],
 
     },
@@ -682,7 +682,7 @@ const post: Post = {
   faqs: [
     {
       q: 'How long does a vox pop shoot take?',
-      a: 'Longer than the filming itself. Most of a vox pop shoot day goes on approaching people, so the length depends on how many videos you need and how many people stop. The calculator in this guide turns your own guesses into hours. For a Kreators.Army batch, delivery timelines are confirmed in the pilot agreement once pre-production alignment is complete.',
+      a: 'Longer than the filming itself. Most of a vox pop shoot day goes on approaching people, so the length depends on how many videos you need and how many people stop. The calculator in this guide turns your own guesses into hours. A Kreators.Army batch usually takes 14 to 21 days, and the exact dates are confirmed in the pilot agreement once pre-production alignment is complete.',
     },
     {
       q: 'How many people do you need to interview for a vox pop?',

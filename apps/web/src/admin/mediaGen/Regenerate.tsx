@@ -78,13 +78,14 @@ function HandPosterAsk({ videos, onCancel, onChoose }: { videos: AdminVideo[]; o
             : `${hand} of these ${videos.length} have a thumbnail you picked or uploaded yourself. Every one gets a new preview either way.`}
         </div>
         <div className="adm-confirm-actions mg-ask-actions">
-          <button type="button" className="btn btn-sm btn-ghost" onClick={onCancel}>
+          <button type="button" className="btn btn-sm btn-ghost" data-intent="neutral" onClick={onCancel}>
             Cancel
           </button>
-          <button type="button" className="btn btn-sm btn-ghost" onClick={() => onChoose(false)} data-regen-keep autoFocus>
+          <button type="button" className="btn btn-sm btn-ghost" data-intent="positive" onClick={() => onChoose(false)} data-regen-keep autoFocus>
             {one || hand === 1 ? 'Keep mine, remake the preview' : 'Keep mine, remake previews'}
           </button>
-          <button type="button" className="btn btn-sm btn-ink" onClick={() => onChoose(true)} data-regen-replace>
+          <button type="button" className="btn btn-sm btn-ink" data-intent="danger" data-fill="" onClick={() => onChoose(true)} data-regen-replace>
+            <RefreshCw className="size-4" aria-hidden />
             Replace {one || hand === 1 ? 'it' : 'them'} too
           </button>
         </div>
@@ -181,7 +182,7 @@ export function RegenSection({ video, onMade, request }: { video: AdminVideo; on
         </figure>
       </div>
       <div className="mg-regen-row">
-        <button type="button" className="btn btn-sm btn-ghost" onClick={() => request([video])} disabled={!can || busy} data-regen-btn>
+        <button type="button" className="btn btn-sm btn-ghost" data-intent="positive" onClick={() => request([video])} disabled={!can || busy} data-regen-btn>
           <RefreshCw className="size-4" aria-hidden /> {REGEN_LABEL}
         </button>
         {!can && <span className="adm-help">{video.deletedAt ? 'Restore it first.' : 'It needs a MEGA or bundled file.'}</span>}

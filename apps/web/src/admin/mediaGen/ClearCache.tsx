@@ -8,6 +8,7 @@
 // the old Worker stream's cached pieces cannot be listed from here, so no number is shown for them.
 import { formatBytes, type StorageGroup, type StorageReport } from '@kreators/shared';
 import { useQueryClient } from '@tanstack/react-query';
+import { Eraser } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 import { AdminApiError, adminFetch } from '../api';
 import { Modal } from '../bits';
@@ -247,10 +248,11 @@ export function ClearCacheDialog({ onClose }: { onClose: () => void }) {
             </button>
           ) : (
             <>
-              <button type="button" className="btn btn-sm btn-ghost" onClick={onClose} disabled={busy}>
+              <button type="button" className="btn btn-sm btn-ghost" data-intent="neutral" onClick={onClose} disabled={busy}>
                 Cancel
               </button>
-              <button type="button" className="btn btn-sm btn-accent" onClick={() => void clear()} disabled={busy || !report || nothing} data-clear-confirm>
+              <button type="button" className="btn btn-sm btn-ink" data-intent="danger" data-fill="" onClick={() => void clear()} disabled={busy || !report || nothing} data-clear-confirm>
+                <Eraser className="size-4" aria-hidden />
                 {busy ? 'Clearing…' : nothing ? 'Nothing to clear' : 'Clear'}
               </button>
             </>

@@ -2,7 +2,7 @@
 // session sheet reuses. States: idle, checking, wrong (with tries left when 3 or fewer), too many (a live mm:ss countdown, field and button disabled),
 // admin off (the command to set the secret), offline, and success (Sochu nods, then a 250 ms crossfade).
 import type { AdminSession } from '@kreators/shared';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, LockOpen } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Character, type CharacterHandle, type Expression } from '../cast';
 import { Seo } from '../components/ui';
@@ -164,7 +164,7 @@ export function PasskeyForm({
           aria-describedby={message ? msgId : undefined}
           autoFocus={autoFocus}
         />
-        <button type="button" className="adm-pass-show" aria-pressed={show} onClick={() => setShow((s) => !s)} disabled={locked}>
+        <button type="button" className="btn btn-sm adm-pass-show" aria-pressed={show} onClick={() => setShow((s) => !s)} disabled={locked}>
           {show ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
           <span>{show ? 'Hide' : 'Show'}</span>
         </button>
@@ -172,8 +172,15 @@ export function PasskeyForm({
       <p id={msgId} className="adm-pass-msg" role={message ? 'alert' : undefined} data-tone={state.kind === 'off' || state.kind === 'offline' ? 'info' : 'error'}>
         {message}
       </p>
-      <button type="submit" className="btn btn-accent adm-unlock" disabled={busy || locked} aria-busy={state.kind === 'checking' || undefined}>
-        {state.kind === 'checking' ? 'Checking…' : submitLabel}
+      <button type="submit" className="btn btn-ink adm-unlock" data-intent="positive" data-fill="" disabled={busy || locked} aria-busy={state.kind === 'checking' || undefined}>
+        {state.kind === 'checking' ? (
+          'Checking…'
+        ) : (
+          <>
+            <LockOpen className="size-4" aria-hidden />
+            {submitLabel}
+          </>
+        )}
       </button>
     </form>
   );

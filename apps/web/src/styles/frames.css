@@ -1438,19 +1438,29 @@
     right: calc(16 * var(--u));
   }
 
-  /* The views card: the front video's brand, its rolling count and the step buttons. Dark in both themes, so the white brand pill reads. */
+  /* The views row: the front video's brand, its rolling count and the step buttons. (r20pillbg) No card behind it any more (founder: "remove that
+     background card"): no fill, shadow, border or blur. The count sets in the theme's ink straight on the page, and the step buttons keep the page's
+     own icon-button variant. The row keeps the old card's 52 px height so the hero's reserved room (--views-h, home.css) still lines up. */
   .vdeck-views {
     /* Clear of the back cards, which hang below the deck's box once rotated. */
     margin-top: calc(34 * var(--u));
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
     min-height: 52px;
-    padding: 4px 4px 4px 6px;
-    border-radius: var(--r-pill);
-    background: #16131b;
-    color: #f5f3ee;
-    box-shadow: var(--shadow-3);
+    padding: 0;
+    color: var(--ink);
+  }
+
+  /* (r20fix) Off the card, the arrows sit on the street art itself, where the violet ring met mid-grey paint at about 1.3:1 in light. The ring
+     takes the ink there instead (ink in light, the pale ink in dark), 3:1 or more against whatever is behind it. */
+  .vdeck-views :is(button, a):focus-visible {
+    outline-color: var(--ink);
+  }
+
+  /* Off the dark card, the white brand pill (Kit only: the hero hides it) takes a hairline so it keeps its edge on a pale page. */
+  .vdeck-views > .pill {
+    box-shadow: inset 0 0 0 1px rgb(14 14 16 / 0.12);
   }
 
   .vdeck-count {
@@ -1470,11 +1480,10 @@
     letter-spacing: var(--t-body-track);
   }
 
-  /* (r18) The step buttons are the site's round icon buttons, the rail's paddles (.rail-paddle, home.css and the 3D recipe in buttons.css),
-     4 px apart, so the card stays inside the room Bolu and Tiko leave it (--views-clear). In the pill, ink is the pill's light text: the paddles' icon
-     and liquid follow it, and buttons.css already gives the pill the dark-context frost. */
+  /* (r18) The step buttons are the site's icon buttons, the rail's paddles (.rail-paddle, home.css; r20sys: slate rounded squares, buttons.css),
+     4 px apart, so the row stays inside the room Bolu and Tiko leave it (--views-clear). (r20pillbg) With the card gone they take the theme's own
+     icon-button face, lip and ink, like every other paddle on the page. */
   .vdeck-steps {
-    --ink: #f5f3ee;
     display: inline-flex;
     gap: 4px;
   }

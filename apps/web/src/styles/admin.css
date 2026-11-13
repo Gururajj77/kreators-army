@@ -64,45 +64,29 @@
     justify-self: start;
   }
 
+  /* The split button (Lock, and its menu of related actions): two neutral keys of the public system (r20admbtn), joined, a hairline seam
+     between them. */
   .adm-split {
     display: inline-flex;
     align-items: stretch;
-    border-radius: var(--r-pill);
-    box-shadow: inset 0 0 0 1.5px var(--line);
+    gap: 1px;
   }
 
-  .adm-split-main,
-  .adm-split-more {
-    display: inline-flex;
-    align-items: center;
+  .adm .adm-split .btn {
     gap: 6px;
     min-height: 44px;
-    border: 0;
-    background: transparent;
-    color: var(--ink);
-    cursor: pointer;
-    font: inherit;
     font-size: 14px;
     font-weight: 600;
-    transition: background-color var(--dur-hover) ease;
   }
 
-  .adm-split-main {
+  .adm .btn.adm-split-main {
     padding: 0 12px 0 16px;
-    border-radius: var(--r-pill) 0 0 var(--r-pill);
+    border-radius: var(--btn-r-sm) 0 0 var(--btn-r-sm);
   }
 
-  .adm-split-more {
-    padding: 0 12px 0 8px;
-    border-radius: 0 var(--r-pill) var(--r-pill) 0;
-    box-shadow: inset 1px 0 0 var(--line);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .adm-split-main:hover,
-    .adm-split-more:hover {
-      background: color-mix(in oklab, var(--ink) 7%, transparent);
-    }
+  .adm .btn.adm-split-more {
+    padding: 0 12px 0 10px;
+    border-radius: 0 var(--btn-r-sm) var(--btn-r-sm) 0;
   }
 
   .adm-banners {
@@ -151,16 +135,7 @@
   }
 
   .adm-banner-x {
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
     margin-left: auto;
-    border: 0;
-    border-radius: var(--r-pill);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
   }
 
   .adm-main {
@@ -287,6 +262,164 @@
     font-weight: 600;
   }
 
+  /* ---------- Buttons (r20admbtn): the public system (buttons.css), with the admin's intent colours ----------
+     The founder: "all button styles needs to be updated including admin, just like the ones in home hero". Every admin .btn is a public button:
+     a rounded face on a static darker lip, a liquid fill that grows from where the pointer came in, a slow outline glint, the magnet (fine
+     pointers), an instant press that sinks the face on to its lip, and nothing moving under data-still or reduced motion. buttons.css draws it
+     all (each shared rule has an admin arm); this sheet only says which kind each intent is and re-scopes that kind's tokens.
+     Markup states the intent: data-intent="positive | danger | neutral" on a .btn or .adm-link-btn (data-danger on a menu item); data-fill
+     makes it solid.
+     - neutral (and no intent): the public neutral. White with an ink label in light, slate with a white label in dark.
+     - positive, solid (the main save or confirm): the primary in green. A green face (white label, 4.65:1 at its lightest corner) on a dark
+       green lip; a fresh light green floods in from the pointer and the label turns deep green exactly at its edge (admin/litLabels.ts keeps
+       the copy). A fresh green rather than the gold: in the admin colour says what a button does, and the gold is the site's own call to action.
+     - positive, tinted (a secondary save or restore): the secondary in green. A white face, a green outline and lip, a green label; a pale
+       green floods in and the label stays green.
+     - danger: quiet at rest (the neutral); on hover or keyboard focus red floods it and the label turns white at the edge. Solid
+       (the final confirm of a dialog): the primary in red, a deeper red flooding in, the label white throughout.
+     Labels hold AA at rest, at every moment of the fill and pressed, in both themes. Green is the cast green #47c349 family, deepened so white
+     holds 4.5:1 (#2f9e34 itself is 3.5:1). */
+  :is(.adm, .adm-lock) {
+    --intent-danger-tint: color-mix(in oklab, #e11d1d 11%, var(--surface));
+    --intent-danger-ink: #b01717;
+    --intent-positive-ink: #15651a;
+  }
+
+  [data-theme='dark'] :is(.adm, .adm-lock) {
+    --intent-danger-tint: color-mix(in oklab, #e11d1d 20%, var(--surface));
+    --intent-danger-ink: #ff8f86;
+    --intent-positive-ink: #7ddc80;
+  }
+
+  /* Positive, solid: the primary's tokens in green. */
+  :is(.adm, .adm-lock) .btn[data-intent='positive'][data-fill] {
+    --cta-face-a: #23862a;
+    --cta-face-b: #17691b;
+    --cta-face-a-on: #1f7f27;
+    --cta-face-b-on: #14601a;
+    --cta-sheen: rgb(170 240 160 / 0.28);
+    --cta-lip: #0e4f12;
+    --cta-shade: 10 70 20;
+    --cta-line: rgb(190 255 180 / 0.45);
+    --cta-ink: #ffffff;
+    --cta-ring: rgb(30 140 40 / 0.55);
+    --cta-ring-glint: rgb(236 255 228 / 0.95);
+    --cta-ripple: #e6ffd9;
+    --gold-top: #8fe38c;
+    --gold-deep: #4cc650;
+    --gold-top-on: #7fdc7c;
+    --gold-deep-on: #3fbf45;
+    --gold-sheen: rgb(255 255 255 / 0.3);
+    --cta-ink-lit: #0b3510;
+    --btn-line: rgb(0 60 10 / 0.25);
+  }
+
+  /* Danger, solid: the primary's tokens in red; the fill is a deeper red, so the label stays white. */
+  :is(.adm, .adm-lock) .btn[data-intent='danger'][data-fill] {
+    --cta-face-a: #c62020;
+    --cta-face-b: #a51515;
+    --cta-face-a-on: #bd1d1d;
+    --cta-face-b-on: #9c1313;
+    --cta-sheen: rgb(255 160 150 / 0.26);
+    --cta-lip: #6b0b0b;
+    --cta-shade: 90 8 8;
+    --cta-line: rgb(255 190 180 / 0.45);
+    --cta-ink: #ffffff;
+    --gold-top: #a81616;
+    --gold-deep: #8a1010;
+    --gold-top-on: #9c1313;
+    --gold-deep-on: #7e0e0e;
+    --gold-sheen: rgb(255 255 255 / 0.12);
+    --btn-line: rgb(80 0 0 / 0.25);
+  }
+
+  [data-theme='dark'] :is(.adm, .adm-lock) .btn[data-fill]:is([data-intent='positive'], [data-intent='danger']) {
+    --cta-shade: 0 0 0;
+  }
+
+  /* Danger, quiet: the neutral at rest; the fill is red, its label white. */
+  :is(.adm, .adm-lock) .btn[data-intent='danger'] {
+    --gold-top: #d42a2a;
+    --gold-deep: #b01818;
+    --gold-top-on: #cf2424;
+    --gold-deep-on: #a81616;
+    --gold-sheen: rgb(255 255 255 / 0.16);
+    --cta-ink-lit: #ffffff;
+    --cta-ring: rgb(255 176 168 / 0.6);
+    --cta-ring-glint: rgb(255 240 236 / 0.95);
+    --cta-ripple: #ffd6d0;
+    --btn-line-on: var(--cta-ring);
+    --btn-glint: var(--cta-ring-glint);
+  }
+
+  /* Keyboard focus says it as plainly as the pointer: the red fills from the middle. */
+  :is(.adm, .adm-lock) .btn[data-intent='danger']:focus-visible > .btn-lit {
+    --fill-r: calc(var(--blob, 900px) / 2.4);
+    clip-path: circle(var(--fill-r) at 50% 50%);
+  }
+
+  /* Positive, tinted: the secondary's tokens in green. */
+  :is(.adm, .adm-lock) .btn[data-intent='positive']:not([data-fill]) {
+    --sec-fill: #ffffff;
+    --sec-line: #2f9e34;
+    --sec-lip: #23862a;
+    --sec-ink: #15651a;
+    --sec-ink-hover: #15651a;
+    --sec-shade: rgb(20 90 25 / 0.22);
+    --sec-ring: rgb(35 134 42 / 0.3);
+    --sec-ring-glint: rgb(24 140 34 / 0.95);
+    --gold-top: #e6f8e4;
+    --gold-deep: #c4ecc5;
+    --gold-top-on: #d9f4d6;
+    --gold-deep-on: #b0e4b1;
+    --gold-sheen: rgb(255 255 255 / 0.35);
+  }
+
+  [data-theme='dark'] :is(.adm, .adm-lock) .btn[data-intent='positive']:not([data-fill]) {
+    --sec-fill: #f1f5ee;
+    --sec-lip: #1b6e20;
+    --sec-shade: rgb(0 0 0 / 0.45);
+  }
+
+  /* The label copy is laid out like the label it covers (the bulk bar's phone buttons stack an icon over a word). */
+  :is(.adm, .adm-lock) .btn > .btn-lit {
+    flex-direction: inherit;
+    justify-content: inherit;
+  }
+
+  /* Disabled: the public flat sunken face, no lip, a muted label, whatever the intent (never a green or red that can't be pressed). */
+  :is(.adm, .adm-lock) .btn:disabled,
+  :is(.adm, .adm-lock) .btn[data-intent]:disabled {
+    --btn-fill: var(--sunken);
+    --btn-line: var(--line);
+    --lip-h: 0px;
+    color: var(--muted);
+    cursor: default;
+  }
+
+  /* Icon buttons (a row's ⋯, the drawer's ×, notes, dismiss, the pager's arrows): the public rounded square, neutral, on its lip. */
+  :is(.adm, .adm-lock) .btn.adm-icon-btn {
+    --pull: 4px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: var(--btn-r-icon);
+  }
+
+  /* The compact step, where a row is tight (a banner's ×, an import row's notes): 36 px, the same key. Phones: 44 px (below). */
+  :is(.adm, .adm-lock) .btn.adm-icon-btn:is(.adm-banner-x, .adm-note-btn) {
+    --pull: 3px;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    border-radius: var(--btn-r-sm);
+  }
+
+  /* Text links: the public text action. A faint underline at rest (the admin's links sit in plain text, so they keep a mark); on hover a solid
+     one grows from the left and the label deepens. Positive links are green; danger ones turn red on hover and focus. */
   .adm-link-btn {
     display: inline-flex;
     align-items: center;
@@ -294,7 +427,7 @@
     min-height: 32px;
     padding: 0 2px;
     border: 0;
-    background: transparent;
+    background: transparent linear-gradient(currentColor, currentColor) no-repeat 0 calc(50% + 0.36em + 4px) / 0% 1.5px;
     color: var(--ink);
     cursor: pointer;
     font: inherit;
@@ -303,6 +436,10 @@
     text-decoration: underline;
     text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
     text-underline-offset: 3px;
+    transition:
+      color var(--dur-hover) ease,
+      text-decoration-color var(--dur-hover) ease,
+      background-size 320ms var(--ease-out);
   }
 
   .adm-link-btn:disabled {
@@ -310,30 +447,27 @@
     opacity: 0.55;
   }
 
-  .adm-icon-btn {
-    display: inline-grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border: 0;
-    border-radius: var(--r-pill);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    transition:
-      background-color var(--dur-hover) ease,
-      color var(--dur-hover) ease;
+  :is(.adm, .adm-lock) .adm-link-btn[data-intent='positive']:not(:disabled) {
+    color: var(--intent-positive-ink);
+  }
+
+  :is(.adm, .adm-lock) .adm-link-btn[data-intent='danger']:focus-visible {
+    color: var(--intent-danger-ink);
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .adm-icon-btn:hover {
-      background: color-mix(in oklab, var(--ink) 8%, transparent);
-      color: var(--ink);
+    .adm-link-btn:hover:not(:disabled) {
+      text-decoration-color: transparent;
+      background-size: 100% 1.5px;
+    }
+
+    :is(.adm, .adm-lock) .adm-link-btn[data-intent='danger']:hover:not(:disabled) {
+      color: var(--intent-danger-ink);
     }
   }
 
-  .adm-danger-text {
-    color: var(--adm-err);
+  :root[data-still] .adm-link-btn {
+    transition: none;
   }
 
   .adm-grow {
@@ -481,22 +615,31 @@
     opacity: 0.5;
   }
 
+  /* (r20admbtn) The public switch (the footer's Pause animations): a solid neutral track off; on, the solid green face of the admin's primary
+     on a 2 px inner lip (green: on means live, as Published and Featured always have; the site's orange stays the public call to action). The
+     knob is white with a soft shadow. */
   .adm-switch-track {
     position: relative;
     flex: none;
     width: 40px;
     height: 24px;
     border-radius: 12px;
-    background: var(--sunken);
-    box-shadow: inset 0 0 0 1px var(--field-line);
-    transition:
-      background-color 200ms ease,
-      box-shadow 200ms ease;
+    background: var(--tog-off);
+    box-shadow:
+      inset 0 1px 2px rgb(0 0 0 / 0.14),
+      inset 0 0 0 1px rgb(0 0 0 / 0.04);
+    transition: background-color var(--dur-hover) ease;
   }
 
   .adm-switch[aria-checked='true'] .adm-switch-track {
-    background: var(--c-green);
-    box-shadow: inset 0 0 0 1px transparent;
+    background: linear-gradient(180deg, #2a9230, #1f7f25 40%, #17691b);
+    box-shadow:
+      inset 0 -2px 0 #0e4f12,
+      inset 0 1px 0 rgb(190 255 180 / 0.45);
+  }
+
+  :root[data-still] .adm-switch-track {
+    transition: none;
   }
 
   .adm-switch-knob {
@@ -605,11 +748,15 @@
     outline: none;
   }
 
-  .adm-menu-item[data-danger] {
-    color: var(--adm-err);
+  /* (round 20) A destructive item reads like the rest until it is pointed at or focused: then a red tint and a red label and icon. */
+  .adm-menu-item[data-danger]:hover:not(:disabled),
+  .adm-menu-item[data-danger]:focus-visible {
+    background: var(--intent-danger-tint);
+    color: var(--intent-danger-ink);
   }
 
-  .adm-menu-item[data-danger] > svg {
+  .adm-menu-item[data-danger]:hover:not(:disabled) > svg,
+  .adm-menu-item[data-danger]:focus-visible > svg {
     color: currentColor;
   }
 
@@ -767,15 +914,16 @@
     background: #3a1712;
   }
 
-  .adm-toast-action {
-    min-height: 32px;
+  /* (r20admbtn) A toast's action ("Undo", "Retry"): a compact neutral key of the public system; the slate one in both themes, on the dark toast. */
+  .adm .btn.adm-toast-action {
+    --neu-fill: #3f4752;
+    --neu-liq: #4c5563;
+    --neu-line: rgb(255 255 255 / 0.1);
+    --neu-ink: #ffffff;
+    --neu-lip: #0a0a0c;
+    --pull: 3px;
+    min-height: 34px;
     padding: 0 14px;
-    border: 0;
-    border-radius: var(--r-pill);
-    background: rgb(255 255 255 / 0.16);
-    color: #ffffff;
-    cursor: pointer;
-    font: inherit;
     font-size: 14px;
     font-weight: 600;
   }
@@ -850,24 +998,22 @@
     border-color: var(--adm-err);
   }
 
-  .adm-pass-show {
+  /* (r20admbtn) Show / Hide, inside the field: a public neutral key kept flat (no lip), as the public site keeps its in-field controls. It
+     stretches to the field's height (the magnet owns translate). */
+  .adm-lock .btn.adm-pass-show {
+    --lip: 1px;
+    --lip-h: 0px;
+    --lip-c: transparent;
+    --pull: 3px;
     position: absolute;
-    top: 50%;
-    right: 4px;
-    display: inline-flex;
-    align-items: center;
+    top: 5px;
+    right: 5px;
+    bottom: 5px;
     gap: 6px;
-    min-height: 40px;
+    min-height: 0;
     padding: 0 12px;
-    border: 0;
-    border-radius: 10px;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font: inherit;
     font-size: 14px;
     font-weight: 600;
-    translate: 0 -50%;
   }
 
   .adm-pass-msg {
@@ -2601,8 +2747,6 @@
 
   .adm-note-btn {
     position: relative;
-    width: 36px;
-    height: 36px;
   }
 
   .adm-note-count {
@@ -3181,10 +3325,11 @@
       justify-content: center;
     }
 
-    .adm-banner-x,
-    .adm-note-btn {
+    .adm .btn.adm-icon-btn:is(.adm-banner-x, .adm-note-btn) {
       width: 44px;
+      min-width: 44px;
       height: 44px;
+      min-height: 44px;
     }
 
     .adm-chip-filter button {
@@ -3193,7 +3338,6 @@
       margin: -8px -4px -8px 0;
     }
 
-    .adm-pass-show,
     .adm-folder-btn {
       min-height: 44px;
     }
@@ -3244,7 +3388,7 @@
       display: none;
     }
 
-    .adm-split-main {
+    .adm .btn.adm-split-main {
       padding: 0 8px 0 14px;
     }
 
@@ -4019,8 +4163,6 @@
   .adm-tools .adm-cols-btn {
     min-height: 44px;
     padding-inline: 14px 16px;
-    border-radius: var(--r-pill);
-    box-shadow: inset 0 0 0 1.5px var(--field-line);
   }
 
   /* The head and the rows, as they were in the screen's grid (16 px apart). */
@@ -4217,45 +4359,32 @@
     gap: 4px;
   }
 
-  .adm-pager-btn {
-    display: inline-grid;
-    place-items: center;
+  /* (r20admbtn) The pager's keys: compact neutral rounded squares of the public system; the current page is the ink key, pressed in. */
+  .adm .btn.adm-pager-btn {
+    width: auto;
     min-width: 36px;
     height: 36px;
+    min-height: 36px;
     padding: 0 8px;
-    border: 0;
-    border-radius: var(--r-pill);
-    background: transparent;
-    color: var(--ink);
-    font: inherit;
     font-size: 14px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    cursor: pointer;
-    transition: background-color var(--dur-hover) ease;
   }
 
-  .adm-pager-btn:disabled {
-    color: var(--muted);
-    cursor: default;
-    opacity: 0.4;
-  }
-
-  .adm-pager-btn[aria-current='page'] {
-    background: var(--ink);
+  .adm .btn.adm-pager-btn[aria-current='page'] {
+    --btn-fill: var(--ink);
+    --btn-line: transparent;
+    --liq: transparent;
+    --lip-h: 1px;
     color: var(--bg);
+    cursor: default;
+    transform: translateY(calc(var(--lip) - 1px));
   }
 
   .adm-pager-btn:focus-visible,
   .adm-pager-size select:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .adm-pager-btn:not(:disabled, [aria-current='page']):hover {
-      background: color-mix(in oklab, var(--ink) 7%, transparent);
-    }
   }
 
   .adm-pager-gap {
@@ -4265,7 +4394,7 @@
   }
 
   @media (max-width: 734px), (pointer: coarse) {
-    .adm-pager-btn,
+    .adm .btn.adm-pager-btn,
     .adm-pager-size select {
       min-width: 44px;
       height: 44px;

@@ -1,7 +1,7 @@
 // Owner: A4 Admin. Poster frame (admin brief 5.4): "Pick a frame" pauses the preview and shows a scrubber (0 to the duration, step 1/30 s, a m:ss.ff
 // label; ←/→ one frame, Shift+←/→ one second, Home and End); "Use this frame" waits for the frame, encodes it (posterEncode.ts) and hands it to the
 // drawer, which uploads it at once for a saved video or after create for a new one. "Upload an image" runs the same encoder. "Remove poster" is V10.
-import { Ellipsis, ImagePlus, ScanLine } from 'lucide-react';
+import { Check, Ellipsis, ImagePlus, ScanLine, Trash2 } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
 import { withArrows } from '../components/TextArrow';
 import { MenuButton } from './bits';
@@ -157,7 +157,8 @@ export function PosterPicker({
             {withArrows('← → one frame · Shift for a second')}
           </p>
           <div className="adm-poster-actions">
-            <button type="button" className="btn btn-sm btn-ink" onClick={useFrame} disabled={working || busy}>
+            <button type="button" className="btn btn-sm btn-ink" data-intent="positive" data-fill="" onClick={useFrame} disabled={working || busy}>
+              <Check className="size-4" aria-hidden />
               {working ? 'Making the poster…' : 'Use this frame'}
             </button>
             <button type="button" className="btn btn-sm btn-ghost" onClick={() => setPicking(false)} disabled={working}>
@@ -174,7 +175,7 @@ export function PosterPicker({
             <ImagePlus className="size-4" aria-hidden /> Upload an image
           </button>
           {storedPoster && (
-            <MenuButton label="Poster options" items={[{ label: 'Remove poster', onSelect: onRemove, danger: true }]}>
+            <MenuButton label="Poster options" items={[{ label: 'Remove poster', icon: <Trash2 className="size-4" aria-hidden />, onSelect: onRemove, danger: true }]}>
               <Ellipsis className="size-5" aria-hidden />
             </MenuButton>
           )}

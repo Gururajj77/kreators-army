@@ -3,7 +3,7 @@
 // the title, brand, category, platform, upload date, views and the two links edit in place (inlineEdit.tsx); a click anywhere else but the handle,
 // the switch and the menu opens the drawer, as a tap anywhere on the row does on phones. A missing field shows nothing (views 0 included).
 import { gradeLabel, resolutionLabel, type AdminVideo, type VideoProblem } from '@kreators/shared';
-import { Ellipsis, GripVertical, RotateCcw, Star, Trash2 } from 'lucide-react';
+import { ArchiveRestore, Ellipsis, GripVertical, Star, Trash2 } from 'lucide-react';
 import { m } from 'motion/react';
 import { useEffect, type MouseEvent } from 'react';
 import { Link } from 'react-router';
@@ -344,10 +344,10 @@ export function VideoRow({
       <span className="adm-row-menu">
         {bin ? (
           <span className="adm-bin-actions">
-            <button type="button" className="btn btn-sm btn-ghost" onClick={onRestore}>
-              <RotateCcw className="size-4" aria-hidden /> Restore
+            <button type="button" className="btn btn-sm btn-ghost" data-intent="positive" onClick={onRestore}>
+              <ArchiveRestore className="size-4" aria-hidden /> Restore
             </button>
-            <button type="button" className="btn btn-sm btn-ghost adm-danger-text" onClick={onPurge}>
+            <button type="button" className="btn btn-sm btn-ghost" data-intent="danger" onClick={onPurge}>
               <Trash2 className="size-4" aria-hidden /> Delete forever
             </button>
           </span>

@@ -30,7 +30,7 @@ function Notes({ row, n }: { row: UIRow; n: string }) {
   if (!lines.length) return null;
   return (
     <>
-      <button ref={anchor} type="button" className="adm-icon-btn adm-note-btn" aria-label={`Notes for row ${n}`} aria-expanded={false} aria-controls={id} onClick={toggle}>
+      <button ref={anchor} type="button" className="btn adm-icon-btn adm-note-btn" aria-label={`Notes for row ${n}`} aria-expanded={false} aria-controls={id} onClick={toggle}>
         <Info className="size-4" aria-hidden />
         <span className="adm-note-count" aria-hidden>
           {lines.length}
@@ -106,7 +106,7 @@ function Detail({ row, numberOf }: { row: UIRow; numberOf: (rowId: string) => st
             aria-invalid={!!row.keyError || undefined}
             aria-describedby={row.keyError ? `${keyId}-err` : undefined}
           />
-          <button type="submit" className="btn btn-sm btn-ink" disabled={!row.keyDraft.trim()}>
+          <button type="submit" className="btn btn-sm btn-ink" data-intent="positive" data-fill="" disabled={!row.keyDraft.trim()}>
             Use key
           </button>
           {row.keyError && (

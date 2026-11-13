@@ -84,7 +84,7 @@ function Pager({ page, pages, per, total, onPage, onPer }: { page: number; pages
   const from = total ? (page - 1) * per + 1 : 0;
   const to = Math.min(total, page * per);
   const btn = (n: number, label: string, icon: React.ReactNode, disabled: boolean) => (
-    <button type="button" className="adm-pager-btn" aria-label={label} title={label} disabled={disabled} onClick={() => onPage(n)}>
+    <button type="button" className="btn adm-icon-btn adm-pager-btn" aria-label={label} title={label} disabled={disabled} onClick={() => onPage(n)}>
       {icon}
     </button>
   );
@@ -117,7 +117,7 @@ function Pager({ page, pages, per, total, onPage, onPer }: { page: number; pages
             <button
               key={it}
               type="button"
-              className="adm-pager-btn adm-pager-num"
+              className="btn adm-icon-btn adm-pager-btn adm-pager-num"
               aria-label={`Page ${it}`}
               aria-current={it === page ? 'page' : undefined}
               onClick={() => it !== page && onPage(it)}
@@ -532,7 +532,7 @@ export function VideosScreen() {
           <Link to="/admin/import" className="btn btn-sm btn-ghost">
             <Upload className="size-4" aria-hidden /> Import links
           </Link>
-          <Link to="/admin/videos/new" className="btn btn-sm btn-accent">
+          <Link to="/admin/videos/new" className="btn btn-sm btn-ink" data-intent="positive" data-fill="">
             <Plus className="size-4" aria-hidden /> New video
           </Link>
         </div>
@@ -610,7 +610,7 @@ export function VideosScreen() {
           <Link to="/admin/import" className="btn btn-sm btn-ghost">
             <Upload className="size-4" aria-hidden /> Import links
           </Link>
-          <Link to="/admin/videos/new" className="btn btn-sm btn-accent" aria-keyshortcuts="n">
+          <Link to="/admin/videos/new" className="btn btn-sm btn-ink" data-intent="positive" data-fill="" aria-keyshortcuts="n">
             <Plus className="size-4" aria-hidden /> New video
           </Link>
         </div>
@@ -754,6 +754,7 @@ export function VideosScreen() {
           body="It goes to the bin, and you can restore it for 30 days."
           confirmLabel="Delete"
           danger
+          icon={<Trash2 className="size-4" aria-hidden />}
           busy={working}
           onConfirm={() => void remove(confirmDelete)}
           onCancel={() => setConfirmDelete(null)}
@@ -765,6 +766,7 @@ export function VideosScreen() {
           body={`“${confirmPurge.title}” and its poster go for good. This can't be undone.`}
           confirmLabel="Delete forever"
           danger
+          icon={<Trash2 className="size-4" aria-hidden />}
           busy={working}
           onConfirm={() => void purge(confirmPurge)}
           onCancel={() => setConfirmPurge(null)}
@@ -777,6 +779,7 @@ export function VideosScreen() {
           body={`They and their posters go for good. This can't be undone.`}
           confirmLabel={`Delete ${confirmBulkPurge} forever`}
           danger
+          icon={<Trash2 className="size-4" aria-hidden />}
           busy={bulk.busy === 'purge'}
           onConfirm={() => void purgeSelected()}
           onCancel={() => setConfirmBulkPurge(null)}

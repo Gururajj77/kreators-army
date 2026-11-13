@@ -1,0 +1,223 @@
+/* Pills, round 20 (r20pills). The founder: "the pill shaped buttons should also have the lips below like the other buttons", then "but smaller as
+   per shapes". Every pill-shaped control that is not a .btn (chips, the sliding chip thumb, segments and tab bars, the blog's before/after tabs,
+   the library's remove-filter chips) keeps its pill and now stands on a static darker lip, like the buttons (buttons.css), but a thinner one in
+   proportion to its height (about 4.5% of it): 1.5 px under the 32 to 36 px pills, 2 px under the 40 to 44 px ones (the buttons have 3 to 4 px).
+
+   - Unselected chips: the neutral face (white to a warm off-white in light, slate in dark), a hairline, the neutral lip. Hover: a static tint of the
+     neutral liquid colour (200 ms on the face only) and the buttons' slow outline glint (buttons.css .chip-opt::after). No liquid flood: a rail of
+     five to twelve chips swept by the pointer would ripple all over.
+   - The chosen chip (the sliding thumb in radio and link rails, each pressed chip in multi rails): the primary's orange face on its orange lip, with
+     a white label. Orange, not the secondary's yellow outline: next to white chips a white face with a yellow edge reads as one more chip, while the
+     orange face is the one obvious "this is on".
+   - Segments and tab bars: the track is recessed (a soft inner shade); the thumb that slides in it is the raised neutral pill on its lip, raised by
+     half the lip so face and lip sit centred in the track. The thumb's slide (useThumb) is kept; the lip never moves with it.
+   - Press (touch too): the face sinks on to its lip in one step (the lip goes to 0.5 px, the face moves down by the rest), so the bottom edge stays
+     put. On a chosen chip or segment the thumb sinks with its label. Shadows and lips never transition. Under data-still nothing moves.
+   The admin keeps its own chips and segments (every rule skips .adm and .adm-lock). This sheet loads after buttons.css (app.css). */
+@property --pill-tint {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@layer components {
+  :root {
+    /* The lip per pill height, and what is left of it under a press. */
+    --pill-lip: 2px;
+    --pill-lip-sm: 1.5px;
+    --pill-lip-down: 0.5px;
+    --pill-shade: rgb(24 20 40 / 0.14);
+    --pill-hi: rgb(255 255 255 / 0.75);
+    --pill-track-in: inset 0 1px 2px rgb(24 20 40 / 0.1), inset 0 0 0 1px rgb(24 20 40 / 0.035);
+  }
+
+  [data-theme='dark'],
+  .band-dark {
+    --pill-shade: rgb(0 0 0 / 0.42);
+    --pill-hi: rgb(255 255 255 / 0.08);
+    --pill-track-in: inset 0 1px 3px rgb(0 0 0 / 0.45), inset 0 0 0 1px rgb(255 255 255 / 0.04);
+  }
+
+  :root:not([data-theme='dark']) .ft {
+    --pill-shade: rgb(24 20 40 / 0.14);
+    --pill-hi: rgb(255 255 255 / 0.75);
+    --pill-track-in: inset 0 1px 2px rgb(24 20 40 / 0.1), inset 0 0 0 1px rgb(24 20 40 / 0.035);
+  }
+
+  /* The lip per size: set on the group, so its chips and its thumb share it. */
+  :is(.chip-rail, .segment, .tab-bar, .bw-ba-tabs):not(:is(.adm, .adm-lock) *),
+  .lib-chip {
+    --pl: var(--pill-lip);
+  }
+
+  :is(.chip-rail[data-size='sm'], .segment[data-size='sm']):not(:is(.adm, .adm-lock) *),
+  .lib-chip {
+    --pl: var(--pill-lip-sm);
+  }
+
+  /* ---------- The two faces, as recipes ---------- */
+  /* Neutral: the buttons' neutral colours (they follow the theme, the dark bands and the light footer), a gentle top-to-bottom fall, a hairline,
+     a top light, the lip and a short soft shade under it. --pl-h is the lip's height now (it drops under a press). */
+  :is(.chip-opt:not([data-on], [aria-pressed='true']), .segment-thumb, .tab-bar-thumb, .bw-ba-tab[data-on]):not(:is(.adm, .adm-lock) *),
+  .lib-chip {
+    --pl-h: var(--pl);
+    --pill-face-a: var(--neu-fill);
+    --pill-face-b: color-mix(in oklab, var(--neu-fill), var(--neu-lip) 22%);
+    --pill-edge:
+      inset 0 0 0 1px var(--neu-line),
+      inset 0 1px 0 var(--pill-hi),
+      0 var(--pl-h) 0 var(--neu-lip),
+      0 calc(var(--pl-h) + 1.5px) 4px -2px var(--pill-shade);
+  }
+
+  /* Orange: the primary's face (a soft sheen at the top, kept off the label) on its lip, a white label. */
+  :is(.chip-thumb, .chip-rail[data-mode='multi'] .chip-opt[aria-pressed='true']):not(:is(.adm, .adm-lock) *) {
+    --pl-h: var(--pl);
+    --pill-edge:
+      inset 0 0 0 1px rgb(120 30 0 / 0.22),
+      inset 0 1px 0 var(--cta-line),
+      0 var(--pl-h) 0 var(--cta-lip),
+      0 calc(var(--pl-h) + 1.5px) 4px -2px rgb(var(--cta-shade) / 0.4);
+    /* (r20fix) A shade deeper than the primary's face (whose 15 to 17 px label is larger and bolder): a chip's 13 to 14 px label read washed out
+       on the bright top-left orange. Here the face runs from halfway between the primary's two oranges to just under its deep one, so the white
+       label is 5.2:1 or more everywhere on it. */
+    background:
+      linear-gradient(180deg, var(--cta-sheen), transparent 22%),
+      linear-gradient(to bottom right, color-mix(in oklab, var(--cta-face-a), var(--cta-face-b) 60%), color-mix(in oklab, var(--cta-face-b), #3a0d00 10%));
+    box-shadow: var(--pill-edge);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* (r20fix) The count badge on a chosen chip: a darker well, not a white wash (white 14% over the orange left "10" at about 3.8:1). */
+  :is(.chip-rail:not([data-mode='multi']) .chip-opt[data-on], .chip-rail[data-mode='multi'] .chip-opt[aria-pressed='true']):not(:is(.adm, .adm-lock) *) .chip-count {
+    background: rgb(58 12 0 / 0.3);
+    color: var(--cta-ink);
+  }
+
+  /* ---------- Chips ---------- */
+  .chip-opt:not([data-on], [aria-pressed='true']):not(:is(.adm, .adm-lock) *),
+  :root .lib-chip {
+    background:
+      linear-gradient(color-mix(in oklab, var(--neu-liq) calc(var(--pill-tint) * 100%), transparent), color-mix(in oklab, var(--neu-liq) calc(var(--pill-tint) * 100%), transparent)),
+      linear-gradient(180deg, var(--pill-face-a), var(--pill-face-b));
+    box-shadow: var(--pill-edge);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Every chip, in every state: only the face's tint and the label's colour move; never the lip, the shade or the position (tabs.css listed
+     box-shadow and transform, so a chip's lip faded out as the thumb arrived). */
+  .chip-opt:not(:is(.adm, .adm-lock) *),
+  :root .lib-chip {
+    transition:
+      color var(--dur-hover) ease,
+      --pill-tint 200ms var(--ease-out),
+      opacity 200ms ease;
+  }
+
+  /* The chosen chip's label sits on the orange: white (5.0:1 and up on the face). */
+  .chip-rail:not([data-mode='multi']):not(:is(.adm, .adm-lock) *) .chip-opt[data-on],
+  .chip-rail[data-mode='multi']:not(:is(.adm, .adm-lock) *) .chip-opt[aria-pressed='true'] {
+    color: var(--cta-ink);
+  }
+
+  /* Rails that scroll sideways clip on y at their 2 px padding: room for the lip and its shade, the layout unchanged. */
+  .chip-rail:not([data-wrap]):not(:is(.adm, .adm-lock) *) {
+    padding-bottom: 6px;
+    margin-bottom: -4px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .chip-opt:not([data-on], [aria-pressed='true'], :disabled):not(:is(.adm, .adm-lock) *):hover,
+    .lib-chip:hover {
+      --pill-tint: 1;
+      color: var(--ink);
+    }
+
+    /* No lift: the face stays on its lip (the outline glint is the hover's motion). tabs.css's hover lift also brought a transform transition,
+       which would ease the press; the list stays the face's and the label's. */
+    :root .chip-opt:not([data-on], [aria-pressed='true']):not(:is(.adm, .adm-lock) *):hover,
+    :root .lib-chip:hover {
+      transform: none;
+      transition:
+        color var(--dur-hover) ease,
+        --pill-tint 200ms var(--ease-out),
+        opacity 200ms ease;
+    }
+  }
+
+  /* ---------- Segments, tab bars and the blog's before/after tabs: a recessed track, a raised thumb ---------- */
+  :is(.segment, .tab-bar, .bw-ba-tabs):not(:is(.adm, .adm-lock) *) {
+    box-shadow: var(--pill-track-in);
+  }
+
+  :is(.segment-thumb, .tab-bar-thumb):not(:is(.adm, .adm-lock) *) {
+    background: linear-gradient(180deg, var(--pill-face-a), var(--pill-face-b));
+    box-shadow: var(--pill-edge);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    /* Raised by half its lip, so face and lip sit centred in the track. useThumb owns transform; this is the separate translate. */
+    translate: 0 calc(var(--pl) / -2);
+  }
+
+  /* blog.css loads after this sheet: one more class of weight. The chosen tab is the raised pill (it has no sliding thumb). */
+  :root .bw-ba-tabs .bw-ba-tab[data-on] {
+    background: linear-gradient(180deg, var(--pill-face-a), var(--pill-face-b));
+    box-shadow: var(--pill-edge);
+    color: var(--neu-ink);
+    translate: 0 calc(var(--pl) / -2);
+    transition: color var(--dur-hover) ease;
+  }
+
+  /* The chosen label reads on the raised face: ink in light, white on the slate in dark. */
+  :is(.segment-opt[aria-checked='true'], .tab-opt[aria-selected='true']):not(:is(.adm, .adm-lock) *) {
+    color: var(--neu-ink);
+  }
+
+  /* ---------- The press: the face sinks on to its lip in one step (touch too). Never under data-still. ---------- */
+  :root:not([data-still]) .chip-opt:not([data-on], [aria-pressed='true'], :disabled):not(:is(.adm, .adm-lock) *):active,
+  :root:not([data-still]) .chip-rail[data-mode='multi']:not(:is(.adm, .adm-lock) *) .chip-opt[aria-pressed='true']:not(:disabled):active {
+    --pl-h: var(--pill-lip-down);
+    transform: translateY(calc(var(--pl) - var(--pill-lip-down)));
+  }
+
+  /* The library's remove-filter chip: motion owns its transform (it pops in and keeps its place), so the sink is the separate translate. */
+  :root:not([data-still]) .lib-chip:active {
+    --pl-h: var(--pill-lip-down);
+    translate: 0 calc(var(--pl) - var(--pill-lip-down));
+  }
+
+  /* A press on the chosen chip or segment sinks its thumb (translate composes with useThumb's transform) and its label with it. */
+  :root:not([data-still]) .chip-rail:not(:is(.adm, .adm-lock) *):has(> .chip-opt[data-on]:active) > .chip-thumb {
+    --pl-h: var(--pill-lip-down);
+    translate: 0 calc(var(--pl) - var(--pill-lip-down));
+  }
+
+  :root:not([data-still]) :is(.segment, .tab-bar):not(:is(.adm, .adm-lock) *):has(> :is(.segment-opt[aria-checked='true'], .tab-opt[aria-selected='true']):active) > :is(.segment-thumb, .tab-bar-thumb) {
+    --pl-h: var(--pill-lip-down);
+    translate: 0 calc(var(--pl) / 2 - var(--pill-lip-down));
+  }
+
+  :root:not([data-still]) .bw-ba-tabs .bw-ba-tab[data-on]:active {
+    --pl-h: var(--pill-lip-down);
+    transform: none;
+    translate: 0 calc(var(--pl) / 2 - var(--pill-lip-down));
+  }
+
+  :root:not([data-still]) :is(.chip-rail, .segment, .tab-bar):not(:is(.adm, .adm-lock) *) > :is(.chip-opt[data-on], .segment-opt[aria-checked='true'], .tab-opt[aria-selected='true']):active {
+    transform: translateY(calc(var(--pl) - var(--pill-lip-down)));
+  }
+
+  /* The other options in a track only lend their label to the press (no face of their own): no squash. */
+  :root:not([data-still]) :is(.segment-opt[aria-checked='false'], .tab-opt[aria-selected='false']):not(:is(.adm, .adm-lock) *):active,
+  :root:not([data-still]) .bw-ba-tab:not([data-on]):active {
+    transform: none;
+  }
+
+  /* Still (Pause animations, reduced motion): the hover tint at once, nothing moving. */
+  :root[data-still] :is(.chip-opt, .lib-chip, .bw-ba-tab),
+  :root[data-still] .bw-ba-tabs .bw-ba-tab[data-on] {
+    transition: none;
+  }
+}

@@ -31,9 +31,11 @@
     --g-violet: #2b2152;
     --g-ox: #5c1529;
     --g-green: #133b27;
-    /* The pointer light and the focus halo (one at a time). The primary CTA's halo is crimson. */
-    --g-bloom: rgb(64 84 210 / 0.1);
-    --g-bloom-action: rgb(192 40 60 / 0.1);
+    /* The pointer light and the focus halo (one at a time). The primary CTA's halo is its warm orange (--cta-glow, cta20). (glow20) Weaker (0.1 was), and as channels
+       plus one strength, so the eased gradients below scale the alpha per stop without color-mix. */
+    --g-bloom: 64 84 210;
+    --g-bloom-action: var(--cta-glow);
+    --g-bloom-a: 0.065;
     --plate-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -.92'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     --plate-grain-o: 0.1;
     --bd-light-size: 640px;
@@ -69,9 +71,11 @@
     --g-violet: #ebe4fa;
     --g-ox: #f8e2e8;
     --g-green: #ddf1e6;
-    /* Light is brighter here, which only raises text contrast. No crimson tone: it would darken the glass beside the button. */
-    --g-bloom: rgb(255 255 255 / 0.55);
-    --g-bloom-action: rgb(255 255 255 / 0.55);
+    /* Light is brighter here, which only raises text contrast. No crimson tone: it would darken the glass beside the button. (glow20) 0.34,
+       not 0.55. */
+    --g-bloom: 255 255 255;
+    --g-bloom-action: 255 255 255;
+    --g-bloom-a: 0.34;
     --plate-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.6 -.92'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     --plate-grain-o: 0.08;
     --bd-veil: rgb(236 236 238 / 0.4);
@@ -97,12 +101,25 @@
   }
 
   /* The lights: plain radial gradients of colour under the flutes, moved by transform (field.ts). */
+  /* (glow20) The founder: "the circular glow in tabs is too hitting to the eye". Both lights fade on an eased curve (1 - 3t^2 + 2t^3 at
+     eight stops), flat at the centre and flat where they end, so seen through a glass card there is no edge or ring, only a soft lift. */
   .bd-bloom,
   .bd-halo {
+    --bl: var(--g-bloom);
     position: absolute;
     left: 0;
     top: 0;
-    background: radial-gradient(closest-side, var(--g-bloom), transparent);
+    background: radial-gradient(
+      closest-side,
+      rgb(var(--bl) / var(--g-bloom-a)) 0%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.94)) 15%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.78)) 30%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.57)) 45%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.35)) 60%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.16)) 75%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.03)) 90%,
+      transparent
+    );
     opacity: 0;
   }
 
@@ -117,12 +134,25 @@
     opacity: 1;
   }
 
-  /* A 100 px light scaled to the element by field.ts. */
+  /* A 100 px light scaled to the element by field.ts. (glow20) A plateau, not a spot: even across the element's own box, then the eased fall
+     past its edges, so a hovered card is lit evenly and the light bleeds off its sides instead of sitting as a disc in its middle. It fades in
+     over 600 ms, not 320, so it never pops. */
   .bd-halo {
     width: 100px;
     height: 100px;
+    background: radial-gradient(
+      closest-side,
+      rgb(var(--bl) / var(--g-bloom-a)) 40%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.94)) 49%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.78)) 58%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.57)) 67%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.35)) 76%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.16)) 85%,
+      rgb(var(--bl) / calc(var(--g-bloom-a) * 0.03)) 94%,
+      transparent
+    );
     transform-origin: 0 0;
-    transition: opacity 320ms var(--ease-out);
+    transition: opacity 600ms var(--ease-out);
     will-change: transform, opacity;
   }
 
@@ -131,7 +161,7 @@
   }
 
   .bd[data-tone='action'] .bd-halo {
-    background: radial-gradient(closest-side, var(--g-bloom-action), transparent);
+    --bl: var(--g-bloom-action);
   }
 
   /* While an element is lit the halo is the light: the pointer light steps back, so the two never stack (the AA budget allows one). */

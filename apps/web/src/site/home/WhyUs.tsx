@@ -64,7 +64,6 @@ function ArmyTile({ id, i, className }: { id: CastId; i: number; className: stri
         onPointerUp={() => actor.current?.press(false)}
         onPointerLeave={() => actor.current?.press(false)}
         onPointerCancel={() => actor.current?.press(false)}
-        data-bubble-bounds=""
       >
         <Tile
           tone={id}
@@ -105,7 +104,8 @@ export function WhyUs() {
         {ARMY_SENTENCE && <ArmySentence />}
 
         <div className="wrap">
-          <div id="features" className="why-bento">
+          {/* (r20bubbles) The bubbles' bounds: a line may leave its tile (home.css .army-tile), never the bento. */}
+          <div id="features" className="why-bento" data-bubble-bounds="">
             <Reveal className="why-slot-copy">
               <Tile className="h-full">
                 <div className="why-copy">

@@ -50,7 +50,7 @@ import {
 } from './brief/state';
 import { CastBubble, useCastLine, type CastLine } from './chat';
 import { ChipRail, Segment } from './tabs';
-import { Cta } from './ui';
+import { ActionLit, Cta } from './ui';
 
 // The guided trial brief (content §5, V2-SPEC 5.6, visual §1.5 and §2.5). Plan a trial: five short steps and a review, only step 1 required, answers kept
 // in sessionStorage until sent, and (form7, save16) saved to the API as they go once step 1 has an email or phone: every button press, each
@@ -1063,8 +1063,9 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
                   Skip for now
                 </button>
               )}
-              <button key="next" type="button" className="btn btn-ink bf-next" onClick={next}>
+              <button key="next" type="button" className="btn btn-accent bf-next" onClick={next}>
                 Next
+                <ActionLit label="Next" />
               </button>
             </div>
           ) : (
@@ -1077,6 +1078,7 @@ export function ContactForm({ onMode }: { onMode?: (mode: Mode) => void }) {
               {/* aria-disabled, not disabled: a disabled button drops the keyboard focus it holds, and submit() already ignores a second press. */}
               <button key="send" type="submit" className="btn btn-accent btn-lg cf-submit" aria-disabled={send.isPending || undefined}>
                 {send.isPending ? 'Sending…' : trial ? PRIMARY_ACTION.label : 'Send question'}
+                <ActionLit label={send.isPending ? 'Sending…' : trial ? PRIMARY_ACTION.label : 'Send question'} />
               </button>
             </div>
           )}

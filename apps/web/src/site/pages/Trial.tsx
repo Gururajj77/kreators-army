@@ -72,7 +72,7 @@ function Hero() {
 // ---------- What the trial is ----------
 
 const WHAT: { Glyph: LucideIcon; title: string; body: string }[] = [
-  { Glyph: Frame, title: 'A short test run', body: 'A look at the format on your own brand, before any package.' },
+  { Glyph: Frame, title: 'A short test run', body: 'A look at the format on your own brand, before any package. It usually takes 7 to 14 days.' },
   { Glyph: FileSignature, title: 'Agreed in writing', body: 'The scope, the number of trial videos and any trial fee are confirmed in writing between us.' },
   { Glyph: DoorOpen, title: 'No obligation either way', body: 'Nothing in the trial commits you, or us, to a pilot.' },
 ];

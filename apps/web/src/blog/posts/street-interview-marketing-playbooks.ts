@@ -451,7 +451,7 @@ const post: Post = {
 
     'Picture the first heavy monsoon week in Mumbai. Trains run late, office shoes are soaked and every group chat is full of it. A footwear brand could be on the footpath that week asking "What did the rain ruin for you?" A scripted ad about the same moment would arrive after the rain had stopped.',
 
-    "We won't put a number of days on it. How fast one cycle runs depends on the brief, the spot and the weather, and our own delivery timelines are confirmed in the pilot agreement. The point is relative: whatever your scripted cycle takes, a street cycle has fewer places to wait.",
+    "How fast one cycle runs depends on the brief, the spot and the weather. Our own batches usually take 14 to 21 days, with the exact dates in the pilot agreement. The point is relative: whatever your scripted cycle takes, a street cycle has fewer places to wait.",
 
     {
       type: 'steps',

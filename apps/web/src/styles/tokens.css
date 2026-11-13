@@ -149,10 +149,86 @@
     /* Text colour for links and small "act" affordances. */
     --accent: #d91a1a;
 
-    /* ---------- The one action colour ---------- */
+    /* ---------- Red: a stop tone (the blog's decision trees). Not the call to action any more: that is --cta below. ---------- */
     --action: #e11d1d;
-    --on-action: #ffffff;
-    --accent-fill: var(--action);
+
+    /* ---------- Buttons (r20sys): one system, from the founder's two references. Rounded rectangles, never pills: 10 px small, 12 px medium,
+       14 px large, icon buttons 12 px squares. Four kinds plus icons and switches; buttons.css draws them all.
+       - Primary (every "Request a trial video", the brief's Next and Send): a solid orange-red face, lit from the top, standing on a darker
+         red-orange lip, with a white label. On hover the liquid floods it Sochu yellow from where the pointer came in and the label turns warm
+         ink in step with the fill (a second, ink copy of the label is clipped to the same circle), so every glyph keeps AA at every moment.
+       - Secondary (the outline buttons): (r20refine) the primary's inverse: a white face, a yellow outline and amber lip, an ink label; gold on hover.
+       - Neutral: white with an ink label in light, slate with a white label in dark.
+       - Text (arrow links): an orange label and a trailing arrow, no fill.
+       The face colour under the label is the darkest a white label allows at AA: white on --cta-face is 4.67:1, on --cta-base 5.1:1. ---------- */
+    --btn-r-sm: 10px;
+    --btn-r: 12px;
+    --btn-r-lg: 14px;
+    --btn-r-icon: 12px;
+    /* The lip: how far the face stands above it (primary), and the softer lip of the other kinds. A press sinks the face on to it. */
+    --btn-lip: 4px;
+    --btn-lip-soft: 3px;
+
+    /* Primary: the switch's on track (top light, middle, foot), and the lip (static: it never changes on hover or press, only its height). */
+    --cta-top: #e8561e;
+    --cta-face: #d14210;
+    --cta-base: #c63a0b;
+    --cta-lip: #9c2a06;
+    --cta-ink: #ffffff;
+    /* Filled (hover, press): Sochu yellow (the still-mode body tint under the gold run) and the warm ink label. */
+    --cta-lit: #fbd43f;
+    --cta-ink-lit: #1d1206;
+    /* The 1 px light along the top of the face and the press ripple. */
+    --cta-line: rgb(255 196 160 / 0.55);
+    --cta-ripple: #fff3b0;
+    /* (r20refine) The founder: "the orange and the yellows can have a gradient and slight color change on hover". The primary face runs from a
+       brighter orange at the top left to a deeper orange-red at the bottom right (white label 4.58:1 at the bright end, 6.0:1 at the deep end),
+       under a soft top sheen that stays above the label; on hover it shifts a few degrees redder and a touch deeper (4.97:1 and 6.8:1). The
+       yellow (the primary's fill, the secondary's fill) is a warm gold run, light gold to deeper amber, that warms a little more while hovered
+       (ink label 10:1 or more everywhere). */
+    --cta-face-a: #d44310;
+    --cta-face-b: #b8330a;
+    --cta-face-a-on: #cf3a12;
+    --cta-face-b-on: #ac2b0a;
+    --cta-sheen: rgb(255 168 116 / 0.36);
+    --gold-top: #ffe27a;
+    --gold-deep: #f3b52c;
+    --gold-top-on: #ffd95a;
+    --gold-deep-on: #eda51f;
+    --gold-sheen: rgb(255 255 255 / 0.3);
+    /* The hover outline's flowing light, per kind (low, warm, slow): the ring and its two glints. */
+    --cta-ring: rgb(214 104 18 / 0.5);
+    --cta-ring-glint: rgb(255 244 204 / 0.92);
+    --sec-ring: rgb(205 140 8 / 0.5);
+    --sec-ring-glint: rgb(236 120 24 / 0.78);
+    /* The warm light behind a lit CTA (the backdrop's focus halo, the phone bar's shadow) and the shadow under the lip, as channels. */
+    --cta-glow: 236 100 24;
+    --cta-shade: 150 40 6;
+
+    /* Secondary (r20refine): the primary's inverse, in the same 3D style. The founder: "the secondary button can be inverse in the sense that start
+       off at white and yellow on hover ... or maybe yellow outline in same way as the solid orange". A white face, a 1.5 px yellow outline and a
+       yellow-amber lip as tall as the primary's, a warm ink label (18.8:1); hover floods the gold run in from the pointer (ink stays, 10:1+). */
+    --sec-fill: #ffffff;
+    --sec-liq: transparent;
+    --sec-line: #f2b81e;
+    --sec-ink: #1d1206;
+    --sec-ink-hover: #1d1206;
+    --sec-lip: #d99a0f;
+    --sec-shade: rgb(150 95 0 / 0.22);
+
+    /* Neutral: white, an ink label, a hairline and a soft grey lip; hover floods a warm light grey. */
+    --neu-fill: #ffffff;
+    --neu-liq: #efeae3;
+    --neu-line: rgb(14 14 16 / 0.12);
+    --neu-ink: #141416;
+    --neu-lip: #dbd5cc;
+
+    /* Text actions: the arrow links. */
+    --act-ink: #a33508;
+    --act-ink-hover: #872b06;
+
+    /* Switches: off is a neutral track; on is the primary face. */
+    --tog-off: #8a8379;
 
     /* ---------- Shadows start at tier 2. Plates are flat at rest. ---------- */
     --shadow-2: 0 2px 4px rgb(24 20 40 / 0.06), 0 12px 28px -8px rgb(24 20 40 / 0.16);
@@ -415,14 +491,13 @@
   }
 
   /* Text on a dark surface sets 50 lighter: the dark theme, every .band-dark (the footer among them), and the dark fills that keep light-on-dark
-     text in the light theme (chips and glass over video, the views pill, the ink button, the ink and purple plates). Each step's weight token points at these, so it follows. */
+     text in the light theme (chips and glass over video, the ink button, the ink and purple plates). Each step's weight token points at these, so it follows. */
   [data-theme='dark'],
   .band-dark,
   .glass-media,
   .chip,
   .vsticker,
   .vdeck-watch,
-  .vdeck-views,
   .reel-pause,
   .player-failed,
   .btn-ink,
@@ -511,6 +586,25 @@
     --field-line: rgb(255 255 255 / 0.36);
     --focus: #b9b4ff;
     --accent: #ff6253;
+    /* Buttons (r20sys), dark: the primary is the same orange-red; secondary is a deep brown-orange tint with a light orange label; neutral is slate. */
+    --cta-shade: 0 0 0;
+    /* (r20refine) Secondary in dark: still the inverse, a warm near-white face (not pure white, so it does not glare beside the orange on the dark
+       page), the same yellow outline, a deeper amber lip that reads on the dark ground, the same ink label (16:1). */
+    --sec-fill: #f4efe6;
+    --sec-liq: transparent;
+    --sec-line: #f2b81e;
+    --sec-ink: #1d1206;
+    --sec-ink-hover: #1d1206;
+    --sec-lip: #b07c08;
+    --sec-shade: rgb(0 0 0 / 0.45);
+    --neu-fill: #3f4752;
+    --neu-liq: #4c5563;
+    --neu-line: rgb(255 255 255 / 0.1);
+    --neu-ink: #ffffff;
+    --neu-lip: #242a32;
+    --act-ink: #fb923c;
+    --act-ink-hover: #fdba74;
+    --tog-off: #5a6472;
 
     --shadow-2: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 2px 4px rgb(0 0 0 / 0.4), 0 12px 28px -8px rgb(0 0 0 / 0.6);
     --shadow-3: inset 0 1px 0 rgb(255 255 255 / 0.09), 0 4px 8px rgb(0 0 0 / 0.45), 0 20px 44px -12px rgb(0 0 0 / 0.7);

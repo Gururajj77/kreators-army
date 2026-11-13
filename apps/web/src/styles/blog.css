@@ -1089,12 +1089,12 @@
     line-height: var(--t-footnote-lh);
   }
 
+  /* (r20audit) A text action (buttons.css): the label colour, the hover underline and the arrow nudge come from there. */
   .bp-video-more {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     min-height: 44px;
-    color: var(--ink);
     font-weight: var(--w-semibold);
   }
 
@@ -1127,12 +1127,12 @@
     gap: 12px 20px;
   }
 
+  /* (r20audit) A text action (buttons.css): the label colour, the hover underline and the arrow nudge come from there. */
   .bp-cta-more {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     min-height: 44px;
-    color: var(--ink);
     font-size: var(--t-subhead-size);
     letter-spacing: var(--t-subhead-track);
     font-weight: var(--w-semibold);
@@ -2569,15 +2569,16 @@
     background: var(--g-bolu);
   }
 
-  /* A soft light off the top corner, under everything. */
+  /* A soft light off the top corner, under everything. (glow20) Centred off the art and faded on an eased curve, at about half the old
+     strength, so it merges into the colour instead of showing as a lit disc; the dark corner is fainter and eased the same way. */
   .bb-art::before {
     content: '';
     position: absolute;
     inset: 0;
     z-index: -1;
     background:
-      radial-gradient(90% 120% at 88% -10%, rgb(255 255 255 / 0.34), transparent 62%),
-      radial-gradient(70% 90% at 0% 110%, rgb(0 0 0 / 0.1), transparent 70%);
+      radial-gradient(120% 150% at 96% -34%, rgb(255 255 255 / 0.2) 0%, rgb(255 255 255 / 0.188) 15%, rgb(255 255 255 / 0.157) 30%, rgb(255 255 255 / 0.115) 45%, rgb(255 255 255 / 0.07) 60%, rgb(255 255 255 / 0.031) 75%, rgb(255 255 255 / 0.006) 90%, rgb(255 255 255 / 0) 100%),
+      radial-gradient(100% 120% at -12% 128%, rgb(0 0 0 / 0.06) 0%, rgb(0 0 0 / 0.056) 15%, rgb(0 0 0 / 0.047) 30%, rgb(0 0 0 / 0.034) 45%, rgb(0 0 0 / 0.021) 60%, rgb(0 0 0 / 0.009) 75%, rgb(0 0 0 / 0.002) 90%, rgb(0 0 0 / 0) 100%);
   }
 
   /* The mark: the post's number or name, oversized, seen through the reeds. */
@@ -2652,7 +2653,8 @@
     position: absolute;
     inset: 0;
     z-index: 3;
-    background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.3) 48%, rgb(255 255 255 / 0.08) 56%, transparent 70%);
+    /* (glow20) A wider, eased band at about half the old strength (0.3 was), so the hover sweep glides instead of flashing. */
+    background: linear-gradient(105deg, transparent 26%, rgb(255 255 255 / 0.03) 34%, rgb(255 255 255 / 0.1) 41%, rgb(255 255 255 / 0.16) 48%, rgb(255 255 255 / 0.1) 55%, rgb(255 255 255 / 0.03) 62%, transparent 70%);
     transform: translateX(-110%);
     pointer-events: none;
   }

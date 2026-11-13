@@ -102,10 +102,39 @@ export function Hero({ videos, onOpen, paused }: { videos: Video[] | undefined; 
     }
     // After the four have landed, one wave, then Bolu's question. The cue waits for the rig if it is late.
     const wave = intro ? window.setTimeout(() => bolu.current?.play('wave'), 1500) : 0;
-    const ask = window.setTimeout(() => void say('home.hero.intro', { by: bolu.current }), intro ? 2100 : 1100);
+    // (r20bubbles) Stacked (below 1068) the stage can start under the fold, where say() turns the line down for good: then it comes when Bolu
+    // scrolls in. And a busy token (another character's move) gets two more tries, as in How it works.
+    let io: IntersectionObserver | null = null;
+    let retry = 0;
+    let tries = 0;
+    const speak = () =>
+      void say('home.hero.intro', { by: bolu.current }).then((ok) => {
+        if (!ok && ++tries < 3 && bolu.current?.el()?.isConnected) retry = window.setTimeout(speak, 500);
+      });
+    const ask = window.setTimeout(
+      () => {
+        const el = bolu.current?.el();
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.bottom > 0 && r.top < window.innerHeight) return speak();
+        if (!r.width) return;
+        io = new IntersectionObserver(
+          (entries) => {
+            if (!entries.some((e) => e.isIntersecting)) return;
+            io?.disconnect();
+            retry = window.setTimeout(speak, 400);
+          },
+          { threshold: 0.75 },
+        );
+        io.observe(el);
+      },
+      intro ? 2100 : 1100,
+    );
     return () => {
       window.clearTimeout(wave);
       window.clearTimeout(ask);
+      window.clearTimeout(retry);
+      io?.disconnect();
     };
   }, [intro, say]);
 

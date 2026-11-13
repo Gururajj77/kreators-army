@@ -50,11 +50,17 @@ const kitRoutes: RouteObject[] =
       }))
     : [];
 
+function AdminLoading() {
+  return null;
+}
+
 const router = createBrowserRouter([
   {
     // Outside Layout: no public nav, footer, cast or street. One lazy chunk; its own error boundary reloads once on a stale chunk.
     path: '/admin/*',
     lazy: () => import('./admin/AdminApp').then((m) => ({ Component: m.AdminApp })),
+    // (r20fix) Nothing to show while the admin chunk loads on a first visit; naming it stops React Router's "No HydrateFallback" warning.
+    HydrateFallback: AdminLoading,
     errorElement: <RouteError />,
   },
   {

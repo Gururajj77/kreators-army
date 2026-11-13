@@ -520,11 +520,6 @@
     padding-top: 64px;
   }
 
-  /* The sheet's own hairlines (white on the dark glass, ink on the pearl). */
-  .ft .btn-ghost {
-    --liq: rgb(var(--ft-hair) / 0.12);
-  }
-
   .ft-reach {
     display: flex;
     flex-direction: column;

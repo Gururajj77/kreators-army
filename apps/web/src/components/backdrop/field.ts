@@ -8,9 +8,10 @@
 //               .bd-veil calms the rest
 // Only transforms and a few attributes change, on a handful of composited layers. Never started under still (Backdrop decides).
 
-/** What lights up when hovered or keyboard-focused: cards, video frames, CTAs and form controls. */
+/** What lights up when hovered or keyboard-focused: cards, video frames and form controls. (r20refine) Not buttons: the founder asked that a
+ * button's shadow and elevation carry no animated glow, and this halo was a coloured light fading in around a hovered CTA. A button inside a card
+ * lights its card, as the pointer over the card already does. */
 const LIT = [
-  '.btn',
   '.vframe',
   '.tile',
   '.plate',

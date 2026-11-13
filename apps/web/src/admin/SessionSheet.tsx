@@ -2,6 +2,7 @@
 // passkey over the current screen. On success every waiting call is sent again and the drawer's values and the import's progress stay as they were.
 // "Lock" or Esc goes to the lock screen instead.
 import type { AdminSession } from '@kreators/shared';
+import { Lock } from 'lucide-react';
 import { useId } from 'react';
 import { settleUnlock, useAdminUi } from './api';
 import { Modal } from './bits';
@@ -28,7 +29,8 @@ export function SessionSheet({ onUnlocked, onLock }: { onUnlocked: (session: Adm
             settleUnlock(true);
           }}
         />
-        <button type="button" className="btn btn-sm btn-ghost adm-sheet-lock" onClick={lock}>
+        <button type="button" className="btn btn-sm btn-ghost adm-sheet-lock" data-intent="neutral" onClick={lock}>
+          <Lock className="size-4" aria-hidden />
           Lock
         </button>
       </div>

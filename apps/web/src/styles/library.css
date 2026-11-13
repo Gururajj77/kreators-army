@@ -115,16 +115,17 @@
     position: absolute;
     inset: 0;
     z-index: 0;
+    /* (glow20) Both lights centred off the card and eased, so neither shows an edge. */
     background:
-      radial-gradient(90% 55% at 50% 0%, rgb(255 255 255 / 0.22), transparent 70%),
-      radial-gradient(120% 60% at 50% 110%, rgb(0 0 0 / 0.28), transparent 70%);
+      radial-gradient(130% 80% at 50% -22%, rgb(255 255 255 / 0.16) 0%, rgb(255 255 255 / 0.15) 15%, rgb(255 255 255 / 0.125) 30%, rgb(255 255 255 / 0.092) 45%, rgb(255 255 255 / 0.056) 60%, rgb(255 255 255 / 0.025) 75%, rgb(255 255 255 / 0.004) 90%, rgb(255 255 255 / 0) 100%),
+      radial-gradient(150% 80% at 50% 124%, rgb(0 0 0 / 0.22) 0%, rgb(0 0 0 / 0.207) 15%, rgb(0 0 0 / 0.172) 30%, rgb(0 0 0 / 0.126) 45%, rgb(0 0 0 / 0.077) 60%, rgb(0 0 0 / 0.034) 75%, rgb(0 0 0 / 0.006) 90%, rgb(0 0 0 / 0) 100%);
     pointer-events: none;
   }
 
   :root[data-theme='dark'] .lib-ring-card:not([data-poster])::before {
     background:
-      radial-gradient(90% 55% at 50% 0%, rgb(255 255 255 / 0.1), transparent 70%),
-      radial-gradient(120% 60% at 50% 110%, rgb(0 0 0 / 0.35), transparent 70%);
+      radial-gradient(130% 80% at 50% -22%, rgb(255 255 255 / 0.08) 0%, rgb(255 255 255 / 0.075) 15%, rgb(255 255 255 / 0.063) 30%, rgb(255 255 255 / 0.046) 45%, rgb(255 255 255 / 0.028) 60%, rgb(255 255 255 / 0.012) 75%, rgb(255 255 255 / 0.002) 90%, rgb(255 255 255 / 0) 100%),
+      radial-gradient(150% 80% at 50% 124%, rgb(0 0 0 / 0.28) 0%, rgb(0 0 0 / 0.263) 15%, rgb(0 0 0 / 0.22) 30%, rgb(0 0 0 / 0.161) 45%, rgb(0 0 0 / 0.099) 60%, rgb(0 0 0 / 0.044) 75%, rgb(0 0 0 / 0.008) 90%, rgb(0 0 0 / 0) 100%);
   }
 
   .lib-ring-card > .lib-disc[data-size='lg'] {
@@ -966,9 +967,11 @@
     letter-spacing: var(--t-title2-track);
   }
 
-  .lib-end-go {
-    pointer-events: none;
-  }
+  /* (r20audit) .lib-end-go (ui.tsx PrimaryFace) deliberately has no pointer-events rule. The card is the link; its button is a real hover and press
+     target of its own, so the shared system (buttons.css, lib/buttonFx.ts)
+     gives it the gold fill from the entry side, the label split, the outline, the magnet and the press. It had pointer-events: none, so the
+     pointer landed on the card text and the button never saw :hover, :active or the pointer (the founder: "has no hover animations"). A click on
+     it still reaches the card's link. */
 
   @media (max-width: 1068px) {
     .lib-grid {

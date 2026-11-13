@@ -39,20 +39,60 @@ export type BubbleSide = keyof typeof TAIL_SHARE;
 /** What a bubble must not cover: the nav, and anything a visitor can press. */
 const BLOCKS = 'a[href], button, input, select, textarea, label, summary, [role="button"], [role="tab"], [role="link"], header, nav, dialog';
 
-/** The viewport rect a bubble takes in its current placement, from layout, never from the box (it is mid-transition when this runs). */
-function rectOf(b: HTMLElement, pr: DOMRect, shift: number) {
-  const w = b.offsetWidth;
-  const h = b.offsetHeight;
-  const centered = !b.dataset.beside && b.dataset.side !== 'start' && b.dataset.side !== 'end';
-  const left = pr.left + b.offsetLeft - (centered ? w / 2 : 0) + shift;
-  const top = pr.top + b.offsetTop;
-  return { left, top, right: left + w, bottom: top + h };
+type Rect = { left: number; top: number; right: number; bottom: number };
+
+/**
+ * The screen scales a placement works in (r20bubbles): k, the character box's own scale on screen (an ancestor's transform, such as the Army
+ * sentence's flyers, drawn at about a third of their size in the sentence), and v, the bubble's, which is k times its own `scale` (the flyers' bubbles
+ * undo the flyer's scale so they stay readable). 1 and 1 everywhere else.
+ */
+function scalesOf(b: HTMLElement, parent: HTMLElement, pr: DOMRect) {
+  const own = Number.parseFloat(getComputedStyle(b).scale);
+  // Only a bubble that sets its own scale lives in a scaled box for good. Any other scale is a passing one (a character popping in on How it
+  // works' stage, scale 0.6 to 1): it is placed for the size it lands at, from layout, as before.
+  if (!Number.isFinite(own) || own <= 0 || own === 1) return { k: 1, v: 1 };
+  const k = parent.offsetWidth ? pr.width / parent.offsetWidth : 1;
+  return { k, v: k * own };
 }
 
-/** True when the rect leaves the screen, slides under the nav, or covers a control that is not the character's own. */
-function blocked(r: { left: number; top: number; right: number; bottom: number }, own: Element) {
+/** The viewport rect a bubble takes in its current placement, from layout, never from the box (it is mid-transition when this runs). */
+function rectOf(b: HTMLElement, pr: DOMRect, shift: number, k = 1, v = 1): Rect {
+  const w = b.offsetWidth;
+  const h = b.offsetHeight;
+  const beside = b.dataset.beside;
+  const side = b.dataset.side;
+  // Where the bubble's own scale is anchored (its transform-origin: the tail, or the side facing the head when it stands beside it).
+  const tx = beside === 'end' ? 0 : beside === 'start' ? 1 : side === 'start' ? 0.28 : side === 'end' ? 0.72 : 0.5;
+  const centered = !beside && side !== 'start' && side !== 'end';
+  const layoutLeft = b.offsetLeft - (centered ? w / 2 : 0) + shift;
+  const left = pr.left + k * (layoutLeft + tx * w) - tx * w * v;
+  const top = beside ? pr.top + k * (b.offsetTop + h / 2) - (h * v) / 2 : pr.top + k * (b.offsetTop + h + 8) - 8 * v - h * v;
+  return { left, top, right: left + w * v, bottom: top + h * v };
+}
+
+/**
+ * The boxes that would cut the bubble off: every ancestor that clips its overflow, on the axes it clips (r20bubbles: a bubble above a character
+ * near a card's top edge rose past the card and lost its top half to the card's overflow: hidden).
+ */
+function clipsOf(b: HTMLElement) {
+  const list: { r: DOMRect; x: boolean; y: boolean }[] = [];
+  for (let e = b.parentElement; e && e !== document.body && e !== document.documentElement; e = e.parentElement) {
+    const s = getComputedStyle(e);
+    const x = s.overflowX !== 'visible';
+    const y = s.overflowY !== 'visible';
+    if (x || y) list.push({ r: e.getBoundingClientRect(), x, y });
+  }
+  return list;
+}
+
+/** True when the rect leaves the screen, is cut off by a clipping ancestor, slides under the nav, or covers a control that is not the character's own. */
+function blocked(r: Rect, own: Element, clips: ReturnType<typeof clipsOf> = []) {
   const vw = document.documentElement.clientWidth;
   if (r.left < 0 || r.right > vw || r.top < 0 || r.bottom > window.innerHeight) return true;
+  for (const c of clips) {
+    if (c.x && (r.left < c.r.left - 0.5 || r.right > c.r.right + 0.5)) return true;
+    if (c.y && (r.top < c.r.top - 0.5 || r.bottom > c.r.bottom + 0.5)) return true;
+  }
   const pill = document.querySelector('.nav-pill')?.getBoundingClientRect();
   if (pill && pill.bottom > 0 && r.top < pill.bottom + 6 && r.right > pill.left && r.left < pill.right) return true;
   // Every control on the page, by its box: an exact answer for a link beside the bubble's edge, at a cost paid once per hover.
@@ -70,8 +110,8 @@ function blocked(r: { left: number; top: number; right: number; bottom: number }
  * Keeps a bubble inside its bounds: the nearest [data-bubble-bounds] ancestor, else the viewport, with a 12 px gutter. It shifts the bubble by the
  * overflow (the `translate` property, through --shift) and moves the tail back so it still points at the head, 18 px from either end at most.
  * Measured from layout (offsetLeft, offsetWidth), not from the box, which is mid-transition when this runs.
- * Above the head is the place; when that slides under the nav, leaves the screen or covers a link or a button, the bubble stands beside the head
- * instead ([data-beside], cast.css), on whichever side is clear, and stays above when neither is.
+ * Above the head is the place; when that slides under the nav, leaves the screen, is cut off by a clipping ancestor or covers a link or a button,
+ * the bubble stands beside the head instead ([data-beside], cast.css), on whichever side is clear, and stays above when neither is.
  */
 export function placeBubble(b: HTMLElement, side: BubbleSide) {
   b.style.removeProperty('--shift');
@@ -81,22 +121,27 @@ export function placeBubble(b: HTMLElement, side: BubbleSide) {
   if (!parent) return;
   const w = b.offsetWidth;
   const pr = parent.getBoundingClientRect();
-  const left = pr.left + b.offsetLeft - (side === 'center' ? w / 2 : 0);
+  const { k, v } = scalesOf(b, parent, pr);
+  const at = rectOf(b, pr, 0, k, v);
   const host = b.closest('[data-bubble-bounds]');
   const box = host ? host.getBoundingClientRect() : { left: 0, right: document.documentElement.clientWidth };
-  let shift = 0;
-  if (left < box.left + GUTTER) shift = box.left + GUTTER - left;
-  else if (left + w > box.right - GUTTER) shift = box.right - GUTTER - (left + w);
+  // The shift on screen, then in the parent's own units (a scaled parent scales the translate too).
+  let moved = 0;
+  if (at.left < box.left + GUTTER) moved = box.left + GUTTER - at.left;
+  else if (at.right > box.right - GUTTER) moved = box.right - GUTTER - at.right;
+  const shift = moved / k;
   const own = parent.closest('.k-char') ?? parent;
-  if (blocked(rectOf(b, pr, shift), own)) {
+  const clips = clipsOf(b);
+  if (blocked(rectOf(b, pr, shift, k, v), own, clips)) {
     for (const beside of ['end', 'start'] as const) {
       b.dataset.beside = beside;
-      if (!blocked(rectOf(b, pr, 0), own)) return;
+      if (!blocked(rectOf(b, pr, 0, k, v), own, clips)) return;
     }
     delete b.dataset.beside;
   }
-  if (!shift) return;
-  const tail = Math.max(18, Math.min(w - 18, TAIL_SHARE[side] * w - shift));
+  if (!moved) return;
+  // The tail, in the bubble's own units: a screen shift of `moved` is moved / v of them.
+  const tail = Math.max(18, Math.min(w - 18, TAIL_SHARE[side] * w - moved / v));
   b.style.setProperty('--shift', `${Math.round(shift)}px`);
   b.style.setProperty('--tail-x', `${Math.round(tail)}px`);
 }

@@ -173,7 +173,6 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
           src={media.src}
           title={`${video.title}, ${video.brand}`}
           allow={media.mega ? 'autoplay; fullscreen' : 'autoplay; encrypted-media; picture-in-picture; fullscreen'}
-          allowFullScreen
           referrerPolicy="strict-origin-when-cross-origin"
           onLoad={() => setEmbedReady(true)}
         />
@@ -184,10 +183,10 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
   if (media.kind === 'watch') {
     return (
       <div className="player-failed player-watch-out" role="status">
-        <p className="player-failed-text">This video plays on MEGA.</p>
+        <p className="player-failed-text">This video opens in a new tab.</p>
         <div className="watch-links player-failed-links">
           <a href={media.href} target="_blank" rel="noopener noreferrer" className="watch-link">
-            <LabelRoll>Watch on MEGA</LabelRoll>
+            <LabelRoll>Watch the full video</LabelRoll>
             <ArrowDisc kind="out" />
           </a>
         </div>
