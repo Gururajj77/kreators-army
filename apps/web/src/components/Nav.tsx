@@ -1,9 +1,9 @@
-import { ChevronDown } from 'lucide-react';
+import { ArrowUp, ChevronDown } from 'lucide-react';
 import { AnimatePresence, m } from 'motion/react';
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link, useLocation } from 'react-router';
 import { NAV_GROUPS, NAV_TOP, OWN_ACTION_ROUTES, SITE } from '../lib/content';
-import { useMotionOk } from '../lib/motionOk';
+import { motionOk, useMotionOk } from '../lib/motionOk';
 import { spring } from '../lib/spring';
 import { useTheme } from '../lib/store';
 import { LabelRoll, useThumb } from './tabs';
@@ -406,7 +406,136 @@ export function Nav() {
         </AnimatePresence>
       </header>
       <MobileCtaBar menuOpen={open} />
+      <BackToTop menuOpen={open} />
     </>
+  );
+}
+
+/** From this width the side margin (the content column is min(87.5%, 1260px), centred) holds the button clear of the content: 64px at 1024. */
+const ROOMY = '(min-width: 1024px)';
+/** The button's corner: 16px in from the right and the bottom, 40px across. */
+const EDGE = 16;
+const SIZE = 40;
+/** What the button must never cover: anything a visitor can press or play. */
+/** Narrow screens: how long the page stands still before the button steps aside. */
+const IDLE_MS = 2500;
+const PRESSABLE = 'a, button, input, select, textarea, summary, label, video, iframe, [role="button"], [role="tab"], [role="switch"], [role="link"]';
+
+/**
+ * How far the button rises at the end of the page so it stops above the footer's last row and its stage (the characters and the wordmark), 12px
+ * clear, wherever they share its column. Text lines count by their own boxes, so a short line beside the button does not push it up.
+ */
+function footerLift(vw: number, vh: number): number {
+  const bar = document.querySelector('footer.ft .ft-bar');
+  if (!bar || bar.getBoundingClientRect().top > vh) return 0;
+  const left = vw - EDGE - SIZE - 8;
+  const rest = vh - EDGE;
+  let top = Infinity;
+  const avoid = (r: DOMRect, above = 0) => {
+    if (r.width && r.height && r.right > left && r.top - above < rest + 12) top = Math.min(top, r.top - above);
+  };
+  for (const el of bar.querySelectorAll('.ft-bar-end > *')) avoid(el.getBoundingClientRect());
+  const legal = bar.querySelector('.ft-legal');
+  if (legal) {
+    const lines = document.createRange();
+    lines.selectNodeContents(legal);
+    for (const r of lines.getClientRects()) avoid(r);
+  }
+  // The characters stand up to ~28px above the stage's box (their breath and bubbles).
+  const stage = document.querySelector('footer.ft .ft-stage');
+  if (stage) avoid(stage.getBoundingClientRect(), 28);
+  return top === Infinity ? 0 : Math.max(0, rest - (top - 12));
+}
+
+/**
+ * Back to top: a small frosted disc at the bottom right whose ring fills as the page is read. It shows once the first screen is behind you and never
+ * sits over the page:
+ * - where the side margin holds it (ROOMY), it steps aside while something pressable passes under it (a rail that runs to the edge);
+ * - where it does not, it steps aside while you scroll down and comes back when you scroll up or reach the end of the page, then steps aside again
+ *   once the page has stood still for IDLE_MS;
+ * - at the end of the page it stops above the footer's last row and its characters (footerLift);
+ * - on phones it rides above the action bar while that shows (components.css .to-top); it is hidden while the menu is open.
+ */
+function BackToTop({ menuOpen }: { menuOpen: boolean }) {
+  const btn = useRef<HTMLButtonElement>(null);
+  const arc = useRef<SVGCircleElement>(null);
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const roomy = matchMedia(ROOMY);
+    let raf = 0;
+    let lastY = window.scrollY;
+    // How far the page has moved in the current direction: down is positive. A small wobble neither hides nor shows the button.
+    let run = 0;
+    let tucked = false;
+    const update = () => {
+      raf = 0;
+      const y = window.scrollY;
+      const vw = document.documentElement.clientWidth;
+      const vh = window.innerHeight;
+      const max = document.documentElement.scrollHeight - vh;
+      const p = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
+      arc.current?.style.setProperty('stroke-dashoffset', String(1 - p));
+      const lift = footerLift(vw, vh);
+      btn.current?.style.setProperty('--to-top-dock', `${lift}px`);
+      const dy = y - lastY;
+      lastY = y;
+      if (dy !== 0) run = Math.sign(dy) === Math.sign(run) ? run + dy : dy;
+      let blocked = false;
+      if (roomy.matches) {
+        tucked = false;
+        const c = EDGE + SIZE / 2;
+        blocked = document
+          .elementsFromPoint(vw - c, vh - c - lift)
+          .some((el) => !btn.current?.contains(el) && el.closest(PRESSABLE) !== null);
+      } else if (max - y < 48 || run < -24) tucked = false;
+      else if (run > 24) tucked = true;
+      setShow(y > vh && !tucked && !blocked);
+    };
+    // Narrow screens: once the page has stood still for a moment (the visitor is reading), it steps aside again, unless it is docked at the end of the
+    // page, clear of everything, or has the keyboard focus.
+    let idle = 0;
+    const rest = () => {
+      if (roomy.matches || btn.current === document.activeElement) return;
+      if (document.documentElement.scrollHeight - window.innerHeight - window.scrollY < 48) return;
+      tucked = true;
+      run = 0;
+      setShow(false);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+      window.clearTimeout(idle);
+      idle = window.setTimeout(rest, IDLE_MS);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+      window.clearTimeout(idle);
+    };
+  }, []);
+
+  // A long way up lands a screen and a half from the top first, then glides the rest: a long trip that travels is worse than one that lands (see
+  // ScrollToHash). Under Pause animations or reduced motion it lands at once. Focus goes to the page, as on a route change, so Tab starts from the top.
+  const toTop = () => {
+    const smooth = motionOk();
+    if (smooth && window.scrollY > window.innerHeight * 3) window.scrollTo({ top: window.innerHeight * 1.5, behavior: 'instant' });
+    window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'instant' });
+    document.getElementById('main')?.focus({ preventScroll: true });
+  };
+
+  const visible = show && !menuOpen;
+  return (
+    <button ref={btn} type="button" className="to-top" data-show={visible ? '' : undefined} inert={!visible} aria-label="Back to top" onClick={toTop}>
+      <svg className="to-top-ring" viewBox="0 0 40 40" aria-hidden focusable="false">
+        <circle className="to-top-track" cx="20" cy="20" r="19.25" pathLength={1} />
+        <circle ref={arc} className="to-top-arc" cx="20" cy="20" r="19.25" pathLength={1} />
+      </svg>
+      <ArrowUp className="to-top-arrow" size={16} strokeWidth={2.25} aria-hidden />
+    </button>
   );
 }
 
