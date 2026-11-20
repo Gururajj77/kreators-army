@@ -180,6 +180,8 @@ const HOVER_DELAY = 300; // R6
 const CLIP_HOVER_DELAY = 100;
 const LOOP_AT = 5; // seconds (C12): a bundled file previews its first 5 s, looped
 const STALL_LIMIT = 1500;
+/** (r21) The first paint's poster gives way to the deck after this at most, even when the front card's picture never settles. */
+const COVER_MAX_MS = 4000;
 
 const idle = (fn: () => void): (() => void) => {
   if (typeof window.requestIdleCallback === 'function') {
@@ -301,9 +303,13 @@ export function usePreview(video: Video | null | undefined, { mode, active = fal
   }, [inView, on, stop]);
 
   // 'active': after idle, when the slot is free; retry whenever it frees up.
+  // (r21) A frame that stops being the active one stops its preview and frees the page's one video slot, whatever its mode becomes: a deck's
+  // front card turns 'hover' (or 'none') when the next one comes forward, and it used to play on unseen behind it, holding the slot, so the new
+  // front card never got a preview. A mouse resting on a hoverable frame, or its keyboard focus, keeps the preview it asked for.
   useEffect(() => {
     if (mode !== 'active' || !active || !inView || still || !previewAllowed(video)) {
-      if (mode === 'active' && videoToken.holds(owner.current) && !(hovering.current && inView && !still)) stop();
+      const asked = mode !== 'none' && inView && !still && (hovering.current || Boolean(root.current?.matches(':focus-visible')));
+      if (videoToken.holds(owner.current) && !asked) stop();
       return;
     }
     let cancelIdle = idle(() => start(false));
@@ -1008,12 +1014,19 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
       return;
     }
     let alive = true;
-    const go = () => alive && setCover(ok ? 'leaving' : 'off');
+    const go = () => {
+      if (!alive) return;
+      alive = false;
+      setCover(ok ? 'leaving' : 'off');
+    };
     const img = new Image();
     img.src = frontPicture;
     img.decode().then(go, go);
+    // (r21) A picture that neither loads nor fails (a stalled request) must not leave the first paint's poster over the deck for good.
+    const t = window.setTimeout(go, COVER_MAX_MS);
     return () => {
       alive = false;
+      window.clearTimeout(t);
     };
   }, [cover, frontPicture, poster, ok]);
 

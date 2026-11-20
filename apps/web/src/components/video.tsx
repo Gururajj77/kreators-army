@@ -6,7 +6,7 @@
 // on an iPhone (its play button then sends the visitor to mega.nz or the MEGA app), and on Safari and Firefox it waits for a second press on its own
 // play button. MEGA's embed is only the last resort, when the page cannot read the file or the download stalls.
 // (r21) One press plays: the tile's press unlocks the player's single shared <video> (lib/playerVideo.ts primePlayer, inside the gesture, which is
-// what Safari needs), and PlayerMedia adopts that element and plays it with sound. With no gesture (a deep link) it plays muted with "Tap for sound".
+// what Safari needs), and PlayerMedia adopts that element and plays it with sound. With no gesture (a deep link) it plays muted with "Turn sound on".
 //
 // The morph: `layoutId` is shared between the player's frame and an empty anchor the player mounts inside the frame that was pressed. Frames never hold
 // a Motion node, so a page with a hundred tiles measures nothing. Motion cannot change a layoutId once mounted and promotes whichever element mounted
@@ -154,7 +154,7 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
   const el = useRef<HTMLVideoElement | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const playedOnce = useRef(false);
-  // (r21) Sound was refused (no gesture: a deep link, or the browser's settings), so it plays muted and offers "Tap for sound".
+  // (r21) Sound was refused (no gesture: a deep link, or the browser's settings), so it plays muted and offers "Turn sound on".
   const [soundOff, setSoundOff] = useState(false);
   // (r21) The page-read MEGA source: its address once open, and the download share while the no-worker fallback fetches the whole file.
   const [megaSrc, setMegaSrc] = useState<string | null>(null);
@@ -237,7 +237,7 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
 
   // (r21) The native <video>: the shared element, adopted here. The press that opened the player already called play() on it inside the gesture
   // (primePlayer), so Safari lets it play with sound now, after the flight and MEGA's open. It starts by itself: with sound, else muted with
-  // "Tap for sound", never a still frame waiting for a press. Leaving (close, prev/next, a fallback) stops it and lets go of the source.
+  // "Turn sound on", never a still frame waiting for a press. Leaving (close, prev/next, a fallback) stops it and lets go of the source.
   const nativeSrc = media.kind === 'mega' ? megaSrc : media.kind === 'stream' ? media.src : null;
   const onMediaError = useRef<() => void>(() => undefined);
   onMediaError.current = () => (media.kind === 'mega' ? megaFailed(media.embed, playback.current?.why()?.kind) : fail());
@@ -293,17 +293,20 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
     v.muted = false;
     v.play().catch(() => undefined);
     setSoundOff(false);
+    // The button goes away: the keyboard lands on the video's own controls, not on the page behind the dialog.
+    v.focus({ preventScroll: true });
   };
 
   const nativeVideo = (
     <>
-      <div ref={box} className="player-video-box" />
+      {/* (r21) Before the video in the DOM, so it is the first Tab stop rather than after the native controls; it is drawn over the video's corner. */}
       {soundOff && (
         <button type="button" className="btn btn-light btn-sm player-sound" onClick={soundOn}>
           <VolumeX className="size-4" aria-hidden />
-          Tap for sound
+          Turn sound on
         </button>
       )}
+      <div ref={box} className="player-video-box" />
     </>
   );
 
