@@ -1,11 +1,13 @@
-// (r21) MEGA videos played by the site itself on phones.
+// (r21) MEGA videos played by the site itself, on every device.
 //
 // The problem: the player puts MEGA's own embed (mega.nz/embed/...) in an iframe. MEGA's embed streams with MediaSource, and iPhone Safari
 // has none (Apple ships only ManagedMediaSource on iPhone). MEGA's player then leaves its play button on its default action, which opens the
 // file on mega.nz in a new tab: the MEGA website, or the MEGA app when it is installed. On Android it streams, but its links still lead out.
 //
-// The fix: on phones the page reads the file itself, as the admin does (lib/mega.ts: MEGA's 'g' command, ranged fetches from MEGA's storage,
-// AES-CTR in Web Crypto), and plays it in the site's own <video>:
+// On desktops MEGA's embed streams, but Safari and Firefox stop on its big play button: a second press after the one on the tile.
+//
+// The fix: on every device (phones first, desktops since the one-press change) the page reads the file itself, as the admin does
+// (lib/mega.ts: MEGA's 'g' command, ranged fetches from MEGA's storage, AES-CTR in Web Crypto), and plays it in the site's own <video>:
 // - With the site's service worker in control (public/mega-bridge-sw.js imported into it), the <video> plays /__mega/<token>: the worker hands
 //   each Range to this page, which answers it from MEGA (lib/megaBridge.ts). It starts in about a second and seeks like any file; only the
 //   ranges watched are downloaded. The token is random and maps to the key held in this page, so no key is in a URL or reaches the server.
@@ -13,7 +15,8 @@
 //   blob: URL, with progress (BLOB_MAX at most; the library's reels are about 10 to 30 MB).
 // - If both fail, or bytes stop arriving before there is a picture, the player falls back to MEGA's embed (the old behaviour). A slow
 //   download is never abandoned: on an iPhone MEGA's embed cannot play at all.
-// The MEGA code is loaded only when a phone opens a MEGA video.
+// The MEGA code is loaded only when a MEGA video is opened. The <video> is the player's shared element (lib/playerVideo.ts), unlocked by the
+// press that opened the player, so it starts with sound by itself.
 import { MEGA_EMBED_RE } from '@kreators/shared';
 import type { MegaError, MegaFile } from './mega';
 
@@ -27,11 +30,10 @@ const CONTROL_MS = 2500;
  *  times a fetch out, so a silent connection would leave the spinner up for good. Under the player's 15 s stall check, so a retry can land first. */
 const IDLE_MS = 10000;
 
-/** Phones and tablets play MEGA themselves: no MediaSource (iPhone, so MEGA's embed cannot stream), or a touch-first device. */
+/** (r21) Every browser plays MEGA itself: phones (no MediaSource on an iPhone, so MEGA's embed cannot stream) and desktops (MEGA's embed asks for
+ *  a second press on Safari and Firefox). Only a page with no window (never the case in the browser) does not. */
 export function playsMegaInPage(): boolean {
-  if (typeof window === 'undefined') return false;
-  if (!('MediaSource' in window)) return true;
-  return matchMedia('(hover: none) and (pointer: coarse)').matches;
+  return typeof window !== 'undefined';
 }
 
 export interface MegaPlayback {

@@ -463,6 +463,16 @@ function footerLift(vw: number, vh: number, right: number, bottom: number): numb
  * - at the end of the page it stops above the footer's last row and its characters (footerLift);
  * - on phones it rides above the action bar while that shows (components.css .to-top); it is hidden while the menu is open.
  */
+/** (r21) The button has the keyboard's focus (it shows the ring), not focus left by a mouse press. */
+function keyFocused(el: HTMLElement): boolean {
+  if (el !== document.activeElement) return false;
+  try {
+    return el.matches(':focus-visible');
+  } catch {
+    return true;
+  }
+}
+
 function BackToTop({ menuOpen }: { menuOpen: boolean }) {
   const btn = useRef<HTMLButtonElement>(null);
   const arc = useRef<SVGCircleElement>(null);
@@ -508,14 +518,15 @@ function BackToTop({ menuOpen }: { menuOpen: boolean }) {
       } else if (max - y < 48 || run < -24) tucked = false;
       else if (run > 24) tucked = true;
       // (r21) Never while it has the keyboard focus (an arrow key scrolls the page from it): inert would drop the focus to <body>. Only a shown button
-      // can have the focus, and a press sends it to the page (toTop), so this never brings a hidden one back.
-      setShow(b === document.activeElement || (y > vh && !tucked && !blocked));
+      // can have the focus, and a press sends it to the page (toTop), so this never brings a hidden one back. Focus from a mouse (a right-click, a
+      // press dragged off it) shows no ring and does not hold it.
+      setShow(keyFocused(b) || (y > vh && !tucked && !blocked));
     };
     // Narrow screens: once the page has stood still for a moment (the visitor is reading), it steps aside again, unless it is docked at the end of the
     // page, clear of everything, has the keyboard focus or (r21) has a mouse resting on it.
     let idle = 0;
     const rest = () => {
-      if (roomy.matches || btn.current === document.activeElement || (hovered && btn.current?.matches(':hover'))) return;
+      if (roomy.matches || (btn.current && keyFocused(btn.current)) || (hovered && btn.current?.matches(':hover'))) return;
       if (document.documentElement.scrollHeight - window.innerHeight - window.scrollY < 48) return;
       tucked = true;
       run = 0;

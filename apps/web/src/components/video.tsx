@@ -2,20 +2,24 @@
 // keys (V1-SPEC 4 contract). (pub8) What it plays: a MEGA entry opens MEGA's own embed player straight away (the Worker never streams MEGA: on
 // Cloudflare's free plan a decrypted range ran out of CPU and died as a 503); a MEGA file inside a shared folder has no embed, so it plays its bundled
 // copy when it has one, else offers MEGA's own page in a new tab; a bundled file plays in the native <video>; YouTube and wave.video in their embeds.
-// (r21) On phones a MEGA entry plays in the site's own <video> instead (lib/megaPlay.ts): MEGA's embed cannot stream on an iPhone, and its play
-// button then sends the visitor to mega.nz or the MEGA app. If that fails, MEGA's embed is the fallback.
+// (r21) A MEGA entry now plays in the site's own <video> on every device, phones and desktops alike (lib/megaPlay.ts): MEGA's embed cannot stream
+// on an iPhone (its play button then sends the visitor to mega.nz or the MEGA app), and on Safari and Firefox it waits for a second press on its own
+// play button. MEGA's embed is only the last resort, when the page cannot read the file or the download stalls.
+// (r21) One press plays: the tile's press unlocks the player's single shared <video> (lib/playerVideo.ts primePlayer, inside the gesture, which is
+// what Safari needs), and PlayerMedia adopts that element and plays it with sound. With no gesture (a deep link) it plays muted with "Tap for sound".
 //
 // The morph: `layoutId` is shared between the player's frame and an empty anchor the player mounts inside the frame that was pressed. Frames never hold
 // a Motion node, so a page with a hundred tiles measures nothing. Motion cannot change a layoutId once mounted and promotes whichever element mounted
 // last, so the order matters: anchor first, one commit later the frame. See VideoPlayerDialog.
 
 import { formatViews, isMegaEmbed, playerEmbedSrc, type Video } from '@kreators/shared';
-import { ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RotateCcw, VolumeX, X } from 'lucide-react';
 import { AnimatePresence, PresenceContext, m, useIsPresent } from 'motion/react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { type MegaPlayback, openMega, playsMegaInPage } from '../lib/megaPlay';
 import { motionOk } from '../lib/motionOk';
+import { playerVideo, primePlayer, releasePlayerVideo } from '../lib/playerVideo';
 import { uploadMonth } from '../lib/videoFind';
 import { spring } from '../lib/spring';
 import { BrandPill, InstagramGlyph, PostedOn, TileEmpty, VideoFrame, YouTubeGlyph, launched, launchedEl, markBrandSeen, videoToken } from './frames';
@@ -106,7 +110,7 @@ export function WatchLinks({ links, className }: { links: Video['links']; classN
 type Media =
   | { kind: 'stream'; src: string }
   | { kind: 'embed'; src: string; mega: boolean }
-  /** (r21) A MEGA file read by the page itself and played in the native <video> (phones; lib/megaPlay.ts). */
+  /** (r21) A MEGA file read by the page itself and played in the native <video> (every device; lib/megaPlay.ts). */
   | { kind: 'mega'; embed: string }
   /** MEGA's own page, opened in a new tab (a MEGA file inside a shared folder has no embed player). */
   | { kind: 'watch'; href: string }
@@ -133,8 +137,8 @@ const afterStream = (video: Video): Media => (video.watchUrl ? { kind: 'watch', 
 function firstMedia(video: Video): Media {
   const known = settled.get(video.id);
   if (known) return known;
-  // MEGA's embed, straight away: only a clean embed address (one public file) goes into the iframe, with MEGA's own autoplay option. Phones read
-  // the file themselves (lib/megaPlay.ts), since MEGA's embed cannot stream there.
+  // (r21) A MEGA file link is read by the page itself and played in the site's <video> on every device (lib/megaPlay.ts), so it starts with one
+  // press. MEGA's embed (only a clean embed address, one public file, with MEGA's own autoplay option) is what that falls back to.
   if (isMegaEmbed(video.embedUrl)) return playsMegaInPage() ? { kind: 'mega', embed: video.embedUrl } : megaEmbed(video.embedUrl);
   if (video.source === 'mega') return video.fallbackUrl ? { kind: 'stream', src: video.fallbackUrl } : afterStream(video);
   if (video.streamUrl) return { kind: 'stream', src: video.streamUrl };
@@ -146,8 +150,12 @@ function firstMedia(video: Video): Media {
 function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) {
   const [media, setMedia] = useState<Media>(() => firstMedia(video));
   const [embedReady, setEmbedReady] = useState(false);
-  const el = useRef<HTMLVideoElement>(null);
+  // (r21) The shared <video> (lib/playerVideo.ts) while this player holds it, and the box it is put in.
+  const el = useRef<HTMLVideoElement | null>(null);
+  const box = useRef<HTMLDivElement>(null);
   const playedOnce = useRef(false);
+  // (r21) Sound was refused (no gesture: a deep link, or the browser's settings), so it plays muted and offers "Tap for sound".
+  const [soundOff, setSoundOff] = useState(false);
   // (r21) The page-read MEGA source: its address once open, and the download share while the no-worker fallback fetches the whole file.
   const [megaSrc, setMegaSrc] = useState<string | null>(null);
   const [megaLoaded, setMegaLoaded] = useState<number | null>(null);
@@ -227,6 +235,78 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [media]);
 
+  // (r21) The native <video>: the shared element, adopted here. The press that opened the player already called play() on it inside the gesture
+  // (primePlayer), so Safari lets it play with sound now, after the flight and MEGA's open. It starts by itself: with sound, else muted with
+  // "Tap for sound", never a still frame waiting for a press. Leaving (close, prev/next, a fallback) stops it and lets go of the source.
+  const nativeSrc = media.kind === 'mega' ? megaSrc : media.kind === 'stream' ? media.src : null;
+  const onMediaError = useRef<() => void>(() => undefined);
+  onMediaError.current = () => (media.kind === 'mega' ? megaFailed(media.embed, playback.current?.why()?.kind) : fail());
+  useLayoutEffect(() => {
+    const host = box.current;
+    if (!nativeSrc || !host) return;
+    const v = playerVideo();
+    el.current = v;
+    let alive = true;
+    const onPlaying = () => {
+      playedOnce.current = true;
+    };
+    const onError = () => {
+      if (alive) onMediaError.current();
+    };
+    const onVolume = () => {
+      if (!v.muted) setSoundOff(false);
+    };
+    v.addEventListener('playing', onPlaying);
+    v.addEventListener('error', onError);
+    v.addEventListener('volumechange', onVolume);
+    v.controls = true;
+    v.playsInline = true;
+    v.preload = 'metadata';
+    if (video.posterUrl) v.poster = video.posterUrl;
+    else v.removeAttribute('poster');
+    v.muted = false;
+    v.src = nativeSrc;
+    host.appendChild(v);
+    v.play().catch((e: unknown) => {
+      if (!alive || (e as { name?: string } | null)?.name !== 'NotAllowedError') return;
+      // Sound refused: play muted, and say how to get the sound.
+      v.muted = true;
+      setSoundOff(true);
+      v.play().catch(() => undefined);
+    });
+    return () => {
+      alive = false;
+      v.removeEventListener('playing', onPlaying);
+      v.removeEventListener('error', onError);
+      v.removeEventListener('volumechange', onVolume);
+      releasePlayerVideo(v);
+      if (el.current === v) el.current = null;
+      setSoundOff(false);
+    };
+    // One adoption per source; the poster belongs to the same video
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nativeSrc]);
+
+  const soundOn = () => {
+    const v = el.current;
+    if (!v) return;
+    v.muted = false;
+    v.play().catch(() => undefined);
+    setSoundOff(false);
+  };
+
+  const nativeVideo = (
+    <>
+      <div ref={box} className="player-video-box" />
+      {soundOff && (
+        <button type="button" className="btn btn-light btn-sm player-sound" onClick={soundOn}>
+          <VolumeX className="size-4" aria-hidden />
+          Tap for sound
+        </button>
+      )}
+    </>
+  );
+
   useEffect(() => {
     if (media.kind !== 'embed') return;
     // An embed whose load event never comes (blocked, offline) must not leave the poster standing in for it forever.
@@ -248,22 +328,7 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
         </>
       );
     }
-    return (
-      <video
-        ref={el}
-        className="player-video"
-        src={megaSrc}
-        poster={video.posterUrl ?? undefined}
-        controls
-        autoPlay
-        playsInline
-        preload="metadata"
-        onPlaying={() => {
-          playedOnce.current = true;
-        }}
-        onError={() => megaFailed(media.embed, playback.current?.why()?.kind)}
-      />
-    );
+    return nativeVideo;
   }
 
   if (media.kind === 'embed') {
@@ -321,23 +386,7 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
     );
   }
 
-  return (
-    <video
-      key={media.src}
-      ref={el}
-      className="player-video"
-      src={media.src}
-      poster={video.posterUrl ?? undefined}
-      controls
-      autoPlay
-      playsInline
-      preload="metadata"
-      onPlaying={() => {
-        playedOnce.current = true;
-      }}
-      onError={fail}
-    />
-  );
+  return nativeVideo;
 }
 
 const pageTransition = { x: spring.snappy, opacity: { duration: 0.18, ease: 'easeOut' }, scale: spring.snappy } as const;
@@ -590,12 +639,15 @@ export function VideoPlayerDialog({ video, onClose, onPrev, onNext, position, up
   const go = (dir: 1 | -1, instant = false) => {
     const fn = dir === 1 ? onNext : onPrev;
     if (!fn) return;
+    // (r21) Prev and next (a button or an arrow key) are presses too: the next video starts with sound by itself.
+    primePlayer();
     if (document.activeElement instanceof HTMLElement && document.activeElement.classList.contains('player-step')) refocus.current = dir === 1 ? 'Next video' : 'Previous video';
     setStep({ dir, instant });
     fn();
   };
 
   const pick = (select: () => void) => {
+    primePlayer();
     refocus.current = 'close';
     setStep({ dir: 1, instant: false });
     select();
@@ -672,7 +724,11 @@ export function useVideoPlayer(list: Video[]) {
   const upNext = index >= 0 ? list.slice(index + 1, index + 4).map((v) => ({ video: v, onSelect: () => setOpenId(v.id) })) : undefined;
 
   return {
-    open: (v: Video | string) => setOpenId(typeof v === 'string' ? v : v.id),
+    open: (v: Video | string) => {
+      // (r21) Called from the press that opens it (a tile, a deck card, a ranked row): unlocks the shared <video> inside that gesture.
+      primePlayer();
+      setOpenId(typeof v === 'string' ? v : v.id);
+    },
     /** The open video's id, or null. */
     openId: video ? video.id : null,
     close: () => setOpenId(null),

@@ -25,6 +25,7 @@ import { Link } from 'react-router';
 import { brandLogo } from '../lib/content';
 import { posterFirst, randomPool, shuffleForLoad, uploadMonth } from '../lib/videoFind';
 import { canAutoplay, finePointer, motionOk, useMotionOk, useRunning } from '../lib/motionOk';
+import { primePlayer } from '../lib/playerVideo';
 import { warmClip } from '../lib/previewWarm';
 import { spring } from '../lib/spring';
 import { useStill } from '../lib/store';
@@ -519,6 +520,8 @@ export function VideoFrame({
   const month = date && variant === 'card' ? uploadMonth(video.uploadDate) : null;
   const open = () => {
     pv.stop();
+    // (r21) Inside the press (a click, or Enter or Space on the button): unlocks the player's shared <video> so it starts with sound by itself.
+    if (onOpen) primePlayer();
     if (onOpen) launchFrom(video.id, rootRef.current);
     onOpen?.(video);
   };

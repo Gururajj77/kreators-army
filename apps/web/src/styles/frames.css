@@ -364,6 +364,21 @@
     object-fit: contain;
   }
 
+  /* (r21) Holds the player's shared <video> (lib/playerVideo.ts); the video itself is placed against the frame, as before. */
+  .player-video-box {
+    display: contents;
+  }
+
+  /* (r21) Over the video when sound was refused (a deep link): it plays muted, and this turns the sound on. Top left, clear of the close button
+     and the native controls. */
+  .player-sound {
+    position: absolute;
+    z-index: 2;
+    top: 12px;
+    left: 12px;
+    gap: 6px;
+  }
+
   /* An embed draws white for a moment; the poster stays until it has something to show. */
   .player-embed {
     opacity: 0;
