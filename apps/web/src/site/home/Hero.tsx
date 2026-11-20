@@ -3,7 +3,7 @@ import { Star } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
 import { Character, castLookAt, type CastId, type CharacterHandle } from '../../cast';
 import { CastBubble, useCastLine } from '../../components/chat';
-import { FrameDeck, StoryRing, deckOrder } from '../../components/frames';
+import { FrameDeck, StoryRing, WALL_DEAL, deckOrder, usePhone } from '../../components/frames';
 import { Street } from '../../components/street';
 import { Cta, PrimaryCta } from '../../components/ui';
 import { BRANDS, HERO, IMPACT, SITE, type CastLineKey } from '../../lib/content';
@@ -88,6 +88,8 @@ function Talker({ who, line, cast, size, intro, className, children }: { who: Ca
 export function Hero({ videos, onOpen, paused }: { videos: Video[] | undefined; onOpen: (v: Video) => void; paused: boolean }) {
   // Read once on the first render, written after it, so a strict-mode double render agrees with itself.
   const [intro] = useState(firstVisit);
+  // (r21slider) Phones get the 5-up slider (FrameDeck `wall`): five reels in view and two waiting on each side. Wider screens keep the fan of four.
+  const phone = usePhone();
   const bolu = useRef<CharacterHandle>(null);
   const cast = useCastLine();
   const { say } = cast;
@@ -179,7 +181,7 @@ export function Hero({ videos, onOpen, paused }: { videos: Video[] | undefined; 
         <div className="hero-stage street-floor">
           <Talker who="sochu" line="home.hero.sochu" cast={cast} size="var(--c-sochu)" intro={cue(3)} className="hero-sochu" />
           <Talker who="gola" line="home.hero.gola" cast={cast} size="var(--c-gola)" intro={cue(2)} className="hero-gola" />
-          <FrameDeck className="hero-deck" videos={videos && deckOrder(videos)} poster={HERO.poster} onOpen={onOpen} paused={paused} />
+          <FrameDeck className="hero-deck" videos={videos && deckOrder(videos, undefined, phone ? WALL_DEAL : 4)} poster={HERO.poster} onOpen={onOpen} paused={paused} wall />
           <span className="hero-char hero-bolu">
             <Character ref={bolu} who="bolu" size="var(--c-bolu)" prop intro={cue(0)} interactive>
               <CastBubble {...cast.bubble('home.hero.intro')} />

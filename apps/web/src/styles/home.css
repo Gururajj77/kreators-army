@@ -416,10 +416,12 @@
       display: none;
     }
 
-    /* (hero15) Phones: one reel, centred, straight, as big as the screen allows, with the views card under it and nothing else. The cast, the
-       back cards and the views sticker (the card below already shows the count) step off: on a small screen they compete with the video. */
+    /* (hero15) Phones: the reels centred, with the views row under them and nothing else. The cast and the views sticker (the row below already
+       shows the count) step off: on a small screen they compete with the video. (r21slider) The deck is the 5-up slider here (FrameDeck `wall`,
+       frames.css): the middle reel 46% of the screen's width (179 px at 390), so two reels fit on each side of it, the outer ones cut by the
+       screen's edges and the rest off screen; the hero clips them (overflow-x: clip), so the page never scrolls sideways. */
     .hero {
-      --hero-reel: min(calc((100vw - 128px) * 580 / 280), calc(100svh - 300px), 520px);
+      --hero-reel: min(calc(46vw * 580 / 280), calc(100svh - 300px), 520px);
     }
 
     .hero-stage {
@@ -443,7 +445,8 @@
       display: none;
     }
 
-    /* The deck lies flat here (FrameDeck's phone slots): the cards behind are transparent and take no touches. */
+    /* Round 15's flat deck (FrameDeck's phone slots, without `wall`): the cards behind are transparent and take no touches. The wall's side reels
+       carry no data-slot, so they keep theirs. */
     .hero-deck .vdeck-card:is([data-slot='1'], [data-slot='2'], [data-slot='3']) {
       pointer-events: none;
     }

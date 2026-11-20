@@ -16,6 +16,7 @@ import {
   type CSSProperties,
   type FocusEvent as ReactFocusEvent,
   type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
   type RefObject,
@@ -734,8 +735,43 @@ const onPhoneChange = (cb: () => void) => {
   q.addEventListener('change', cb);
   return () => q.removeEventListener('change', cb);
 };
-const usePhone = () => useSyncExternalStore(onPhoneChange, () => matchMedia(PHONE).matches, () => false);
+/** True at the phone breakpoint (max-width 734 px), live. */
+export const usePhone = () => useSyncExternalStore(onPhoneChange, () => matchMedia(PHONE).matches, () => false);
 const DWELL = 4500;
+
+// (r21slider) Phones, the hero's deck (FrameDeck `wall`): a 5-up slider, the look of the library's card ring (components/ring.tsx) without its
+// spin. The middle reel is large and flat; two on each side stand on a curved wall, smaller, turned toward the middle and growing toward the
+// edges, the outer ones cut by the screen; the rest wait off screen. It moves one place at a time. The places are CSS (data-pos, frames.css), as
+// fractions of the reel's own width, so the picture is the same at every phone width.
+/** How many reels the hero deals on a phone: five in view and two waiting on each side, so a card only ever wraps round out of sight. */
+export const WALL_DEAL = 9;
+/** Positions -WALL_REACH..WALL_REACH get a place; |pos| 3 and 4 are off screen and unseen. */
+const WALL_REACH = 4;
+const WALL_SEEN = 2;
+/** Swipe: px of travel, or px/ms of speed (with at least SWIPE_MIN px), that steps the wall; the wall follows the finger at WALL_FOLLOW. */
+const SWIPE = 40;
+const SWIPE_MIN = 16;
+const SWIPE_SPEED = 0.45;
+/** (r21) That speed counts only if the finger last moved this few ms before the lift (a flick lifts some 20 ms after its last move). */
+const SWIPE_FRESH = 100;
+const WALL_FOLLOW = 0.55;
+/** The first-paint poster gives way in place on the wall: the reel under it is already in the middle. */
+const WALL_COVER_EXIT = { x: 0, y: 0, rotate: 0, scale: 0.96, opacity: 0 };
+/** Card `i` of `n` in deck order: 0 the middle, then 1, 2 .. to the right; the later half of the order wraps round to the left (-1 is the last). */
+const wallPos = (i: number, n: number) => (i <= Math.floor(n / 2) ? i : i - n);
+const NO_JUMPS: ReadonlySet<string> = new Set();
+/**
+ * The cards that jump rather than slide when the deck turns from `prev` to `next`: those that cross from one end to the other (with 9 cards only
+ * hidden ones, out of sight). The turn `k` is where the new middle card stood. Anything that is not a turn of the same cards (a new list) jumps whole.
+ */
+function wallJumps(prev: readonly string[], next: readonly string[]): ReadonlySet<string> {
+  const n = next.length;
+  if (!n) return NO_JUMPS;
+  const s = prev.length === n ? prev.indexOf(next[0] as string) : -1;
+  if (s < 0 || next.some((id, i) => prev[(i + s) % n] !== id)) return new Set(next);
+  const k = wallPos(s, n);
+  return new Set(next.filter((_, i) => wallPos(i, n) !== wallPos((i + s) % n, n) - k));
+}
 
 /**
  * The deck's videos (V2-SPEC 3.4; r18: random on every page load, so each reel gets its turn at the front): `count` videos in this load's order
@@ -762,15 +798,18 @@ export interface FrameDeckProps {
   paused?: boolean;
   /** The views card with the brand, the rolling count and the step buttons. Default true. */
   viewsCard?: boolean;
+  /** (r21slider) On phones, the 5-up slider on a curved wall instead of round 15's one flat card (the hero; deal it WALL_DEAL videos there). */
+  wall?: boolean;
   className?: string;
 }
 
 /**
  * Three phones fanned (a fourth waits behind), the front one previewing on desktop. It advances every 4.5 s while in view, the tab is visible, nothing
  * holds it (pointer over it, focus inside, a drag, the pause button, the player, Pause animations), with story progress across the front card and a
- * views sticker on each arrival. Arrows and swipe step it by hand, still or not.
+ * views sticker on each arrival. Arrows and swipe step it by hand, still or not. (r21slider) On a phone with `wall` (the hero) the same deck is a
+ * 5-up slider on a curved wall instead: the middle reel opens the player, a side reel in view comes to the middle when tapped, and every step slides.
  */
-export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = true, className }: FrameDeckProps) {
+export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = true, wall: wallOnPhones = false, className }: FrameDeckProps) {
   const box = useRef<HTMLDivElement>(null);
   const ok = useMotionOk();
   const onScreen = useRunning(box);
@@ -782,13 +821,31 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
   const [armed, setArmed] = useState(false);
   const [cover, setCover] = useState<'on' | 'leaving' | 'off'>('on');
   const flat = usePhone();
+  const wall = flat && wallOnPhones;
   const list = videos ?? [];
   const key = list.map((v) => v.id).join('|');
+
+  // (r21slider) Which wall cards jump on this turn (wallJumps), kept from the order they turned from: React's "previous render" pattern, so a
+  // re-render for anything else keeps the same answer. `turns` alternates the fade-in's name, so a card that wraps twice running fades twice.
+  const [turned, setTurned] = useState<{ from: string[]; jumps: ReadonlySet<string>; turns: number }>({ from: order, jumps: NO_JUMPS, turns: 0 });
+  if (turned.from !== order) setTurned({ from: order, jumps: wallJumps(turned.from, order), turns: turned.turns + 1 });
+  const jumps = turned.from === order ? turned.jumps : wallJumps(turned.from, order);
+  // A swipe in progress (wall only) and when the last one ended, so its click is swallowed.
+  const swipe = useRef<{ id: number; x: number; y: number; on: boolean; lx: number; lt: number; v: number } | null>(null);
+  const swipedAt = useRef(-Infinity);
 
   useEffect(() => {
     setOrder(key ? key.split('|') : []);
     setLeaving(null);
   }, [key]);
+
+  // (r21) Crossing into the wall unmounts the fan's cards, so a card caught leaving never lands (landed() runs when its exit ends) and `run`,
+  // which waits for it, would stay off for good when the deal keeps the same cards (4 or fewer videos). The wall drops that exit, fresh dwell.
+  useEffect(() => {
+    if (!wall || !leaving) return;
+    setLeaving(null);
+    setArrived((n) => n + 1);
+  }, [wall, leaving]);
 
   // Poster first: the front card's video waits for the fonts and an idle moment (v1's rule), so the preloaded poster stays the LCP.
   useEffect(() => {
@@ -809,15 +866,27 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
   useEffect(() => {
     remaining.current = DWELL;
   }, [frontId, arrived]);
+  // (r21slider) Turn the wall by `k` places: the card at position k comes to the middle and every card slides along (no exit). Next is +1.
+  const turn = (k: number) => {
+    setOrder((o) => {
+      const n = o.length;
+      const s = ((k % n) + n) % n;
+      return n < 2 || !s ? o : [...o.slice(s), ...o.slice(0, s)];
+    });
+    setArrived((n) => n + 1);
+  };
+
   useEffect(() => {
     if (!run) return;
     const began = performance.now();
-    const t = window.setTimeout(() => setLeaving(frontId ?? null), remaining.current);
+    const t = window.setTimeout(() => (wall ? turn(1) : setLeaving(frontId ?? null)), remaining.current);
     return () => {
       window.clearTimeout(t);
       remaining.current = Math.max(0, remaining.current - (performance.now() - began));
     };
-  }, [run, frontId, arrived]);
+    // turn only sets state, so the latest one is not needed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run, frontId, arrived, wall]);
 
   const landed = (id: string) => {
     setOrder((o) => [...o.filter((x) => x !== id), id]);
@@ -827,6 +896,10 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
 
   const step = (dir: 1 | -1) => {
     if (order.length < 2) return;
+    if (wall) {
+      turn(dir);
+      return;
+    }
     if (dir === 1) {
       const front = order[0];
       if (!front) return;
@@ -844,12 +917,77 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
     else if (e.key === 'ArrowLeft') step(-1);
     else return;
     e.preventDefault();
+    // (r21slider) On the wall the middle reel is the deck's one button, and a step hands that part to the next card: the focus follows it.
+    if (wall) requestAnimationFrame(() => box.current?.querySelector<HTMLElement>(':scope > [data-pos="0"] button')?.focus({ preventScroll: true }));
   };
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.x < -80 || info.velocity.x < -500) step(1);
     else if (info.offset.x > 80 || info.velocity.x > 500) step(-1);
   };
+
+  // (r21slider) The wall's swipe, anywhere on it (a finger or a pen; a mouse has the arrows and the side reels). Once the move is clearly sideways
+  // the whole wall follows the finger (--drag, written straight to the style, transitions off), and on release it steps one place or springs back.
+  // A move that starts up or down is the page's scroll and is left alone.
+  const swipeEnd = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const s = swipe.current;
+    if (!s || s.id !== e.pointerId) return;
+    swipe.current = null;
+    if (!s.on) return;
+    const el = e.currentTarget;
+    delete el.dataset.drag;
+    el.style.setProperty('--drag', '0px');
+    setHeld(false);
+    swipedAt.current = performance.now();
+    if (e.type === 'pointercancel') return;
+    const dx = e.clientX - s.x;
+    // (r21) s.v is the speed of the last move: a quick start, a rest (a finger at rest may send no moves at all), then a lift springs back.
+    const fast = e.timeStamp - s.lt < SWIPE_FRESH && Math.abs(dx) >= SWIPE_MIN && Math.abs(s.v) >= SWIPE_SPEED;
+    if (dx <= -SWIPE || (fast && s.v < 0)) step(1);
+    else if (dx >= SWIPE || (fast && s.v > 0)) step(-1);
+  };
+  const wallSwipe = wall
+    ? {
+        onPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => {
+          if (e.pointerType === 'mouse' || !e.isPrimary || order.length < 2) return;
+          swipe.current = { id: e.pointerId, x: e.clientX, y: e.clientY, on: false, lx: e.clientX, lt: e.timeStamp, v: 0 };
+        },
+        onPointerMove: (e: ReactPointerEvent<HTMLDivElement>) => {
+          const s = swipe.current;
+          if (!s || s.id !== e.pointerId) return;
+          const dx = e.clientX - s.x;
+          const dy = e.clientY - s.y;
+          if (!s.on) {
+            if (Math.abs(dy) > 10 && Math.abs(dy) >= Math.abs(dx)) {
+              swipe.current = null;
+              return;
+            }
+            if (Math.abs(dx) < 10) return;
+            s.on = true;
+            e.currentTarget.dataset.drag = '';
+            setHeld(true);
+            try {
+              e.currentTarget.setPointerCapture(e.pointerId);
+            } catch {
+              // the swipe still works without capture while the finger stays on the deck
+            }
+          }
+          const dt = e.timeStamp - s.lt;
+          if (dt > 0) s.v = (e.clientX - s.lx) / dt;
+          s.lx = e.clientX;
+          s.lt = e.timeStamp;
+          e.currentTarget.style.setProperty('--drag', `${Math.round(dx * WALL_FOLLOW)}px`);
+        },
+        onPointerUp: swipeEnd,
+        onPointerCancel: swipeEnd,
+        // A swipe that ends over a reel must not also open it or bring it to the middle.
+        onClickCapture: (e: ReactMouseEvent) => {
+          if (performance.now() - swipedAt.current > 400) return;
+          e.preventDefault();
+          e.stopPropagation();
+        },
+      }
+    : {};
 
   const byId = new Map(list.map((v) => [v.id, v]));
   const cards = order.map((id) => byId.get(id)).filter((v): v is Video => Boolean(v));
@@ -876,12 +1014,65 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
     };
   }, [cover, frontPicture, poster, ok]);
 
+  // The front card's story progress and its "Watch with sound" label (hover and focus).
+  const frontExtras = (
+    <>
+      <span className="vdeck-progress" aria-hidden>
+        {list.slice(0, cards.length).map((c, i) => (
+          <span key={i === position ? `${c.id}-${arrived}` : c.id} data-now={i === position ? '' : undefined} data-done={i < position ? '' : undefined} />
+        ))}
+      </span>
+      <span className="vdeck-watch glass-media" aria-hidden>
+        <Play className="size-4 fill-current" /> Watch with sound
+      </span>
+    </>
+  );
+
+  // (r21slider) A card on the phone wall. Its place is CSS (data-pos). Only the middle one is a button (it opens the player) and previews; a side
+  // reel in view only moves the slider (a tap brings it to the middle), so it stays out of the accessibility tree and the tab order: aria-hidden,
+  // nothing focusable in it, and the labelled arrows do the same for keyboards and screen readers. The ones off screen are inert.
+  // (r21) Its VideoFrame is keyed by role: the middle reel that steps aside is a new frame, so its preview stops and frees the page's one video
+  // slot (usePreview stops an 'active' frame that goes inactive, but one switched to 'none' would play on at the side, then off screen).
+  const wallCard = (v: Video, i: number) => {
+    const pos = wallPos(i, cards.length);
+    const isFront = pos === 0;
+    const seen = Math.abs(pos) <= WALL_SEEN;
+    const jump = jumps.has(v.id);
+    return (
+      <div
+        key={`wall:${v.id}`}
+        className="vdeck-card"
+        data-slot={isFront ? 0 : undefined}
+        data-pos={Math.max(-WALL_REACH, Math.min(WALL_REACH, pos))}
+        data-jump={jump ? (turned.turns % 2 ? 'b' : 'a') : undefined}
+        style={{ zIndex: 8 - Math.min(Math.abs(pos), WALL_REACH) }}
+        onClick={isFront || !seen ? undefined : () => turn(pos)}
+        aria-hidden={isFront ? undefined : true}
+        inert={seen ? undefined : true}
+      >
+        <VideoFrame
+          key={isFront ? 'middle' : 'side'}
+          video={isFront && !v.posterUrl ? { ...v, posterUrl: poster } : v}
+          variant="phone"
+          onOpen={isFront ? onOpen : undefined}
+          preview={armed && isFront ? 'active' : 'none'}
+          active={isFront && live}
+          eager={seen}
+          label={`Watch the ${v.brand} street interview with sound`}
+        >
+          {isFront && frontExtras}
+        </VideoFrame>
+      </div>
+    );
+  };
+
   return (
     <div className={`vdeck-wrap ${className ?? ''}`}>
       <div
         ref={box}
         className="vdeck"
         data-run={run ? '' : undefined}
+        data-wall={wall ? '' : undefined}
         role="group"
         aria-roledescription="carousel"
         aria-label="Our reels"
@@ -890,6 +1081,7 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
         onPointerLeave={() => setHeld(false)}
         onFocus={() => setHeld(true)}
         onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setHeld(false)}
+        {...wallSwipe}
       >
         {(cover !== 'off' || cards.length === 0) && (
           // The first paint (the preloaded poster), kept as its own card on top until the random front's picture is ready (r18); the same element
@@ -901,7 +1093,7 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
             data-cover=""
             style={{ zIndex: 9 }}
             initial={false}
-            animate={cover === 'leaving' ? (flat ? FLAT_EXIT : EXIT) : SLOTS[0]}
+            animate={cover === 'leaving' ? (wall ? WALL_COVER_EXIT : flat ? FLAT_EXIT : EXIT) : SLOTS[0]}
             transition={spring.glide}
             onAnimationComplete={() => cover === 'leaving' && setCover('off')}
             aria-hidden={cards.length > 0 || undefined}
@@ -917,6 +1109,7 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
           </m.div>
         )}
         {cards.map((v, slot) => {
+            if (wall) return wallCard(v, slot);
             const out = v.id === leaving;
             const isFront = slot === 0 && !out;
             // (hover7) The two back cards you can see play on hover too: decorative frames (no button, nothing focusable), so they are only
@@ -955,18 +1148,7 @@ export function FrameDeck({ videos, poster, onOpen, paused = false, viewsCard = 
                   eager={slot < 2}
                   label={`Watch the ${v.brand} street interview with sound`}
                 >
-                  {isFront && (
-                    <>
-                      <span className="vdeck-progress" aria-hidden>
-                        {list.slice(0, cards.length).map((c, i) => (
-                          <span key={i === position ? `${c.id}-${arrived}` : c.id} data-now={i === position ? '' : undefined} data-done={i < position ? '' : undefined} />
-                        ))}
-                      </span>
-                      <span className="vdeck-watch glass-media" aria-hidden>
-                        <Play className="size-4 fill-current" /> Watch with sound
-                      </span>
-                    </>
-                  )}
+                  {isFront && frontExtras}
                 </VideoFrame>
                 {isFront && cover === 'off' && <ViewsSticker key={`${v.id}-${arrived}`} views={v.views} tilt={-6} pop={arrived > 0 ? 'mount' : 'view'} className="vdeck-sticker" />}
               </m.div>

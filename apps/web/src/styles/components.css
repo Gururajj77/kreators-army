@@ -2257,8 +2257,9 @@
     transition: translate var(--dur-hover) var(--ease-out);
   }
 
-  /* Phones: above the action bar while it shows (54px button, its lip, a 12px gap). The bar is gone from 640px. */
-  @media (max-width: 639px) {
+  /* Phones: above the action bar while it shows (54px button, its lip, a 12px gap). The bar is gone from 640px. (r21) 639.98, not 639: the exact
+     complement of the bar's (min-width: 640px), so a zoomed window 639.33px wide (959px at 150%) still lifts it. */
+  @media (max-width: 639.98px) {
     :root:has(.mobile-cta[data-show]) .to-top {
       --to-top-lift: calc(-1 * (54px + var(--btn-lip) + 12px));
     }

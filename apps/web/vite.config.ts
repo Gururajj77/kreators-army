@@ -55,6 +55,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // (r21) The public MEGA bridge: on phones the player reads MEGA in the page and this answers its <video>'s ranges (public/mega-bridge-sw.js).
+        importScripts: ['mega-bridge-sw.js'],
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,

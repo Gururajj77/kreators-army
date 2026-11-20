@@ -2,6 +2,8 @@
 // keys (V1-SPEC 4 contract). (pub8) What it plays: a MEGA entry opens MEGA's own embed player straight away (the Worker never streams MEGA: on
 // Cloudflare's free plan a decrypted range ran out of CPU and died as a 503); a MEGA file inside a shared folder has no embed, so it plays its bundled
 // copy when it has one, else offers MEGA's own page in a new tab; a bundled file plays in the native <video>; YouTube and wave.video in their embeds.
+// (r21) On phones a MEGA entry plays in the site's own <video> instead (lib/megaPlay.ts): MEGA's embed cannot stream on an iPhone, and its play
+// button then sends the visitor to mega.nz or the MEGA app. If that fails, MEGA's embed is the fallback.
 //
 // The morph: `layoutId` is shared between the player's frame and an empty anchor the player mounts inside the frame that was pressed. Frames never hold
 // a Motion node, so a page with a hundred tiles measures nothing. Motion cannot change a layoutId once mounted and promotes whichever element mounted
@@ -12,6 +14,7 @@ import { ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-react';
 import { AnimatePresence, PresenceContext, m, useIsPresent } from 'motion/react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal, flushSync } from 'react-dom';
+import { type MegaPlayback, openMega, playsMegaInPage } from '../lib/megaPlay';
 import { motionOk } from '../lib/motionOk';
 import { uploadMonth } from '../lib/videoFind';
 import { spring } from '../lib/spring';
@@ -103,6 +106,8 @@ export function WatchLinks({ links, className }: { links: Video['links']; classN
 type Media =
   | { kind: 'stream'; src: string }
   | { kind: 'embed'; src: string; mega: boolean }
+  /** (r21) A MEGA file read by the page itself and played in the native <video> (phones; lib/megaPlay.ts). */
+  | { kind: 'mega'; embed: string }
   /** MEGA's own page, opened in a new tab (a MEGA file inside a shared folder has no embed player). */
   | { kind: 'watch'; href: string }
   | { kind: 'failed' };
@@ -114,14 +119,23 @@ const NO_PLAY_MS = 8000;
 /** An embed whose load event never comes (blocked, offline) still replaces the poster after this; MEGA's page does more before it paints. */
 const EMBED_READY_MS = { mega: 4000, other: 2000 };
 
+const megaEmbed = (url: string): Media => ({ kind: 'embed', src: playerEmbedSrc(url), mega: true });
+
+/** (r21) MEGA's answers that its own embed would give too (the file is gone, blocked, or the transfer limit is used up): the message, not the embed. */
+const MEGA_FINAL = new Set(['over-quota', 'removed', 'not-found', 'blocked']);
+/** (r21) A page-read MEGA video with no picture is checked this often; it falls back to MEGA's embed only when no bytes arrived since the last
+ *  check (stalled, not slow: on an iPhone MEGA's embed cannot play at all, so a slow download is better than giving up). */
+const MEGA_STALL_MS = 15000;
+
 /** Where a MEGA entry with no embed goes when its bundled copy is missing or fails: MEGA's own page, else the message. */
 const afterStream = (video: Video): Media => (video.watchUrl ? { kind: 'watch', href: video.watchUrl } : { kind: 'failed' });
 
 function firstMedia(video: Video): Media {
   const known = settled.get(video.id);
   if (known) return known;
-  // MEGA's embed, straight away: only a clean embed address (one public file) goes into the iframe, with MEGA's own autoplay option.
-  if (isMegaEmbed(video.embedUrl)) return { kind: 'embed', src: playerEmbedSrc(video.embedUrl), mega: true };
+  // MEGA's embed, straight away: only a clean embed address (one public file) goes into the iframe, with MEGA's own autoplay option. Phones read
+  // the file themselves (lib/megaPlay.ts), since MEGA's embed cannot stream there.
+  if (isMegaEmbed(video.embedUrl)) return playsMegaInPage() ? { kind: 'mega', embed: video.embedUrl } : megaEmbed(video.embedUrl);
   if (video.source === 'mega') return video.fallbackUrl ? { kind: 'stream', src: video.fallbackUrl } : afterStream(video);
   if (video.streamUrl) return { kind: 'stream', src: video.streamUrl };
   if (video.embedUrl) return { kind: 'embed', src: video.embedUrl, mega: false };
@@ -134,6 +148,63 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
   const [embedReady, setEmbedReady] = useState(false);
   const el = useRef<HTMLVideoElement>(null);
   const playedOnce = useRef(false);
+  // (r21) The page-read MEGA source: its address once open, and the download share while the no-worker fallback fetches the whole file.
+  const [megaSrc, setMegaSrc] = useState<string | null>(null);
+  const [megaLoaded, setMegaLoaded] = useState<number | null>(null);
+  const playback = useRef<MegaPlayback | null>(null);
+
+  /** (r21) The page-read MEGA video failed: the message when MEGA itself refused the file, else MEGA's embed. A big file with no worker yet is
+   *  not kept: the next open asks for the worker again. */
+  const megaFailed = (embed: string, kind?: string) => {
+    const next: Media = kind && MEGA_FINAL.has(kind) ? { kind: 'failed' } : megaEmbed(embed);
+    if (kind !== 'no-bridge') settled.set(video.id, next);
+    setMegaSrc(null);
+    setMedia(next);
+  };
+
+  useEffect(() => {
+    if (media.kind !== 'mega') return;
+    const abort = new AbortController();
+    let alive = true;
+    openMega(media.embed, { signal: abort.signal, onProgress: (done, total) => alive && setMegaLoaded(done / total) })
+      .then((p) => {
+        if (!alive) return p.release();
+        playback.current = p;
+        setMegaSrc(p.url);
+      })
+      .catch((e: unknown) => {
+        if (alive) megaFailed(media.embed, (e as { kind?: string } | null)?.kind);
+      });
+    return () => {
+      alive = false;
+      abort.abort();
+      playback.current?.release();
+      playback.current = null;
+    };
+    // megaFailed reads the current video; the source opens once per media
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [media]);
+
+  // (r21) No picture yet and no bytes from MEGA for MEGA_STALL_MS: MEGA's embed takes over. A paused video that has data (autoplay refused) is fine,
+  // and so is a slow one that is still downloading.
+  useEffect(() => {
+    if (media.kind !== 'mega' || !megaSrc) return;
+    playedOnce.current = false;
+    let seen = playback.current?.fetched() ?? 0;
+    const t = window.setInterval(() => {
+      const v = el.current;
+      if (playedOnce.current || (v && v.readyState >= 2)) return window.clearInterval(t);
+      const now = playback.current?.fetched() ?? 0;
+      if (now > seen) {
+        seen = now;
+        return;
+      }
+      window.clearInterval(t);
+      megaFailed(media.embed, playback.current?.why()?.kind);
+    }, MEGA_STALL_MS);
+    return () => window.clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [media, megaSrc]);
 
   const fail = () => {
     if (media.kind !== 'stream') return;
@@ -162,6 +233,38 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
     const t = window.setTimeout(() => setEmbedReady(true), media.mega ? EMBED_READY_MS.mega : EMBED_READY_MS.other);
     return () => window.clearTimeout(t);
   }, [media]);
+
+  if (media.kind === 'mega') {
+    if (!megaSrc) {
+      const pct = megaLoaded === null ? null : Math.round(megaLoaded * 100);
+      return (
+        <>
+          <span className="player-loading" role="status" aria-label={pct === null ? 'Loading video' : `Loading video, ${pct}%`} />
+          {pct !== null && (
+            <span className="player-loaded" aria-hidden>
+              {pct}%
+            </span>
+          )}
+        </>
+      );
+    }
+    return (
+      <video
+        ref={el}
+        className="player-video"
+        src={megaSrc}
+        poster={video.posterUrl ?? undefined}
+        controls
+        autoPlay
+        playsInline
+        preload="metadata"
+        onPlaying={() => {
+          playedOnce.current = true;
+        }}
+        onError={() => megaFailed(media.embed, playback.current?.why()?.kind)}
+      />
+    );
+  }
 
   if (media.kind === 'embed') {
     return (

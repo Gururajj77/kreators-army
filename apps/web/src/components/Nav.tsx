@@ -413,23 +413,28 @@ export function Nav() {
 
 /** From this width the side margin (the content column is min(87.5%, 1260px), centred) holds the button clear of the content: 64px at 1024. */
 const ROOMY = '(min-width: 1024px)';
-/** The button's corner: 16px in from the right and the bottom, 40px across. */
+/** The button's corner: 16px in from the right and the bottom (plus the safe area, components.css .to-top), 40px across. */
 const EDGE = 16;
 const SIZE = 40;
-/** What the button must never cover: anything a visitor can press or play. */
 /** Narrow screens: how long the page stands still before the button steps aside. */
 const IDLE_MS = 2500;
+/** Wide screens: how often it looks again under itself while the page stands still (the footer ring turns its cards under it). */
+const LOOK_MS = 250;
+/** How long it takes to fade out: the visibility flips at 260ms (components.css .to-top). */
+const FADE_MS = 260;
+/** What the button must never cover: anything a visitor can press or play. */
 const PRESSABLE = 'a, button, input, select, textarea, summary, label, video, iframe, [role="button"], [role="tab"], [role="switch"], [role="link"]';
 
 /**
  * How far the button rises at the end of the page so it stops above the footer's last row and its stage (the characters and the wordmark), 12px
- * clear, wherever they share its column. Text lines count by their own boxes, so a short line beside the button does not push it up.
+ * clear, wherever they share its column. Text lines count by their own boxes, so a short line beside the button does not push it up. `right` and
+ * `bottom` are where it rests, as drawn: 16px from the window's edges plus the safe area (r21: a landscape iPhone, a Face ID iPad).
  */
-function footerLift(vw: number, vh: number): number {
+function footerLift(vw: number, vh: number, right: number, bottom: number): number {
   const bar = document.querySelector('footer.ft .ft-bar');
   if (!bar || bar.getBoundingClientRect().top > vh) return 0;
-  const left = vw - EDGE - SIZE - 8;
-  const rest = vh - EDGE;
+  const left = vw - right - SIZE - 8;
+  const rest = vh - bottom;
   let top = Infinity;
   const avoid = (r: DOMRect, above = 0) => {
     if (r.width && r.height && r.right > left && r.top - above < rest + 12) top = Math.min(top, r.top - above);
@@ -450,9 +455,11 @@ function footerLift(vw: number, vh: number): number {
 /**
  * Back to top: a small frosted disc at the bottom right whose ring fills as the page is read. It shows once the first screen is behind you and never
  * sits over the page:
- * - where the side margin holds it (ROOMY), it steps aside while something pressable passes under it (a rail that runs to the edge);
+ * - where the side margin holds it (ROOMY), it steps aside while something pressable passes under it (a rail that runs to the edge, or the footer
+ *   ring turning while the page stands still);
  * - where it does not, it steps aside while you scroll down and comes back when you scroll up or reach the end of the page, then steps aside again
  *   once the page has stood still for IDLE_MS;
+ * - it never steps aside while it has the keyboard focus, and a press while it fades out does nothing (the press must not land on what is beneath);
  * - at the end of the page it stops above the footer's last row and its characters (footerLift);
  * - on phones it rides above the action bar while that shows (components.css .to-top); it is hidden while the menu is open.
  */
@@ -460,6 +467,7 @@ function BackToTop({ menuOpen }: { menuOpen: boolean }) {
   const btn = useRef<HTMLButtonElement>(null);
   const arc = useRef<SVGCircleElement>(null);
   const [show, setShow] = useState(false);
+  const [gone, setGone] = useState(true);
 
   useEffect(() => {
     const roomy = matchMedia(ROOMY);
@@ -468,35 +476,46 @@ function BackToTop({ menuOpen }: { menuOpen: boolean }) {
     // How far the page has moved in the current direction: down is positive. A small wobble neither hides nor shows the button.
     let run = 0;
     let tucked = false;
+    // A mouse resting on the button (a phone's last tap does not count: its :hover sticks).
+    let hovered = false;
     const update = () => {
       raf = 0;
+      const b = btn.current;
+      if (!b) return;
       const y = window.scrollY;
       const vw = document.documentElement.clientWidth;
       const vh = window.innerHeight;
       const max = document.documentElement.scrollHeight - vh;
       const p = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
       arc.current?.style.setProperty('stroke-dashoffset', String(1 - p));
-      const lift = footerLift(vw, vh);
-      btn.current?.style.setProperty('--to-top-dock', `${lift}px`);
+      // (r21) Where it rests as drawn: 16px plus the safe area (env() in components.css; the dock set last is taken back out), so the dock and the
+      // probe follow a Face ID iPad's or a landscape iPhone's corner, not the bare 16px one.
+      const cs = getComputedStyle(b);
+      const docked = parseFloat(b.style.getPropertyValue('--to-top-dock')) || 0;
+      const right = parseFloat(cs.right) || EDGE;
+      const bottom = parseFloat(cs.bottom) - docked || EDGE;
+      const lift = footerLift(vw, vh, right, bottom);
+      b.style.setProperty('--to-top-dock', `${lift}px`);
       const dy = y - lastY;
       lastY = y;
       if (dy !== 0) run = Math.sign(dy) === Math.sign(run) ? run + dy : dy;
       let blocked = false;
       if (roomy.matches) {
         tucked = false;
-        const c = EDGE + SIZE / 2;
         blocked = document
-          .elementsFromPoint(vw - c, vh - c - lift)
-          .some((el) => !btn.current?.contains(el) && el.closest(PRESSABLE) !== null);
+          .elementsFromPoint(vw - right - SIZE / 2, vh - bottom - lift - SIZE / 2)
+          .some((el) => !b.contains(el) && el.closest(PRESSABLE) !== null);
       } else if (max - y < 48 || run < -24) tucked = false;
       else if (run > 24) tucked = true;
-      setShow(y > vh && !tucked && !blocked);
+      // (r21) Never while it has the keyboard focus (an arrow key scrolls the page from it): inert would drop the focus to <body>. Only a shown button
+      // can have the focus, and a press sends it to the page (toTop), so this never brings a hidden one back.
+      setShow(b === document.activeElement || (y > vh && !tucked && !blocked));
     };
     // Narrow screens: once the page has stood still for a moment (the visitor is reading), it steps aside again, unless it is docked at the end of the
-    // page, clear of everything, or has the keyboard focus.
+    // page, clear of everything, has the keyboard focus or (r21) has a mouse resting on it.
     let idle = 0;
     const rest = () => {
-      if (roomy.matches || btn.current === document.activeElement) return;
+      if (roomy.matches || btn.current === document.activeElement || (hovered && btn.current?.matches(':hover'))) return;
       if (document.documentElement.scrollHeight - window.innerHeight - window.scrollY < 48) return;
       tucked = true;
       run = 0;
@@ -507,14 +526,34 @@ function BackToTop({ menuOpen }: { menuOpen: boolean }) {
       window.clearTimeout(idle);
       idle = window.setTimeout(rest, IDLE_MS);
     };
+    // (r21) The page can move under it while it stands still (the footer ring turns its cards): where the side margin holds it, it looks again.
+    const look = window.setInterval(() => {
+      if (roomy.matches && !raf && window.scrollY > window.innerHeight) raf = requestAnimationFrame(update);
+    }, LOOK_MS);
+    // (r21) When the focus or the mouse leaves it, it is weighed again, and the idle timer starts over.
+    const onEnter = (e: PointerEvent) => {
+      hovered = e.pointerType === 'mouse';
+    };
+    const onLeave = () => {
+      hovered = false;
+      onScroll();
+    };
+    const b = btn.current;
+    b?.addEventListener('pointerenter', onEnter);
+    b?.addEventListener('pointerleave', onLeave);
+    b?.addEventListener('focusout', onScroll);
     update();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
+      b?.removeEventListener('pointerenter', onEnter);
+      b?.removeEventListener('pointerleave', onLeave);
+      b?.removeEventListener('focusout', onScroll);
       if (raf) cancelAnimationFrame(raf);
       window.clearTimeout(idle);
+      window.clearInterval(look);
     };
   }, []);
 
@@ -528,8 +567,28 @@ function BackToTop({ menuOpen }: { menuOpen: boolean }) {
   };
 
   const visible = show && !menuOpen;
+  // (r21) Inert only once it has faded out. While it fades it still takes a press, and does nothing with it (no focus, no trip to the top), so a
+  // press on the disc that is still drawn never lands on the link or video beneath.
+  useEffect(() => {
+    if (visible) {
+      setGone(false);
+      return;
+    }
+    const t = window.setTimeout(() => setGone(true), FADE_MS);
+    return () => window.clearTimeout(t);
+  }, [visible]);
   return (
-    <button ref={btn} type="button" className="to-top" data-show={visible ? '' : undefined} inert={!visible} aria-label="Back to top" onClick={toTop}>
+    <button
+      ref={btn}
+      type="button"
+      className="to-top"
+      data-show={visible ? '' : undefined}
+      inert={!visible && gone}
+      tabIndex={visible ? undefined : -1}
+      aria-label="Back to top"
+      onMouseDown={visible ? undefined : (e) => e.preventDefault()}
+      onClick={visible ? toTop : undefined}
+    >
       <svg className="to-top-ring" viewBox="0 0 40 40" aria-hidden focusable="false">
         <circle className="to-top-track" cx="20" cy="20" r="19.25" pathLength={1} />
         <circle ref={arc} className="to-top-arc" cx="20" cy="20" r="19.25" pathLength={1} />

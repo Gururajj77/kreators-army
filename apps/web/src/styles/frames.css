@@ -389,6 +389,20 @@
     animation: player-spin 0.9s linear infinite;
   }
 
+  /* (r21) Under the ring while a phone downloads a MEGA video whole (no service worker): how much has arrived. */
+  .player-loaded {
+    position: absolute;
+    z-index: 1;
+    top: calc(50% + 30px);
+    left: 0;
+    right: 0;
+    color: #fff;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+  }
+
   @keyframes player-spin {
     to {
       transform: rotate(360deg);
@@ -1319,6 +1333,130 @@
   @media (max-width: 734px) {
     .vdeck-card[data-slot='1'] {
       visibility: hidden;
+    }
+  }
+
+  /* (r21slider) Phones, the hero: the 5-up slider on a curved wall (FrameDeck `wall`: data-pos -4..4 from the middle, -1 the reel before it). The
+     middle reel is large and flat. Two on each side stand on the wall, as on the library's card ring: smaller, turned toward the middle and
+     growing toward the edges (0.62 of the middle reel's height where the inner one comes out from behind it, about 0.83 where the outer one
+     meets the screen's edge, each card's edges about level with its neighbour's), the outer ones cut by the screen. The rest wait off screen,
+     unseen. One camera for the whole deck (perspective on .vdeck, at its centre), so the wall bends as one. Every place is a fraction of the
+     reel's own width (translate %, perspective in --fw), and the hero makes the reel 46vw wide on a phone (home.css), so the picture is the same
+     at every phone width: at 390 the middle reel is 179 px and each side reel shows about 50 px, 5 px apart. A step slides every card to its
+     neighbour's place (the site's smooth spring); --drag is a swipe, the wall following the finger. */
+  @media (max-width: 734px) {
+    .vdeck[data-wall] {
+      perspective: calc(var(--fw) * 2);
+      touch-action: pan-y;
+    }
+
+    .vdeck[data-wall] > [data-pos] {
+      --x: 0%;
+      --ry: 0deg;
+      --s: 1;
+      transform-origin: 50% 50%;
+      translate: calc(var(--x) + var(--drag, 0px)) 0;
+      rotate: y var(--ry);
+      scale: var(--s);
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        translate var(--spring-smooth),
+        rotate var(--spring-smooth),
+        scale var(--spring-smooth),
+        opacity 240ms ease;
+    }
+
+    .vdeck[data-wall] > [data-pos='1'] {
+      --x: 48.2%;
+      --ry: -46deg;
+      --s: 0.62;
+    }
+
+    .vdeck[data-wall] > [data-pos='-1'] {
+      --x: -48.2%;
+      --ry: 46deg;
+      --s: 0.62;
+    }
+
+    .vdeck[data-wall] > [data-pos='2'] {
+      --x: 116.9%;
+      --ry: -62deg;
+      --s: 0.86;
+    }
+
+    .vdeck[data-wall] > [data-pos='-2'] {
+      --x: -116.9%;
+      --ry: 62deg;
+      --s: 0.86;
+    }
+
+    .vdeck[data-wall] > :is([data-pos='3'], [data-pos='4']) {
+      --x: 223.8%;
+      --ry: -70deg;
+      --s: 0.86;
+    }
+
+    .vdeck[data-wall] > :is([data-pos='-3'], [data-pos='-4']) {
+      --x: -223.8%;
+      --ry: 70deg;
+      --s: 0.86;
+    }
+
+    .vdeck[data-wall] > :is([data-pos='3'], [data-pos='4'], [data-pos='-3'], [data-pos='-4']) {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .vdeck[data-wall] > :is([data-pos='1'], [data-pos='2'], [data-pos='-1'], [data-pos='-2']) {
+      cursor: pointer;
+    }
+
+    /* The side reels sit in shade (an overlay, not a filter), easing off as a reel reaches the middle. */
+    .vdeck[data-wall] > [data-pos] .vframe-screen::after {
+      content: '';
+      position: absolute;
+      z-index: 4;
+      inset: 0;
+      background: #0e0e10;
+      opacity: 0.2;
+      pointer-events: none;
+      transition: opacity 240ms ease;
+    }
+
+    .vdeck[data-wall] > [data-pos='0'] .vframe-screen::after {
+      opacity: 0;
+    }
+
+    /* The finger holds the wall; a card that wraps round from one end to the other jumps (out of sight with 9 cards; with fewer it fades in). */
+    .vdeck[data-wall][data-drag] > [data-pos],
+    .vdeck[data-wall] > [data-jump] {
+      transition: none;
+    }
+
+    .vdeck[data-wall] > [data-jump='a']:is([data-pos='-2'], [data-pos='-1'], [data-pos='0'], [data-pos='1'], [data-pos='2']) {
+      animation: vdeck-wall-in-a 300ms ease;
+    }
+
+    .vdeck[data-wall] > [data-jump='b']:is([data-pos='-2'], [data-pos='-1'], [data-pos='0'], [data-pos='1'], [data-pos='2']) {
+      animation: vdeck-wall-in-b 300ms ease;
+    }
+
+    :root[data-still] .vdeck[data-wall] > [data-pos],
+    :root[data-still] .vdeck[data-wall] > [data-pos] .vframe-screen::after {
+      transition: none;
+      animation: none;
+    }
+  }
+
+  @keyframes vdeck-wall-in-a {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes vdeck-wall-in-b {
+    from {
+      opacity: 0;
     }
   }
 
