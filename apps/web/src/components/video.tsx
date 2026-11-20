@@ -131,6 +131,25 @@ const MEGA_FINAL = new Set(['over-quota', 'removed', 'not-found', 'blocked']);
  *  check (stalled, not slow: on an iPhone MEGA's embed cannot play at all, so a slow download is better than giving up). */
 const MEGA_STALL_MS = 15000;
 
+/** (r22) Safari (iPhone and Mac) keeps the sound running when the picture's data runs out, so a slow download showed a still picture over moving
+ *  sound, then jumped back. The player holds a video that has played and is about to pass what has arrived (closer than HOLD_EDGE_S), shows the
+ *  loading ring, and resumes where the sound was once HOLD_RESUME_S seconds are ready (or the rest of the file). While paused Safari stops
+ *  updating `buffered`, so for a MEGA file "ready" also counts what the page has already downloaded (MegaPlayback.readyAhead). Chrome and
+ *  Firefox wait by themselves; for them this only smooths the stutter. */
+const HOLD_EDGE_S = 0.25;
+const HOLD_RESUME_S = 3;
+const HOLD_TICK_MS = 200;
+/** After a resume Safari takes a moment to report what it has: no new hold in this time. */
+const HOLD_GRACE_MS = 1500;
+
+/** Seconds buffered past the current time, and where that buffered run ends (0 and the current time when it sits in none). */
+function bufferedAhead(v: HTMLVideoElement): { ahead: number; end: number } {
+  const t = v.currentTime;
+  const b = v.buffered;
+  for (let i = 0; i < b.length; i++) if (b.start(i) <= t + 0.05 && t <= b.end(i)) return { ahead: b.end(i) - t, end: b.end(i) };
+  return { ahead: 0, end: t };
+}
+
 /** Where a MEGA entry with no embed goes when its bundled copy is missing or fails: MEGA's own page, else the message. */
 const afterStream = (video: Video): Media => (video.watchUrl ? { kind: 'watch', href: video.watchUrl } : { kind: 'failed' });
 
@@ -156,6 +175,8 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
   const playedOnce = useRef(false);
   // (r21) Sound was refused (no gesture: a deep link, or the browser's settings), so it plays muted and offers "Turn sound on".
   const [soundOff, setSoundOff] = useState(false);
+  // (r22) Held while the picture's data catches up (HOLD_EDGE_S): the loading ring shows over it.
+  const [holding, setHolding] = useState(false);
   // (r21) The page-read MEGA source: its address once open, and the download share while the no-worker fallback fetches the whole file.
   const [megaSrc, setMegaSrc] = useState<string | null>(null);
   const [megaLoaded, setMegaLoaded] = useState<number | null>(null);
@@ -261,21 +282,56 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
     v.addEventListener('volumechange', onVolume);
     v.controls = true;
     v.playsInline = true;
-    v.preload = 'metadata';
+    v.preload = 'auto'; // (r22) keeps loading while it is held for the picture (with 'metadata' Safari stops once paused)
     if (video.posterUrl) v.poster = video.posterUrl;
     else v.removeAttribute('poster');
     v.muted = false;
     v.src = nativeSrc;
     host.appendChild(v);
-    v.play().catch((e: unknown) => {
-      if (!alive || (e as { name?: string } | null)?.name !== 'NotAllowedError') return;
-      // Sound refused: play muted, and say how to get the sound.
-      v.muted = true;
-      setSoundOff(true);
-      v.play().catch(() => undefined);
-    });
+    const start = () =>
+      v.play().catch((e: unknown) => {
+        if (!alive || (e as { name?: string } | null)?.name !== 'NotAllowedError') return;
+        // Sound refused: play muted, and say how to get the sound.
+        v.muted = true;
+        setSoundOff(true);
+        v.play().catch(() => undefined);
+      });
+    start();
+    // (r22) Never let the sound run on past the picture (HOLD_EDGE_S). Only once it has played: before that the browser is still starting it.
+    let held: number | null = null; // where the sound was when it was held
+    let graceUntil = 0;
+    // A scrub while it is held moves where it resumes.
+    const onSeeking = () => {
+      if (held !== null) held = v.currentTime;
+    };
+    v.addEventListener('seeking', onSeeking);
+    const hold = window.setInterval(() => {
+      if (!alive) return;
+      const dur = v.duration;
+      const { ahead, end } = bufferedAhead(v);
+      const tail = Number.isFinite(dur) && end >= dur - 0.3;
+      if (held !== null) {
+        if (!v.paused) v.pause(); // the native play button pressed while it waits
+        const mega = playback.current && Number.isFinite(dur) && dur > 0 ? playback.current.readyAhead(held / dur) * dur : 0;
+        if (!tail && Math.max(ahead, mega) < HOLD_RESUME_S && !(Number.isFinite(dur) && held + mega >= dur - 0.3)) return;
+        const at = held;
+        held = null; // first, so the seek below is not taken for a scrub
+        setHolding(false);
+        graceUntil = performance.now() + HOLD_GRACE_MS;
+        v.currentTime = at; // the picture and the sound back in step, where the sound stopped
+        start();
+        return;
+      }
+      if (!playedOnce.current || v.paused || v.ended || v.seeking || v.readyState < 1 || tail || ahead > HOLD_EDGE_S || performance.now() < graceUntil) return;
+      held = v.currentTime;
+      setHolding(true);
+      v.pause();
+    }, HOLD_TICK_MS);
     return () => {
       alive = false;
+      window.clearInterval(hold);
+      v.removeEventListener('seeking', onSeeking);
+      setHolding(false);
       v.removeEventListener('playing', onPlaying);
       v.removeEventListener('error', onError);
       v.removeEventListener('volumechange', onVolume);
@@ -307,6 +363,7 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
         </button>
       )}
       <div ref={box} className="player-video-box" />
+      {holding && <span className="player-loading" role="status" aria-label="Loading video" />}
     </>
   );
 

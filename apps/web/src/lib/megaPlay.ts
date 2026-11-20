@@ -43,6 +43,8 @@ export interface MegaPlayback {
   why(): MegaError | null;
   /** Bytes received from MEGA so far, counted as they arrive (r21): still growing means slow, not broken. */
   fetched(): number;
+  /** (r22) The share of the file (0 to 1) ready in one run from the share `from` (what the player has reached): all of it for a blob. */
+  readyAhead(from: number): number;
   release(): void;
 }
 
@@ -117,6 +119,7 @@ export async function openMega(embedUrl: string, opts: { signal?: AbortSignal; o
       mode: 'sw',
       why: () => file.lastError,
       fetched: () => file.received,
+      readyAhead: (from) => file.readyFrom(Math.floor(Math.min(1, Math.max(0, from)) * info.size)) / info.size,
       release: () => {
         sources.delete(token);
         file.dispose();
@@ -127,5 +130,5 @@ export async function openMega(embedUrl: string, opts: { signal?: AbortSignal; o
   if (info.size > BLOB_MAX) throw Object.assign(new Error('too big to download whole'), { kind: 'no-bridge' });
   const blob = await file.whole(opts.signal, opts.onProgress);
   const url = URL.createObjectURL(blob);
-  return { url, mode: 'blob', why: () => file.lastError, fetched: () => file.received, release: () => URL.revokeObjectURL(url) };
+  return { url, mode: 'blob', why: () => file.lastError, fetched: () => file.received, readyAhead: (from) => 1 - from, release: () => URL.revokeObjectURL(url) };
 }

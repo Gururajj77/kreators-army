@@ -558,6 +558,15 @@ export class MegaFile {
     return n;
   }
 
+  /** (r22) Bytes decrypted and kept in one unbroken run from byte `at` (0 when the chunk holding it is not here): how far ahead the player's
+   *  data is ready, which Safari's own `buffered` stops reporting while the video is paused. */
+  readyFrom(at: number): number {
+    let i = Math.floor(at / CHUNK);
+    let n = -(at - i * CHUNK);
+    for (let c = this.chunks.get(i); c; c = this.chunks.get(++i)) n += c.length;
+    return Math.max(0, n);
+  }
+
   private keep(i: number, bytes: Uint8Array<ArrayBuffer>) {
     this.chunks.delete(i);
     this.chunks.set(i, bytes);
