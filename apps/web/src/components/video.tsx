@@ -283,11 +283,22 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
     v.controls = true;
     v.playsInline = true;
     v.preload = 'auto'; // (r22) keeps loading while it is held for the picture (with 'metadata' Safari stops once paused)
+    // (r23) The tap's prime (primePlayer) left this element "playing" with no source. WebKit (every iPhone browser, Mac Safari) then never takes
+    // the poster down: the video played with its sound under a still cover, no controls, until a pause or a seek. Paused first, the play()
+    // below is a real start from paused, which is what clears the poster. The tap's unlock of the sound stays with the element.
+    if (!v.paused) v.pause();
     if (video.posterUrl) v.poster = video.posterUrl;
     else v.removeAttribute('poster');
     v.muted = false;
     v.src = nativeSrc;
     host.appendChild(v);
+    // (r23) And whatever path got here: once a real frame is on screen the poster has no job left, so it goes. Until then it covers the load.
+    let frameWatch = 0;
+    const dropPoster = () => {
+      if (alive) v.removeAttribute('poster');
+    };
+    if (typeof v.requestVideoFrameCallback === 'function') frameWatch = v.requestVideoFrameCallback(dropPoster);
+    else v.addEventListener('playing', dropPoster, { once: true });
     const start = () =>
       v.play().catch((e: unknown) => {
         if (!alive || (e as { name?: string } | null)?.name !== 'NotAllowedError') return;
@@ -329,6 +340,8 @@ function PlayerMedia({ video, onRetry }: { video: Video; onRetry: () => void }) 
     }, HOLD_TICK_MS);
     return () => {
       alive = false;
+      if (frameWatch) v.cancelVideoFrameCallback(frameWatch);
+      v.removeEventListener('playing', dropPoster);
       window.clearInterval(hold);
       v.removeEventListener('seeking', onSeeking);
       setHolding(false);
